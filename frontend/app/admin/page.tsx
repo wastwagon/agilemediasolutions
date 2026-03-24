@@ -79,8 +79,8 @@ export default function AdminLogin() {
         }}
       >
         <motion.div variants={itemVariants} style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-          <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '2.5rem', marginBottom: '0.5rem', color: '#0D213B' }}>Agile CMS</h2>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', color: '#6B7280', fontSize: '0.9rem', letterSpacing: '0.5px' }}>SECURE COMMAND CENTER</p>
+          <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '2.5rem', marginBottom: '0.5rem', color: '#0D213B', fontWeight: 700 }}>Agile CMS</h2>
+          <p style={{ fontFamily: 'DM Sans, sans-serif', color: '#6B7280', fontSize: '0.85rem', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: 600 }}>Administrative Control Center</p>
         </motion.div>
         
         <AnimatePresence>
@@ -97,48 +97,79 @@ export default function AdminLogin() {
         </AnimatePresence>
 
         <form onSubmit={handleLogin}>
-          <motion.div variants={itemVariants} className="form-control" style={{ marginBottom: '1.5rem' }}>
-            <input 
-              type="text" 
-              required 
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder=" "
-              id="admin-user"
-              disabled={loading}
-            />
-            <label htmlFor="admin-user">Administrator Username</label>
-          </motion.div>
+          <motion.div variants={itemVariants} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <label htmlFor="admin-user" style={{ fontSize: '0.8rem', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Username</label>
+              <input 
+                type="text" 
+                required 
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                id="admin-user"
+                disabled={loading}
+                style={{
+                  width: '100%',
+                  padding: '1rem',
+                  borderRadius: '12px',
+                  border: '1px solid #E5E7EB',
+                  background: '#F9FAFB',
+                  color: '#111827',
+                  fontSize: '1rem',
+                  outline: 'none',
+                  transition: 'border-color 0.2s ease',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
 
-          <motion.div variants={itemVariants} className="form-control" style={{ marginBottom: '2.5rem' }}>
-            <input 
-              type="password" 
-              required 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder=" "
-              id="admin-pass"
-              disabled={loading}
-            />
-            <label htmlFor="admin-pass">Secure Password</label>
-          </motion.div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <label htmlFor="admin-pass" style={{ fontSize: '0.8rem', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Password</label>
+              <input 
+                type="password" 
+                required 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                id="admin-pass"
+                disabled={loading}
+                style={{
+                  width: '100%',
+                  padding: '1rem',
+                  borderRadius: '12px',
+                  border: '1px solid #E5E7EB',
+                  background: '#F9FAFB',
+                  color: '#111827',
+                  fontSize: '1rem',
+                  outline: 'none',
+                  transition: 'border-color 0.2s ease',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
 
-          <motion.div variants={itemVariants}>
             <button 
               type="submit" 
               disabled={loading}
-              className="btn btn-primary magnetic"
               style={{ 
                 width: '100%', 
-                padding: '1rem', 
+                padding: '1.15rem', 
                 borderRadius: '50px', 
                 fontSize: '1rem',
+                fontWeight: 700,
                 display: 'flex',
                 justifyContent: 'center',
-                opacity: loading ? 0.7 : 1
+                alignItems: 'center',
+                gap: '10px',
+                background: '#2C504A', // Brand Green
+                color: '#FFFFFF',
+                border: 'none',
+                cursor: 'pointer',
+                marginTop: '1rem',
+                opacity: loading ? 0.7 : 1,
+                boxShadow: '0 10px 25px rgba(44, 80, 74, 0.25)',
+                transition: 'transform 0.2s ease'
               }}
             >
-              {loading ? 'Authenticating...' : 'Enter Gateway →'}
+              {loading ? 'Authenticating...' : 'Sign In to Dashboard →'}
             </button>
           </motion.div>
         </form>
