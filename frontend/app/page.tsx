@@ -131,7 +131,7 @@ export default function Page() {
                 <article key={s.id} className="card card-service animate-on-scroll">
                   <div className={`card-image-placeholder service-img-${s.icon || 'default'}`}></div>
                   <h3>{s.title}</h3>
-                  <p>{s.description}<br /><Link href="/services">Learn more</Link></p>
+                  <p>{s.description}<br /><Link href="/services" className="link-arrow-text">Learn more →</Link></p>
                 </article>
               ))
             ) : (
@@ -139,17 +139,17 @@ export default function Page() {
                 <article className="card card-service animate-on-scroll">
                   <div className="card-image-placeholder service-img-strategic"></div>
                   <h3>Strategic Communications & Narrative Building</h3>
-                  <p>Tailored messaging frameworks and storytelling strategies that align with your institutional goals and public identity.<br /><Link href="/services">Learn more</Link></p>
+                  <p>Tailored messaging frameworks and storytelling strategies that align with your institutional goals and public identity.<br /><Link href="/services" className="link-arrow-text">Learn more →</Link></p>
                 </article>
                 <article className="card card-service animate-on-scroll">
                   <div className="card-image-placeholder service-img-media-relations"></div>
                   <h3>Media Relations & Reputation Management</h3>
-                  <p>Build and sustain public trust through managed perception, strong media relationships, and preparation for visibility and scrutiny.<br /><Link href="/services">Learn more</Link></p>
+                  <p>Build and sustain public trust through managed perception, strong media relationships, and preparation for visibility and scrutiny.<br /><Link href="/services" className="link-arrow-text">Learn more →</Link></p>
                 </article>
                 <article className="card card-service animate-on-scroll">
                   <div className="card-image-placeholder service-img-campaigns"></div>
                   <h3>Campaigns, Advocacy & Stakeholder Engagement</h3>
-                  <p>High-impact campaigns that mobilize audiences, shift public opinion, and influence policy or behavior.<br /><Link href="/services">Learn more</Link></p>
+                  <p>High-impact campaigns that mobilize audiences, shift public opinion, and influence policy or behavior.<br /><Link href="/services" className="link-arrow-text">Learn more →</Link></p>
                 </article>
               </>
             )}
@@ -173,7 +173,7 @@ export default function Page() {
                 <article key={b.id} className="card card-brand animate-on-scroll">
                   <div className="card-image-placeholder" style={{ backgroundImage: b.image_url ? `url(${b.image_url})` : undefined, backgroundColor: '#f9f9f9' }}></div>
                   <h3>{b.name}</h3>
-                  <p>{b.description}<br /><Link href="/brands">Learn more</Link></p>
+                  <p>{b.description}<br /><Link href="/brands" className="link-arrow-text">Learn more →</Link></p>
                 </article>
               ))
             ) : (
@@ -181,17 +181,17 @@ export default function Page() {
                 <article className="card card-brand animate-on-scroll">
                   <div className="card-image-placeholder brand-img-leaders"></div>
                   <h3>African Leaders Magazine</h3>
-                  <p>A continental platform spotlighting leadership, policy, and governance across Africa for decision-makers and institutions.<br /><Link href="/brands">Learn more</Link></p>
+                  <p>A continental platform spotlighting leadership, policy, and governance across Africa for decision-makers and institutions.<br /><Link href="/brands" className="link-arrow-text">Learn more →</Link></p>
                 </article>
                 <article className="card card-brand animate-on-scroll">
                   <div className="card-image-placeholder brand-img-sports"></div>
                   <h3>Africa Sports Magazine</h3>
-                  <p>Monthly insights on performance, business, and culture in African sports—celebrating athletes, rising stars, and sports diplomacy.<br /><Link href="/brands">Learn more</Link></p>
+                  <p>Monthly insights on performance, business, and culture in African sports—celebrating athletes, rising stars, and sports diplomacy.<br /><Link href="/brands" className="link-arrow-text">Learn more →</Link></p>
                 </article>
                 <article className="card card-brand animate-on-scroll">
                   <div className="card-image-placeholder brand-img-news"></div>
                   <h3>Africa News Bulletin</h3>
-                  <p>Daily curated updates on politics, economy, institutions, and regional affairs for decision-makers across the continent.<br /><Link href="/brands">Learn more</Link></p>
+                  <p>Daily curated updates on politics, economy, institutions, and regional affairs for decision-makers across the continent.<br /><Link href="/brands" className="link-arrow-text">Learn more →</Link></p>
                 </article>
               </>
             )}
@@ -221,7 +221,7 @@ export default function Page() {
                     }}
                   ></div>
                   <h3>{e.title}</h3>
-                  <p>{e.description}<br /><Link href="/signature-events">Learn more</Link></p>
+                  <p>{e.description}<br /><Link href="/signature-events" className="link-arrow-text">Learn more →</Link></p>
                 </article>
               ))
             ) : (
@@ -229,17 +229,17 @@ export default function Page() {
                 <article className="card card-event animate-on-scroll">
                   <div className="card-image-placeholder event-img-summit"></div>
                   <h3>Africa Trade Summit</h3>
-                  <p>Accelerating intra-African trade, investment, and economic transformation.<br /><Link href="/signature-events">Learn more</Link></p>
+                  <p>Accelerating intra-African trade, investment, and economic transformation.<br /><Link href="/signature-events" className="link-arrow-text">Learn more →</Link></p>
                 </article>
                 <article className="card card-event animate-on-scroll">
                   <div className="card-image-placeholder event-img-trade-awards"></div>
                   <h3>Africa Trade Awards</h3>
-                  <p>Celebrating excellence across the continent’s trade ecosystem.<br /><Link href="/signature-events">Learn more</Link></p>
+                  <p>Celebrating excellence across the continent’s trade ecosystem.<br /><Link href="/signature-events" className="link-arrow-text">Learn more →</Link></p>
                 </article>
                 <article className="card card-event animate-on-scroll">
                   <div className="card-image-placeholder event-img-jazz"></div>
                   <h3>Afro Jazz Festival</h3>
-                  <p>Celebrating the soul of Africa through music, art, and culture.<br /><Link href="/signature-events">Learn more</Link></p>
+                  <p>Celebrating the soul of Africa through music, art, and culture.<br /><Link href="/signature-events" className="link-arrow-text">Learn more →</Link></p>
                 </article>
               </>
             )}

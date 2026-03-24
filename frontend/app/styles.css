@@ -529,7 +529,7 @@ main {
   border-color: var(--color-text-muted);
 }
 .link-arrow {
-  color: var(--color-text);
+  color: var(--color-electric-blue);
   font-weight: 500;
   text-decoration: none;
   display: inline-flex;
@@ -537,8 +537,23 @@ main {
   gap: 4px;
   transition: color var(--duration-fast), gap var(--duration-fast);
 }
-.link-arrow { color: var(--color-electric-blue); }
 .link-arrow:hover { color: var(--color-cyan); gap: 8px; }
+
+.link-arrow-text {
+  color: #2C504A; /* Brand Green */
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: gap var(--duration-fast) ease, color var(--duration-fast) ease;
+  font-size: 0.95rem;
+  margin-top: 0.5rem;
+}
+.link-arrow-text:hover {
+  color: var(--color-cyan);
+  gap: 10px;
+}
 
 /* ============================================
    Digital Engagement & Social Media section
