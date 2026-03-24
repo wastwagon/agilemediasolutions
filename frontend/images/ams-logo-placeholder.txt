@@ -1,0 +1,2 @@
+Place your Agile Media Solutions logo image here and name it: ams-logo.png
+(The site is already set to use images/ams-logo.png in the header and footer.)

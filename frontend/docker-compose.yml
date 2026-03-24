@@ -1,0 +1,6 @@
+services:
+  web:
+    image: agile-media-website:latest
+    build: .
+    ports:
+      - "8080:80"

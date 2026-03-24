@@ -1,0 +1,243 @@
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import AdminImageUpload from '../../../components/AdminImageUpload';
+
+export default function AdminCaseStudies() {
+  const [caseStudies, setCaseStudies] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [editingCase, setEditingCase] = useState<any>(null);
+  const [isAdding, setIsAdding] = useState(false);
+
+  // Form states
+  const [title, setTitle] = useState('');
+  const [clientName, setClientName] = useState('');
+  const [description, setDescription] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
+  const [orderIndex, setOrderIndex] = useState('');
+
+  const fetchData = async () => {
+    setLoading(true);
+    const token = localStorage.getItem('admin_token');
+    try {
+      const res = await fetch('/api/case-studies', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setCaseStudies(data);
+      } else {
+        setError('Failed to fetch case studies');
+      }
+    } catch (err) {
+      setError('Error connecting to backend');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleEditClick = (c: any) => {
+    setEditingCase(c);
+    setIsAdding(true);
+    setTitle(c.title);
+    setClientName(c.client_name || '');
+    setDescription(c.description || '');
+    setImageUrl(c.image_url || '');
+    setOrderIndex(c.order_index?.toString() || '0');
+  };
+
+  const handleCreateClick = () => {
+    setEditingCase(null);
+    setIsAdding(true);
+    setTitle('');
+    setClientName('');
+    setDescription('');
+    setImageUrl('');
+    setOrderIndex('0');
+  };
+
+  const handleCancel = () => {
+    setIsAdding(false);
+    setEditingCase(null);
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this case study?')) return;
+    const token = localStorage.getItem('admin_token');
+    try {
+      const res = await fetch(`/api/case-studies/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        fetchData();
+      } else {
+        alert('Failed to delete case study');
+      }
+    } catch (err) {
+      alert('Error deleting case study');
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const data = {
+      title, client_name: clientName, description, image_url: imageUrl, order_index: parseInt(orderIndex || '0')
+    };
+
+    const token = localStorage.getItem('admin_token');
+    const url = editingCase ? `/api/case-studies/${editingCase.id}` : '/api/case-studies';
+    const method = editingCase ? 'PUT' : 'POST';
+
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+      if (res.ok) {
+        handleCancel();
+        fetchData();
+      } else {
+        alert('Failed to save case study');
+      }
+    } catch (err) {
+      alert('Error saving case study');
+    }
+  };
+
+  if (loading && caseStudies.length === 0) return <div className="admin-loading" style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Loading case studies...</div>;
+
+  return (
+    <div className="admin-page animate-on-scroll is-visible">
+      <div className="admin-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
+        <div>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.5rem', marginBottom: '0.5rem', color: 'var(--color-dark-blue)' }}>Case Studies CMS</h1>
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '1.1rem' }}>Manage the portfolio of successful campaigns and activations.</p>
+        </div>
+        {!isAdding && (
+          <button onClick={handleCreateClick} className="btn btn-primary">
+            + Add New Case Study
+          </button>
+        )}
+      </div>
+
+      {isAdding && (
+        <div style={{ background: '#fff', padding: '2.5rem', borderRadius: '16px', border: '1px solid var(--color-border)', marginBottom: '2.5rem', boxShadow: 'var(--shadow-sm)' }}>
+          <h3 style={{ marginBottom: '2rem', fontFamily: 'var(--font-display)', fontSize: '1.5rem', color: 'var(--color-dark-blue)' }}>
+            {editingCase ? 'Edit Case Study' : 'Create New Case Study'}
+          </h3>
+          <form onSubmit={handleSubmit}>
+            <div className="form-row-split" style={{ marginBottom: '1.5rem' }}>
+              <div className={`form-group ${title ? 'has-value' : ''}`}>
+                <input type="text" id="title" required value={title} onChange={(e) => setTitle(e.target.value)} />
+                <label htmlFor="title">Campaign / Project Title</label>
+                <div className="form-border"></div>
+              </div>
+              <div className={`form-group ${clientName ? 'has-value' : ''}`}>
+                <input type="text" id="clientName" value={clientName} onChange={(e) => setClientName(e.target.value)} />
+                <label htmlFor="clientName">Client or Partner Name (Optional)</label>
+                <div className="form-border"></div>
+              </div>
+            </div>
+
+            <div className={`form-group form-group-textarea ${description ? 'has-value' : ''}`} style={{ marginBottom: '1.5rem' }}>
+              <textarea id="description" rows={3} value={description} onChange={(e) => setDescription(e.target.value)}></textarea>
+              <label htmlFor="description">Campaign Impact Description (Optional)</label>
+              <div className="form-border"></div>
+            </div>
+
+            <div className="form-row-split" style={{ marginBottom: '2.5rem' }}>
+              <div className={`form-group ${imageUrl ? 'has-value' : ''}`}>
+                <input type="text" id="imageUrl" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
+                <label htmlFor="imageUrl">Background Image URL</label>
+                <div className="form-border"></div>
+                <AdminImageUpload 
+                  currentUrl={imageUrl} 
+                  onUploadSuccess={(url) => setImageUrl(url)} 
+                  label="Upload Case Study Thumbnail"
+                />
+              </div>
+              <div className={`form-group ${orderIndex ? 'has-value' : ''}`}>
+                <input type="number" id="orderIndex" value={orderIndex} onChange={(e) => setOrderIndex(e.target.value)} />
+                <label htmlFor="orderIndex">Sort Order Index</label>
+                <div className="form-border"></div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+              <button type="button" onClick={handleCancel} className="btn btn-outline" style={{ border: 'none' }}>Cancel</button>
+              <button type="submit" className="btn btn-primary">{editingCase ? 'Save Changes' : 'Publish Case Study'}</button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {error && <div style={{ padding: '1rem', background: '#FEF2F2', color: '#B91C1C', borderRadius: '8px', marginBottom: '2rem' }}>{error}</div>}
+
+      {!isAdding && (
+        <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid var(--color-border)', overflow: 'scroll', boxShadow: 'var(--shadow-sm)' }}>
+          <table style={{ width: '100%', minWidth: '800px', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <thead style={{ background: 'var(--color-bg-alt)', borderBottom: '1px solid var(--color-border)' }}>
+              <tr>
+                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', width: '80px', textAlign: 'center' }}>Ord</th>
+                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Visual</th>
+                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Campaign Information</th>
+                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right' }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {caseStudies.length === 0 ? (
+                <tr><td colSpan={4} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>No case studies configured.</td></tr>
+              ) : (
+                caseStudies.map((c) => (
+                  <tr key={c.id} style={{ borderBottom: '1px solid var(--color-border)', background: '#fff' }}>
+                    <td style={{ padding: '1.5rem 1.2rem', verticalAlign: 'middle', textAlign: 'center', color: 'var(--color-text-muted)', fontWeight: 600 }}>
+                      {c.order_index}
+                    </td>
+                    <td style={{ padding: '1.5rem 1.2rem', verticalAlign: 'middle' }}>
+                      <div style={{ width: '120px', height: '60px', background: 'var(--color-bg-alt)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: '0.5rem' }}>
+                        {c.image_url ? <img src={c.image_url} alt={c.title} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} /> : <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>No Image</span>}
+                      </div>
+                    </td>
+                    <td style={{ padding: '1.5rem 1.2rem', verticalAlign: 'middle' }}>
+                      <div style={{ fontWeight: 600, color: 'var(--color-dark-blue)', marginBottom: '4px', fontSize: '1.1rem' }}>{c.title}</div>
+                      {c.client_name && <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--color-gray)', marginBottom: '4px' }}>Client: {c.client_name}</div>}
+                      {c.description && <div style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)', marginBottom: '8px', maxWidth: '400px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.description}</div>}
+                    </td>
+                    <td style={{ padding: '1.5rem 1.2rem', verticalAlign: 'middle', textAlign: 'right' }}>
+                      <button 
+                        onClick={() => handleEditClick(c)}
+                        style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-primary)', fontSize: '0.9rem', fontWeight: 600, marginRight: '1rem', transition: 'opacity 0.2s' }}
+                        onMouseOver={(e) => e.currentTarget.style.opacity = '0.7'}
+                        onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(c.id)}
+                        style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#E63946', fontSize: '0.9rem', fontWeight: 600, transition: 'opacity 0.2s' }}
+                        onMouseOver={(e) => e.currentTarget.style.opacity = '0.7'}
+                        onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}

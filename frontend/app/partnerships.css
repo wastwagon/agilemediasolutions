@@ -1,0 +1,224 @@
+/* ============================================
+   Partnerships page — same design as Careers / menu pages
+   Uses Agile Media design tokens from styles.css
+   ============================================ */
+
+/* ---- Page shell ---- */
+.partnerships-page-main {
+  padding-top: var(--header-two-rows-height);
+  min-height: 100vh;
+}
+
+.section-partnerships-page {
+  padding: 0;
+  background: var(--color-bg);
+}
+
+/* ---- Content area ---- */
+.partnerships-content {
+  padding: var(--space-3xl) var(--space-xl);
+  background: var(--color-bg-alt);
+}
+
+.partnerships-grid {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-xl);
+}
+
+/* ---- Types of Partnerships (card grid) ---- */
+.partnerships-block.partnerships-types {
+  background: var(--color-bg);
+  border-radius: var(--radius-lg);
+  padding: var(--space-2xl);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.partnerships-heading {
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 2.2vw, 1.5rem);
+  font-weight: 700;
+  color: var(--color-dark-blue);
+  margin: 0 0 var(--space-lg);
+  padding-bottom: var(--space-md);
+  border-bottom: 2px solid var(--color-electric-blue);
+  display: inline-block;
+}
+
+.partnerships-types-grid {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-lg);
+}
+
+.partnerships-type-card {
+  background: var(--color-bg-alt);
+  border-radius: var(--radius);
+  padding: var(--space-xl);
+  border: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  transition: transform var(--duration-fast) var(--ease-out), box-shadow var(--duration-normal), border-color var(--duration-normal);
+}
+
+.partnerships-type-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-electric-blue);
+}
+
+.partnerships-type-title {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--color-dark-blue);
+  display: block;
+}
+
+.partnerships-type-desc {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+/* ---- Card blocks (Partner With Us To, Our Partnership Values) ---- */
+.partnerships-block.partnerships-card {
+  background: var(--color-bg);
+  border-radius: var(--radius-lg);
+  padding: var(--space-2xl);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--duration-normal) var(--ease-out), border-color var(--duration-normal);
+}
+
+.partnerships-block.partnerships-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+.partnerships-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.partnerships-list li {
+  position: relative;
+  padding-left: 1.5rem;
+  margin-bottom: var(--space-sm);
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: var(--color-text);
+}
+
+.partnerships-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.5em;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-electric-blue);
+}
+
+/* ---- CTA strip ---- */
+.partnerships-cta-strip {
+  background: #111111;
+  color: #FFFFFF;
+  padding: var(--space-3xl) var(--space-xl);
+  margin-top: var(--space-3xl);
+}
+
+.partnerships-cta-inner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  text-align: center;
+}
+
+.partnerships-cta-text {
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 2.5vw, 1.75rem);
+  font-weight: 600;
+  margin: 0 0 var(--space-xl);
+  color: #FFFFFF;
+}
+
+.partnerships-cta-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  justify-content: center;
+}
+
+.btn-partnerships-primary {
+  background: var(--color-electric-blue);
+  color: #FFFFFF;
+  padding: 0.85rem 1.75rem;
+  font-weight: 600;
+  border-radius: var(--radius);
+  text-decoration: none;
+  border: 2px solid var(--color-electric-blue);
+  transition: background var(--duration-normal), border-color var(--duration-normal), color var(--duration-normal);
+}
+
+.btn-partnerships-primary:hover {
+  background: var(--color-cyan);
+  border-color: var(--color-cyan);
+  color: #FFFFFF;
+}
+
+.btn-partnerships-outline {
+  background: transparent;
+  color: #FFFFFF;
+  padding: 0.85rem 1.75rem;
+  font-weight: 600;
+  border-radius: var(--radius);
+  text-decoration: none;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  transition: background var(--duration-normal), border-color var(--duration-normal), color var(--duration-normal);
+}
+
+.btn-partnerships-outline:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #FFFFFF;
+  color: #FFFFFF;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 900px) {
+  .partnerships-types-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .partnerships-content {
+    padding: var(--space-2xl) var(--space-lg);
+  }
+
+  .partnerships-types-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .partnerships-cta-strip {
+    padding: var(--space-2xl) var(--space-lg);
+    margin-top: var(--space-2xl);
+  }
+
+  .partnerships-cta-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .partnerships-cta-buttons .btn {
+    display: block;
+    text-align: center;
+  }
+}
