@@ -56,8 +56,9 @@ export default function AdminLogin() {
       display: 'flex', 
       alignItems: 'center', 
       justifyContent: 'center', 
-      background: 'url(/images/hero-bg.jpg) center/cover no-repeat',
-      position: 'relative'
+      background: 'linear-gradient(135deg, #F9FAFB 0%, #E5E7EB 100%)', // High-end neutral background
+      position: 'relative',
+      overflow: 'hidden'
     }}>
       {/* Absolute blur overlay */}
       <div style={{ position: 'absolute', inset: 0, background: 'rgba(235, 230, 221, 0.95)', backdropFilter: 'blur(30px)' }}></div>
