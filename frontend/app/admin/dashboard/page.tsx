@@ -84,26 +84,26 @@ export default function AdminDashboard() {
   };
 
   const statsCards = [
-    { key: 'contacts', label: 'Contact messages', value: stats.contacts, href: '/admin/contacts', cta: 'View messages', accent: '#D76A49', tint: 'rgba(215, 106, 73, 0.13)', icon: '✉', trend: '+12% this week' },
-    { key: 'brands', label: 'Brands', value: stats.brands, href: '/admin/brands', cta: 'Manage brands', accent: '#4F8F87', tint: 'rgba(79, 143, 135, 0.13)', icon: '◈', trend: 'Portfolio ready' },
-    { key: 'services', label: 'Services', value: stats.services, href: '/admin/services', cta: 'Manage services', accent: '#0D213B', tint: 'rgba(13, 33, 59, 0.08)', icon: '✦', trend: 'Catalog active' },
-    { key: 'pages', label: 'Pages', value: stats.pages, href: '/admin/pages', cta: 'Manage pages', accent: '#5B6472', tint: 'rgba(91, 100, 114, 0.1)', icon: '▣', trend: 'Publishing enabled' },
-    { key: 'media', label: 'Media assets', value: stats.media, href: '/admin/media', cta: 'Open media library', accent: '#2C504A', tint: 'rgba(44, 80, 74, 0.13)', icon: '◉', trend: 'Library synced' },
+    { key: 'contacts', label: 'Contact messages', value: stats.contacts, href: '/admin/contacts', cta: 'View messages', accent: '#D76A49', tint: 'rgba(215, 106, 73, 0.13)', icon: '✉' },
+    { key: 'brands', label: 'Brands', value: stats.brands, href: '/admin/brands', cta: 'Manage brands', accent: '#4F8F87', tint: 'rgba(79, 143, 135, 0.13)', icon: '◈' },
+    { key: 'services', label: 'Services', value: stats.services, href: '/admin/services', cta: 'Manage services', accent: '#0D213B', tint: 'rgba(13, 33, 59, 0.08)', icon: '✦' },
+    { key: 'pages', label: 'Pages', value: stats.pages, href: '/admin/pages', cta: 'Manage pages', accent: '#5B6472', tint: 'rgba(91, 100, 114, 0.1)', icon: '▣' },
+    { key: 'media', label: 'Media assets', value: stats.media, href: '/admin/media', cta: 'Open media library', accent: '#2C504A', tint: 'rgba(44, 80, 74, 0.13)', icon: '◉' },
   ] as const;
 
   const commandCardStyle: React.CSSProperties = {
-    background: 'rgba(255, 255, 255, 0.8)',
-    backdropFilter: 'blur(16px)',
-    padding: '2rem 1.5rem',
-    borderRadius: '16px',
-    border: '1px solid rgba(229, 231, 235, 0.7)',
-    boxShadow: '0 4px 20px rgba(13, 33, 59, 0.03)',
+    background: 'rgba(255, 255, 255, 0.86)',
+    backdropFilter: 'blur(18px)',
+    padding: '1.55rem 1.45rem',
+    borderRadius: '18px',
+    border: '1px solid rgba(229, 231, 235, 0.85)',
+    boxShadow: '0 18px 40px -32px rgba(13, 33, 59, 0.45)',
     display: 'flex',
     flexDirection: 'column',
-    gap: '0.62rem',
+    gap: '0.7rem',
     position: 'relative',
     overflow: 'hidden',
-    minHeight: '220px'
+    minHeight: '210px'
   };
 
   return (
@@ -126,21 +126,33 @@ export default function AdminDashboard() {
             whileHover={{ y: -6, boxShadow: '0 14px 30px rgba(13, 33, 59, 0.1)' }}
             transition={{ type: 'spring', stiffness: 300, damping: 20 }}
             style={commandCardStyle}
+            className="kpi-card"
           >
-            <div style={{ position: 'absolute', top: -10, right: -10, width: '44px', height: '44px', background: card.tint, borderRadius: '50%' }} />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#6B7280', letterSpacing: '0.03em', textTransform: 'uppercase' }}>
                 {card.label}
               </span>
-              <span style={{ width: '32px', height: '32px', borderRadius: '10px', background: card.tint, color: card.accent, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.95rem' }}>
+              <span
+                aria-hidden="true"
+                style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: 12,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: card.tint,
+                  color: card.accent,
+                  fontWeight: 900,
+                  fontSize: '0.95rem',
+                  border: '1px solid rgba(229,231,235,0.6)',
+                }}
+              >
                 {card.icon}
               </span>
             </div>
-            <span style={{ fontSize: '3rem', fontFamily: 'Cormorant Garamond, serif', fontWeight: 600, color: '#111827', lineHeight: 1 }}>
+            <span style={{ fontSize: '3.05rem', fontFamily: 'Cormorant Garamond, serif', fontWeight: 650, color: '#111827', lineHeight: 0.98, letterSpacing: '-0.02em' }}>
               <AnimatedCounter to={card.value} />
-            </span>
-            <span style={{ fontSize: '0.78rem', color: card.accent, background: card.tint, borderRadius: '999px', width: 'fit-content', padding: '0.22rem 0.58rem', fontWeight: 700 }}>
-              {card.trend}
             </span>
             <Link href={card.href} className="magnetic" style={{ fontSize: '0.88rem', color: card.accent, textDecoration: 'none', fontWeight: 700, marginTop: 'auto', paddingTop: '0.8rem', display: 'inline-block' }}>
               {card.cta}
@@ -148,6 +160,18 @@ export default function AdminDashboard() {
           </motion.div>
         ))}
       </motion.div>
+      <style jsx>{`
+        .kpi-card::after {
+          content: '';
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 3px;
+          background: linear-gradient(90deg, rgba(44, 80, 74, 0.0), rgba(44, 80, 74, 0.55), rgba(44, 80, 74, 0.0));
+          opacity: 0.65;
+        }
+      `}</style>
     </div>
   );
 }

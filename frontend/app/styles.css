@@ -1778,6 +1778,18 @@ main {
 .admin-page .btn.btn-primary {
   box-shadow: 0 12px 26px rgba(44, 80, 74, 0.22);
 }
+
+/* Admin CMS — sidebar link enforcement (prevents browser/default visited purple) */
+.admin-nav-link,
+.admin-nav-link:link,
+.admin-nav-link:visited,
+.admin-nav-link:hover,
+.admin-nav-link:active,
+.admin-nav-link:focus-visible {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
+  text-decoration: none !important;
+}
 .form-row-split {
   display: grid;
   grid-template-columns: 1fr 1fr;
