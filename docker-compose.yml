@@ -16,7 +16,7 @@ services:
     depends_on:
       - backend
     networks:
-      - modern_net
+      - coolify
 
   backend:
     build:
@@ -39,7 +39,7 @@ services:
     volumes:
       - ./backend/uploads:/usr/src/app/uploads
     networks:
-      - modern_net
+      - coolify
 
   postgres:
     image: postgres:16-alpine
@@ -55,7 +55,7 @@ services:
       - modern_postgres_data:/var/lib/postgresql/data
       - ./db/init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
     networks:
-      - modern_net
+      - coolify
 
   redis:
     image: redis:7-alpine
@@ -67,11 +67,11 @@ services:
     volumes:
       - modern_redis_data:/data
     networks:
-      - modern_net
+      - coolify
 
 networks:
-  modern_net:
-    driver: bridge
+  coolify:
+    external: true
 
 volumes:
   modern_postgres_data:

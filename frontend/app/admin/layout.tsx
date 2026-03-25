@@ -96,39 +96,44 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           position: relative;
           padding: 0.66rem 0.95rem;
           border-radius: 10px;
-          color: #ffffff;
+          color: #ffffff !important;
           text-decoration: none;
           border: 1px solid transparent;
-          font-weight: 600;
-          letter-spacing: 0.01em;
+          font-weight: 700;
+          letter-spacing: 0.02em;
+          font-size: 0.92rem;
+          text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
           transition: all 0.2s ease;
+        }
+        .admin-nav-link:visited {
+          color: #ffffff !important;
         }
         .admin-nav-link::before {
           content: '';
           position: absolute;
-          left: -0.42rem;
-          top: 0.56rem;
-          width: 3px;
-          height: calc(100% - 1.12rem);
+          left: -0.45rem;
+          top: 0.5rem;
+          width: 4px;
+          height: calc(100% - 1rem);
           border-radius: 999px;
-          background: #9be4d7;
+          background: linear-gradient(180deg, #9be4d7, #ffffff);
           opacity: 0;
           transform: scaleY(0.75);
           transition: all 0.2s ease;
         }
         .admin-nav-link:hover {
-          background: rgba(59, 109, 102, 0.28);
-          border-color: rgba(255, 255, 255, 0.14);
-          box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03), 0 8px 18px rgba(0, 0, 0, 0.22);
+          background: rgba(255, 255, 255, 0.08);
+          border-color: rgba(255, 255, 255, 0.18);
+          box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05), 0 10px 22px rgba(0, 0, 0, 0.28);
         }
         .admin-nav-link:hover::before {
           opacity: 0.7;
           transform: scaleY(1);
         }
         .admin-nav-link.is-active {
-          background: linear-gradient(135deg, #2c504a, #3b6d66);
-          border-color: rgba(255, 255, 255, 0.2);
-          box-shadow: 0 10px 24px rgba(44, 80, 74, 0.35);
+          background: linear-gradient(135deg, rgba(44, 80, 74, 0.95), rgba(59, 109, 102, 0.95));
+          border-color: rgba(255, 255, 255, 0.24);
+          box-shadow: 0 14px 28px rgba(0, 0, 0, 0.35);
         }
         .admin-nav-link.is-active::before {
           opacity: 1;
