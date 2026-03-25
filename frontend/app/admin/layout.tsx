@@ -69,71 +69,57 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Link
                 key={item.href}
                 href={item.href}
-                className={`admin-nav-link${active ? ' is-active' : ''}`}
+                style={{
+                  padding: '1.05rem 1.15rem',
+                  borderRadius: '14px',
+                  color: '#FFFFFF',
+                  textDecoration: 'none',
+                  fontWeight: 700,
+                  letterSpacing: '0.01em',
+                  fontSize: '1.06rem',
+                  border: active ? '1px solid rgba(255,255,255,0.18)' : '1px solid transparent',
+                  background: active ? 'rgba(44, 80, 74, 0.92)' : 'transparent',
+                  boxShadow: active
+                    ? 'inset 0 0 0 1px rgba(255,255,255,0.06), 0 14px 26px rgba(0,0,0,0.35)'
+                    : 'none',
+                  textShadow: '0 1px 0 rgba(0,0,0,0.28)',
+                  transition: 'background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease',
+                }}
               >
                 {item.label}
               </Link>
             );
           })}
-          <hr style={{ border: 'none', height: '1px', background: 'rgba(255,255,255,0.12)', margin: '1.4rem 0' }} />
-          <button onClick={handleLogout} className="admin-logout-btn">Log out</button>
         </nav>
       </aside>
 
       {/* Main Content */}
       <main style={{ flex: 1, overflow: 'auto' }}>
-        <header style={{ height: '68px', background: 'rgba(255,255,255,0.82)', backdropFilter: 'blur(8px)', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 2rem', position: 'sticky', top: 0, zIndex: 10 }}>
+        <header style={{ height: '68px', background: 'rgba(255,255,255,0.82)', backdropFilter: 'blur(8px)', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.6rem', padding: '0 2rem', position: 'sticky', top: 0, zIndex: 10 }}>
           <span style={{ fontSize: '0.9rem', color: '#4B5563', background: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '999px', padding: '0.42rem 0.8rem' }}>
             Logged in as <strong style={{ color: '#111827' }}>{typeof window !== 'undefined' ? localStorage.getItem('admin_user') : ''}</strong>
           </span>
+          <button
+            onClick={handleLogout}
+            style={{
+              padding: '0.46rem 0.82rem',
+              borderRadius: '999px',
+              color: '#B91C1C',
+              background: '#FFFFFF',
+              border: '1px solid rgba(185, 28, 28, 0.26)',
+              cursor: 'pointer',
+              fontWeight: 700,
+              fontSize: '0.86rem',
+            }}
+          >
+            Log out
+          </button>
         </header>
         <div style={{ padding: '2rem 2.1rem' }}>
           {children}
         </div>
       </main>
       <style jsx>{`
-        .admin-nav-link {
-          position: relative;
-          padding: 1.05rem 1.15rem;
-          border-radius: 14px;
-          color: #ffffff !important;
-          text-decoration: none;
-          border: 1px solid transparent;
-          font-weight: 700;
-          letter-spacing: 0.01em;
-          font-size: 1.06rem;
-          text-shadow: 0 1px 0 rgba(0, 0, 0, 0.28);
-          transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
-        }
-        .admin-nav-link:visited {
-          color: #ffffff !important;
-        }
-        .admin-nav-link:hover {
-          background: rgba(255, 255, 255, 0.06);
-          border-color: rgba(255, 255, 255, 0.14);
-        }
-        .admin-nav-link.is-active {
-          background: rgba(44, 80, 74, 0.92);
-          border-color: rgba(255, 255, 255, 0.18);
-          box-shadow:
-            inset 0 0 0 1px rgba(255, 255, 255, 0.06),
-            0 14px 26px rgba(0, 0, 0, 0.35);
-        }
-        .admin-logout-btn {
-          padding: 1rem 1.15rem;
-          border-radius: 14px;
-          color: #fca5a5;
-          background: transparent;
-          border: 1px solid rgba(252, 165, 165, 0.25);
-          text-align: left;
-          cursor: pointer;
-          font-weight: 700;
-          transition: all 0.2s ease;
-        }
-        .admin-logout-btn:hover {
-          background: rgba(252, 165, 165, 0.08);
-          border-color: rgba(252, 165, 165, 0.45);
-        }
       `}</style>
     </div>
   );
