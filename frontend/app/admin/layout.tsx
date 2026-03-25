@@ -30,17 +30,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   // Login page doesn't get the layout
   if (pathname === '/admin') return <>{children}</>;
 
-  const navLinkStyle = (active: boolean): React.CSSProperties => ({
-    padding: '0.72rem 0.95rem',
-    borderRadius: '10px',
-    color: '#FFFFFF',
-    textDecoration: 'none',
-    background: active ? 'linear-gradient(135deg, #2C504A, #3B6D66)' : 'transparent',
-    border: active ? '1px solid rgba(255,255,255,0.12)' : '1px solid transparent',
-    fontWeight: 600,
-    letterSpacing: '0.01em',
-    transition: 'all 0.2s ease'
-  });
+  const navItems = [
+    { href: '/admin/dashboard', label: 'Dashboard' },
+    { href: '/admin/brands', label: 'Brands' },
+    { href: '/admin/services', label: 'Services' },
+    { href: '/admin/pages', label: 'Pages' },
+    { href: '/admin/media', label: 'Media Library' },
+    { href: '/admin/events', label: 'Events' },
+    { href: '/admin/case-studies', label: 'Case Studies' },
+    { href: '/admin/contacts', label: 'Contact form' },
+    { href: '/admin/settings', label: 'Settings' },
+  ];
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'linear-gradient(180deg, #F7F8FA 0%, #EEF2F7 100%)' }}>
@@ -62,18 +62,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             }}
           />
         </div>
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          <Link href="/admin/dashboard" style={navLinkStyle(pathname === '/admin/dashboard')}>Dashboard</Link>
-          <Link href="/admin/brands" style={navLinkStyle(pathname === '/admin/brands')}>Brands</Link>
-          <Link href="/admin/services" style={navLinkStyle(pathname === '/admin/services')}>Services</Link>
-          <Link href="/admin/pages" style={navLinkStyle(pathname === '/admin/pages')}>Pages</Link>
-          <Link href="/admin/media" style={navLinkStyle(pathname === '/admin/media')}>Media Library</Link>
-          <Link href="/admin/events" style={navLinkStyle(pathname === '/admin/events')}>Events</Link>
-          <Link href="/admin/case-studies" style={navLinkStyle(pathname === '/admin/case-studies')}>Case Studies</Link>
-          <Link href="/admin/contacts" style={navLinkStyle(pathname === '/admin/contacts')}>Contact form</Link>
-          <Link href="/admin/settings" style={navLinkStyle(pathname === '/admin/settings')}>Settings</Link>
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+          {navItems.map((item) => {
+            const active = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`admin-nav-link${active ? ' is-active' : ''}`}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
           <hr style={{ border: 'none', height: '1px', background: 'rgba(255,255,255,0.12)', margin: '1.4rem 0' }} />
-          <button onClick={handleLogout} style={{ padding: '0.7rem 0.95rem', borderRadius: '10px', color: '#FCA5A5', background: 'transparent', border: '1px solid rgba(252,165,165,0.25)', textAlign: 'left', cursor: 'pointer', fontWeight: 700 }}>Log out</button>
+          <button onClick={handleLogout} className="admin-logout-btn">Log out</button>
         </nav>
       </aside>
 
@@ -88,6 +91,65 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {children}
         </div>
       </main>
+      <style jsx>{`
+        .admin-nav-link {
+          position: relative;
+          padding: 0.66rem 0.95rem;
+          border-radius: 10px;
+          color: #ffffff;
+          text-decoration: none;
+          border: 1px solid transparent;
+          font-weight: 600;
+          letter-spacing: 0.01em;
+          transition: all 0.2s ease;
+        }
+        .admin-nav-link::before {
+          content: '';
+          position: absolute;
+          left: -0.42rem;
+          top: 0.56rem;
+          width: 3px;
+          height: calc(100% - 1.12rem);
+          border-radius: 999px;
+          background: #9be4d7;
+          opacity: 0;
+          transform: scaleY(0.75);
+          transition: all 0.2s ease;
+        }
+        .admin-nav-link:hover {
+          background: rgba(59, 109, 102, 0.28);
+          border-color: rgba(255, 255, 255, 0.14);
+          box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03), 0 8px 18px rgba(0, 0, 0, 0.22);
+        }
+        .admin-nav-link:hover::before {
+          opacity: 0.7;
+          transform: scaleY(1);
+        }
+        .admin-nav-link.is-active {
+          background: linear-gradient(135deg, #2c504a, #3b6d66);
+          border-color: rgba(255, 255, 255, 0.2);
+          box-shadow: 0 10px 24px rgba(44, 80, 74, 0.35);
+        }
+        .admin-nav-link.is-active::before {
+          opacity: 1;
+          transform: scaleY(1);
+        }
+        .admin-logout-btn {
+          padding: 0.66rem 0.95rem;
+          border-radius: 10px;
+          color: #fca5a5;
+          background: transparent;
+          border: 1px solid rgba(252, 165, 165, 0.25);
+          text-align: left;
+          cursor: pointer;
+          font-weight: 700;
+          transition: all 0.2s ease;
+        }
+        .admin-logout-btn:hover {
+          background: rgba(252, 165, 165, 0.08);
+          border-color: rgba(252, 165, 165, 0.45);
+        }
+      `}</style>
     </div>
   );
 }

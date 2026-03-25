@@ -35,6 +35,8 @@ export default function AdminPages() {
   const [blocks, setBlocks] = useState<PageBlock[]>([]);
   const [heroSlides, setHeroSlides] = useState<HeroSlide[]>([]);
   const [selectedMediaUrl, setSelectedMediaUrl] = useState('');
+  const thStyle: React.CSSProperties = { position: 'sticky', top: 0, zIndex: 1, padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', background: 'var(--color-bg-alt)' };
+  const actionBtnStyle: React.CSSProperties = { background: 'var(--color-bg-alt)', border: '1px solid var(--color-border)', borderRadius: 8, cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700, padding: '0.4rem 0.62rem', marginLeft: '0.55rem' };
 
   const isHome = useMemo(() => slug === 'home', [slug]);
 
@@ -506,19 +508,19 @@ export default function AdminPages() {
       {error && <div style={{ padding: '1rem', background: '#FEF2F2', color: '#B91C1C', borderRadius: '8px', marginBottom: '2rem' }}>{error}</div>}
 
       {!isAdding && (
-        <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid var(--color-border)', overflow: 'scroll', boxShadow: 'var(--shadow-sm)' }}>
+        <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid var(--color-border)', overflowX: 'auto', boxShadow: 'var(--shadow-sm)', maxHeight: '70vh' }}>
           <table style={{ width: '100%', minWidth: '800px', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead style={{ background: 'var(--color-bg-alt)', borderBottom: '1px solid var(--color-border)' }}>
               <tr>
-                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Page</th>
-                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>URL</th>
-                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Last updated</th>
-                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right' }}>Actions</th>
+                <th style={thStyle}>Page</th>
+                <th style={thStyle}>URL</th>
+                <th style={thStyle}>Last updated</th>
+                <th style={{ ...thStyle, textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {pages.length === 0 ? (
-                <tr><td colSpan={4} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>No pages yet. Add one to get started.</td></tr>
+                <tr><td colSpan={4} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)', fontWeight: 600 }}>No pages yet. Add one to get started.</td></tr>
               ) : (
                 pages.map((p) => (
                   <tr key={p.id} style={{ borderBottom: '1px solid var(--color-border)', background: '#fff' }}>
@@ -560,20 +562,20 @@ export default function AdminPages() {
                           href={`/${p.slug}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-primary)', fontSize: '0.9rem', fontWeight: 600, marginRight: '1rem', textDecoration: 'none' }}
+                          style={{ ...actionBtnStyle, color: 'var(--color-primary)', textDecoration: 'none', display: 'inline-block' }}
                         >
                           View
                         </a>
                       )}
                       <button 
                         onClick={() => handleEdit(p.slug)}
-                        style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-primary)', fontSize: '0.9rem', fontWeight: 600, marginRight: '1rem', transition: 'opacity 0.2s' }}
+                        style={{ ...actionBtnStyle, color: 'var(--color-primary)' }}
                       >
                         Edit
                       </button>
                       <button 
                         onClick={() => handleDelete(p.id)}
-                        style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#E63946', fontSize: '0.9rem', fontWeight: 600, transition: 'opacity 0.2s' }}
+                        style={{ ...actionBtnStyle, color: '#B91C1C', borderColor: 'rgba(185,28,28,0.25)', background: 'rgba(185,28,28,0.04)' }}
                       >
                         Delete
                       </button>

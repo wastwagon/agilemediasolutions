@@ -1706,6 +1706,78 @@ main {
   max-width: 700px;
   margin: 0 auto;
 }
+
+/* ============================================
+   Admin CMS — unified form styling (scoped)
+   ============================================ */
+.admin-page .form-row-split {
+  gap: 1.25rem;
+}
+.admin-page .form-group label {
+  position: static;
+  transform: none !important;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: rgba(90, 86, 82, 0.95);
+  margin-bottom: 0.55rem;
+}
+.admin-page .form-group input,
+.admin-page .form-group textarea,
+.admin-page .form-group select {
+  background: #ffffff;
+  border: 1px solid rgba(226, 221, 213, 0.95);
+  border-radius: 12px;
+  padding: 0.85rem 0.9rem;
+  font-size: 1rem;
+  line-height: 1.4;
+  color: var(--color-text);
+  box-shadow: 0 1px 0 rgba(28, 27, 26, 0.03);
+}
+.admin-page .form-group textarea {
+  min-height: 110px;
+}
+.admin-page .form-group input:focus,
+.admin-page .form-group textarea:focus,
+.admin-page .form-group select:focus {
+  outline: none;
+  border-color: rgba(44, 80, 74, 0.75);
+  box-shadow: 0 0 0 4px rgba(44, 80, 74, 0.10);
+}
+.admin-page .form-group input,
+.admin-page .form-group textarea {
+  border-bottom: 1px solid rgba(226, 221, 213, 0.95);
+}
+.admin-page .form-border {
+  display: none;
+}
+.admin-page .form-group.has-error input,
+.admin-page .form-group.has-error textarea {
+  border-color: rgba(185, 28, 28, 0.55);
+  box-shadow: 0 0 0 4px rgba(185, 28, 28, 0.10);
+}
+.admin-page .form-group.has-error label {
+  color: #B91C1C !important;
+}
+.admin-page .btn {
+  border-radius: 999px;
+  padding: 0.65rem 1.05rem;
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+.admin-page .btn.btn-outline {
+  background: rgba(243, 240, 234, 0.75);
+  border: 1px solid rgba(226, 221, 213, 0.95);
+  color: var(--color-text);
+}
+.admin-page .btn.btn-outline:hover {
+  background: rgba(243, 240, 234, 0.95);
+  border-color: rgba(44, 80, 74, 0.25);
+}
+.admin-page .btn.btn-primary {
+  box-shadow: 0 12px 26px rgba(44, 80, 74, 0.22);
+}
 .form-row-split {
   display: grid;
   grid-template-columns: 1fr 1fr;

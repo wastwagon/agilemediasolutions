@@ -17,6 +17,8 @@ export default function AdminCaseStudies() {
   const [description, setDescription] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [orderIndex, setOrderIndex] = useState('');
+  const thStyle: React.CSSProperties = { position: 'sticky', top: 0, zIndex: 1, padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', background: 'var(--color-bg-alt)' };
+  const actionBtnStyle: React.CSSProperties = { background: 'var(--color-bg-alt)', border: '1px solid var(--color-border)', borderRadius: 8, cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700, padding: '0.4rem 0.62rem', marginLeft: '0.55rem' };
 
   const fetchData = async () => {
     setLoading(true);
@@ -186,19 +188,19 @@ export default function AdminCaseStudies() {
       {error && <div style={{ padding: '1rem', background: '#FEF2F2', color: '#B91C1C', borderRadius: '8px', marginBottom: '2rem' }}>{error}</div>}
 
       {!isAdding && (
-        <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid var(--color-border)', overflow: 'scroll', boxShadow: 'var(--shadow-sm)' }}>
+        <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid var(--color-border)', overflowX: 'auto', boxShadow: 'var(--shadow-sm)', maxHeight: '70vh' }}>
           <table style={{ width: '100%', minWidth: '800px', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead style={{ background: 'var(--color-bg-alt)', borderBottom: '1px solid var(--color-border)' }}>
               <tr>
-                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', width: '80px', textAlign: 'center' }}>Order</th>
-                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Image</th>
-                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Details</th>
-                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right' }}>Actions</th>
+                <th style={{ ...thStyle, width: '80px', textAlign: 'center' }}>Order</th>
+                <th style={thStyle}>Image</th>
+                <th style={thStyle}>Details</th>
+                <th style={{ ...thStyle, textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {caseStudies.length === 0 ? (
-                <tr><td colSpan={4} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>No case studies yet. Add one to get started.</td></tr>
+                <tr><td colSpan={4} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)', fontWeight: 600 }}>No case studies yet. Add one to get started.</td></tr>
               ) : (
                 caseStudies.map((c) => (
                   <tr key={c.id} style={{ borderBottom: '1px solid var(--color-border)', background: '#fff' }}>
@@ -218,17 +220,13 @@ export default function AdminCaseStudies() {
                     <td style={{ padding: '1.5rem 1.2rem', verticalAlign: 'middle', textAlign: 'right' }}>
                       <button 
                         onClick={() => handleEditClick(c)}
-                        style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-primary)', fontSize: '0.9rem', fontWeight: 600, marginRight: '1rem', transition: 'opacity 0.2s' }}
-                        onMouseOver={(e) => e.currentTarget.style.opacity = '0.7'}
-                        onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
+                        style={{ ...actionBtnStyle, color: 'var(--color-primary)' }}
                       >
                         Edit
                       </button>
                       <button 
                         onClick={() => handleDelete(c.id)}
-                        style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#E63946', fontSize: '0.9rem', fontWeight: 600, transition: 'opacity 0.2s' }}
-                        onMouseOver={(e) => e.currentTarget.style.opacity = '0.7'}
-                        onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
+                        style={{ ...actionBtnStyle, color: '#B91C1C', borderColor: 'rgba(185,28,28,0.25)', background: 'rgba(185,28,28,0.04)' }}
                       >
                         Delete
                       </button>
