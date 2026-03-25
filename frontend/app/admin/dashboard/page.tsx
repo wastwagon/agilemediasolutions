@@ -151,17 +151,7 @@ export default function AdminDashboard() {
                 {card.icon}
               </span>
             </div>
-            <span
-              style={{
-                fontSize: '2.85rem',
-                fontFamily: 'DM Sans, system-ui, -apple-system, Segoe UI, sans-serif',
-                fontWeight: 800,
-                color: '#111827',
-                lineHeight: 1,
-                letterSpacing: '-0.01em',
-                fontVariantNumeric: 'tabular-nums',
-              }}
-            >
+            <span style={{ fontSize: '3.05rem', fontFamily: 'Cormorant Garamond, serif', fontWeight: 650, color: '#111827', lineHeight: 0.98, letterSpacing: '-0.02em' }}>
               <AnimatedCounter to={card.value} />
             </span>
             <Link href={card.href} className="magnetic" style={{ fontSize: '0.88rem', color: card.accent, textDecoration: 'none', fontWeight: 700, marginTop: 'auto', paddingTop: '0.8rem', display: 'inline-block' }}>
