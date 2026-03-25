@@ -15,6 +15,25 @@ const HOME_CONTENT_JSON = {
   ],
 };
 
+const CMS_PAGE_SEEDS = [
+  { slug: 'about', title: 'About', description: 'Who we are and what we stand for.' },
+  { slug: 'services', title: 'Services', description: 'Our communication and media services.' },
+  { slug: 'sectors', title: 'Sectors', description: 'Sectors we support across Africa and beyond.' },
+  { slug: 'brands', title: 'Brands', description: 'Explore our media and publishing brands.' },
+  { slug: 'signature-events', title: 'Signature Events', description: 'Events and summits powered by Agile Media.' },
+  { slug: 'studio', title: 'Studio', description: 'Creative production, design, and content studio.' },
+  { slug: 'case-studies', title: 'Case Studies', description: 'Selected outcomes and client impact stories.' },
+  { slug: 'insights', title: 'Insights', description: 'Ideas, trends, and strategic communication perspectives.' },
+  { slug: 'agile-press-group', title: 'Agile Press Group', description: 'Our publishing and media ecosystem.' },
+  { slug: 'digital-engagement', title: 'Digital Engagement', description: 'Digital strategy and audience engagement services.' },
+  { slug: 'partnerships', title: 'Partnerships', description: 'Collaborations and strategic partnerships.' },
+  { slug: 'careers', title: 'Careers', description: 'Join our growing team.' },
+  { slug: 'contact', title: 'Contact', description: 'Get in touch with Agile Media Solutions.' },
+  { slug: 'privacy', title: 'Privacy Policy', description: 'How we collect and use your data.' },
+  { slug: 'terms', title: 'Terms of Service', description: 'Terms governing use of our website and services.' },
+  { slug: 'cookies', title: 'Cookie Notice', description: 'Cookie usage and preference information.' },
+];
+
 const SEED_SECTORS = [
   {
     name: 'Government & Public Institutions',
@@ -313,6 +332,24 @@ async function seedAgileContent(pool) {
        updated_at = NOW()`,
     [HOME_TITLE, HOME_DESCRIPTION, JSON.stringify(HOME_CONTENT_JSON)]
   );
+
+  for (const page of CMS_PAGE_SEEDS) {
+    const content = {
+      blocks: [
+        {
+          type: 'text',
+          heading: page.title,
+          body: page.description,
+        },
+      ],
+    };
+    await pool.query(
+      `INSERT INTO pages (slug, title, description, content_json, status, published_at)
+       SELECT $1, $2, $3, $4::jsonb, 'published', NOW()
+       WHERE NOT EXISTS (SELECT 1 FROM pages WHERE slug = $1)`,
+      [page.slug, page.title, page.description, JSON.stringify(content)]
+    );
+  }
 
   for (let i = 0; i < SEED_SECTORS.length; i++) {
     const s = SEED_SECTORS[i];

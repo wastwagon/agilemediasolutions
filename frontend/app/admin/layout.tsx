@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [authorized, setAuthorized] = useState<boolean | null>(null);
@@ -45,7 +46,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div style={{ display: 'flex', minHeight: '100vh', background: 'linear-gradient(180deg, #F7F8FA 0%, #EEF2F7 100%)' }}>
       {/* Sidebar */}
       <aside style={{ width: '272px', background: '#0F172A', color: '#fff', padding: '1.5rem 1rem', borderRight: '1px solid rgba(255,255,255,0.08)', position: 'sticky', top: 0, alignSelf: 'flex-start', height: '100vh' }}>
-        <h1 style={{ fontFamily: 'Cormorant Garamond', fontSize: '1.55rem', marginBottom: '2.2rem', padding: '0 0.75rem', color: '#F8FAFC' }}>Agile Media</h1>
+        <div style={{ marginBottom: '2.2rem', padding: '0 0.75rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '1rem' }}>
+          <Image
+            src="/images/agilemediasolutionslogo.png"
+            alt="Agile Media"
+            width={184}
+            height={58}
+            priority
+            style={{
+              width: '184px',
+              height: 'auto',
+              objectFit: 'contain',
+              filter: 'brightness(0) invert(1) contrast(1.06)',
+              opacity: 0.95,
+            }}
+          />
+        </div>
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           <Link href="/admin/dashboard" style={navLinkStyle(pathname === '/admin/dashboard')}>Dashboard</Link>
           <Link href="/admin/brands" style={navLinkStyle(pathname === '/admin/brands')}>Brands</Link>

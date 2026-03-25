@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS pages (
   content_json JSONB NOT NULL DEFAULT '{}',
   status TEXT NOT NULL DEFAULT 'published',
   published_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

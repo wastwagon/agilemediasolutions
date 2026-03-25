@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 
 export default function AdminLogin() {
   const [username, setUsername] = useState('');
@@ -78,7 +79,41 @@ export default function AdminLogin() {
           border: '1px solid rgba(255, 255, 255, 0.5)'
         }}
       >
+        <div
+          style={{
+            position: 'absolute',
+            top: '0.9rem',
+            right: '1rem',
+            fontSize: '0.68rem',
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            fontWeight: 700,
+            color: '#64748B',
+            background: '#F8FAFC',
+            border: '1px solid #E5E7EB',
+            borderRadius: '999px',
+            padding: '0.2rem 0.55rem',
+          }}
+        >
+          CMS
+        </div>
         <motion.div variants={itemVariants} style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              marginBottom: '1rem',
+            }}
+          >
+            <Image
+              src="/images/agilemediasolutionslogo.png"
+              alt="Agile Media"
+              width={200}
+              height={64}
+              priority
+              style={{ width: '208px', height: 'auto', objectFit: 'contain' }}
+            />
+          </div>
           <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '2.5rem', marginBottom: '0.5rem', color: '#0D213B', fontWeight: 700 }}>Sign in</h2>
           <p style={{ fontFamily: 'DM Sans, sans-serif', color: '#6B7280', fontSize: '0.95rem', fontWeight: 500 }}>Agile Media — manage site content</p>
         </motion.div>

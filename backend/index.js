@@ -21,7 +21,11 @@ const DATABASE_URL = process.env.DATABASE_URL;
 const REDIS_URL = process.env.REDIS_URL;
 const JWT_SECRET = process.env.JWT_SECRET || 'agile_media_secret_123';
 
-app.use(cors({ origin: CORS_ORIGIN === '*' ? true : CORS_ORIGIN.split(',') }));
+const parsedCorsOrigins =
+  CORS_ORIGIN === '*'
+    ? true
+    : CORS_ORIGIN.split(',').map((origin) => origin.trim()).filter(Boolean);
+app.use(cors({ origin: parsedCorsOrigins }));
 app.use(express.json());
 app.use(morgan('combined'));
 
@@ -66,6 +70,7 @@ const ensureCoreSchema = async () => {
       content_json JSONB NOT NULL DEFAULT '{}',
       status TEXT NOT NULL DEFAULT 'published',
       published_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
   `);
@@ -73,6 +78,7 @@ const ensureCoreSchema = async () => {
   // Ensure new columns exist for older deployments
   await pgPool.query(`ALTER TABLE pages ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'published';`);
   await pgPool.query(`ALTER TABLE pages ADD COLUMN IF NOT EXISTS published_at TIMESTAMPTZ;`);
+  await pgPool.query(`ALTER TABLE pages ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW();`);
   await pgPool.query(`UPDATE pages SET status = 'published' WHERE status IS NULL;`);
 
   // Ensure default admin account exists (password: admin123)
@@ -98,6 +104,79 @@ const ensureMediaAssetsTable = async () => {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
   `);
+};
+
+const ensureAppSchemaAndSeed = async () => {
+  if (!pgPool) return;
+  await ensureCoreSchema();
+  await pgPool.query(`
+    CREATE TABLE IF NOT EXISTS contact_messages (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      email TEXT NOT NULL,
+      topic TEXT,
+      message TEXT NOT NULL,
+      status TEXT DEFAULT 'new',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS newsletter_subscribers (
+      id SERIAL PRIMARY KEY,
+      email TEXT NOT NULL UNIQUE,
+      subscribed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS brands (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      description TEXT,
+      image_url TEXT,
+      website_url TEXT,
+      order_index INTEGER DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS services (
+      id SERIAL PRIMARY KEY,
+      title TEXT NOT NULL,
+      description TEXT,
+      icon TEXT,
+      order_index INTEGER DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS events (
+      id SERIAL PRIMARY KEY,
+      title TEXT NOT NULL,
+      description TEXT,
+      image_url TEXT,
+      link_url TEXT,
+      order_index INTEGER DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS case_studies (
+      id SERIAL PRIMARY KEY,
+      title TEXT NOT NULL,
+      client_name TEXT,
+      description TEXT,
+      image_url TEXT,
+      content_json JSONB DEFAULT '{}',
+      order_index INTEGER DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS sectors (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      description TEXT,
+      icon TEXT,
+      order_index INTEGER DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+  await ensureMediaAssetsTable();
+  await seedAgileContent(pgPool);
 };
 
 const pgPool = DATABASE_URL ? new Pool({ connectionString: DATABASE_URL }) : null;
@@ -494,6 +573,7 @@ app.delete('/api/case-studies/:id', authenticateToken, async (req, res) => {
 // Pages
 app.get('/api/pages', authenticateToken, async (req, res) => {
   try {
+    await ensureCoreSchema();
     const result = await pgPool.query('SELECT id, slug, title, description, status, published_at, created_at, updated_at FROM pages ORDER BY updated_at DESC');
     res.json(result.rows);
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -583,121 +663,24 @@ app.delete('/api/admin/contacts/:id', authenticateToken, async (req, res) => {
 app.post('/api/admin/run-migrations', authenticateToken, async (req, res) => {
   if (!pgPool) return res.status(500).json({ error: 'Database not available' });
   try {
-    const query = `
-      CREATE TABLE IF NOT EXISTS contact_messages (
-        id SERIAL PRIMARY KEY,
-        name TEXT NOT NULL,
-        email TEXT NOT NULL,
-        topic TEXT,
-        message TEXT NOT NULL,
-        status TEXT DEFAULT 'new',
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      );
-
-      CREATE TABLE IF NOT EXISTS newsletter_subscribers (
-        id SERIAL PRIMARY KEY,
-        email TEXT NOT NULL UNIQUE,
-        subscribed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      );
-
-      CREATE TABLE IF NOT EXISTS admin_users (
-        id SERIAL PRIMARY KEY,
-        username TEXT NOT NULL UNIQUE,
-        password_hash TEXT NOT NULL,
-        email TEXT NOT NULL UNIQUE,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      );
-
-      INSERT INTO admin_users (username, password_hash, email) 
-      VALUES ('admin', '$2b$10$/NC9NTmVlaIok.b/fcWoWOJd0yjhyb3rFETF.QDjQ0jWptytGKWNa', 'admin@agilemediasolution.com')
-      ON CONFLICT (username) DO UPDATE SET password_hash = EXCLUDED.password_hash;
-
-      CREATE TABLE IF NOT EXISTS pages (
-        id SERIAL PRIMARY KEY,
-        slug TEXT NOT NULL UNIQUE,
-        title TEXT NOT NULL,
-        description TEXT,
-        content_json JSONB NOT NULL DEFAULT '{}',
-        status TEXT NOT NULL DEFAULT 'published',
-        published_at TIMESTAMPTZ,
-        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      );
-
-      ALTER TABLE pages ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'published';
-      ALTER TABLE pages ADD COLUMN IF NOT EXISTS published_at TIMESTAMPTZ;
-      UPDATE pages SET status = 'published' WHERE status IS NULL;
-
-      CREATE TABLE IF NOT EXISTS brands (
-        id SERIAL PRIMARY KEY,
-        name TEXT NOT NULL,
-        description TEXT,
-        image_url TEXT,
-        website_url TEXT,
-        order_index INTEGER DEFAULT 0,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      );
-
-      CREATE TABLE IF NOT EXISTS services (
-        id SERIAL PRIMARY KEY,
-        title TEXT NOT NULL,
-        description TEXT,
-        icon TEXT,
-        order_index INTEGER DEFAULT 0,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      );
-
-      CREATE TABLE IF NOT EXISTS events (
-        id SERIAL PRIMARY KEY,
-        title TEXT NOT NULL,
-        description TEXT,
-        image_url TEXT,
-        link_url TEXT,
-        order_index INTEGER DEFAULT 0,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      );
-
-      CREATE TABLE IF NOT EXISTS case_studies (
-        id SERIAL PRIMARY KEY,
-        title TEXT NOT NULL,
-        client_name TEXT,
-        description TEXT,
-        image_url TEXT,
-        content_json JSONB DEFAULT '{}',
-        order_index INTEGER DEFAULT 0,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      );
-
-      CREATE TABLE IF NOT EXISTS sectors (
-        id SERIAL PRIMARY KEY,
-        name TEXT NOT NULL,
-        description TEXT,
-        icon TEXT,
-        order_index INTEGER DEFAULT 0,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      );
-
-      CREATE TABLE IF NOT EXISTS media_assets (
-        id SERIAL PRIMARY KEY,
-        url TEXT NOT NULL UNIQUE,
-        filename TEXT NOT NULL,
-        original_name TEXT,
-        mime_type TEXT,
-        size_bytes BIGINT,
-        alt_text TEXT,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      );
-    `;
-    await pgPool.query(query);
-    await seedAgileContent(pgPool);
+    await ensureAppSchemaAndSeed();
     res.json({ success: true, message: 'Migration and seeding completed successfully.' });
   } catch (err) { 
     res.status(500).json({ error: err.message }); 
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Agile Media CMS Backend running on port ${PORT}`);
-  ensureCoreSchema().catch((err) => {
-    console.error('Core schema bootstrap failed:', err.message);
+const start = async () => {
+  try {
+    await ensureAppSchemaAndSeed();
+    console.log('Database schema checked and CMS seed ensured.');
+  } catch (err) {
+    console.error('Startup migration/seed failed:', err.message);
+  }
+
+  app.listen(PORT, () => {
+    console.log(`Agile Media CMS Backend running on port ${PORT}`);
   });
-});
+};
+
+start();
