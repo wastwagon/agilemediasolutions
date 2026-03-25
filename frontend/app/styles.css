@@ -434,8 +434,19 @@ main {
    Sections (ref: Who We Are, Brands, Events, etc.)
    ============================================ */
 .section {
-  padding: var(--section-padding) var(--space-xl);
+  padding: calc(var(--section-padding) + 0.5rem) var(--space-xl);
   background: var(--color-bg);
+  position: relative;
+}
+.section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(1200px, calc(100% - 3rem));
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(44, 80, 74, 0.2) 18%, rgba(44, 80, 74, 0.2) 82%, transparent 100%);
 }
 .section:nth-child(even) { background: var(--color-bg-alt); }
 .section-inner {
@@ -501,13 +512,18 @@ main {
   opacity: 0.6;
 }
 .media-who {
-  background-image: url("https://placehold.co/1200x800?text=Who+We+Are");
+  background-image: url("https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1400&q=80");
   background-size: cover;
   background-position: center;
 }
 .media-who::after { display: none; }
+.section-who .section-media .media-placeholder {
+  max-width: 470px;
+  margin-left: auto;
+  aspect-ratio: 16 / 11;
+}
 .media-what-we-do {
-  background-image: url("https://placehold.co/1200x800?text=What+We+Do");
+  background-image: url("https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1400&q=80");
   background-size: cover;
   background-position: center;
 }
@@ -729,12 +745,16 @@ main {
   transform: translateY(-4px);
   border-color: var(--color-placeholder);
 }
-.sector-card h3 {
+.sector-card h3,
+.sector-card .sector-card-title {
   font-family: var(--font-body);
-  font-size: 1.05rem;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--color-text);
   margin: 0 0 var(--space-sm);
 }
-.sector-card p {
+.sector-card p,
+.sector-card .sector-card-desc {
   font-size: 0.95rem;
   color: var(--color-text-muted);
   margin: 0;
@@ -786,6 +806,26 @@ main {
   color: #FFFFFF;
 }
 .btn-primary:hover { background: var(--color-cyan); color: #FFFFFF; }
+
+
+
+.section-cta-inline .btn,
+.section-cta-center .btn,
+.section-cta-buttons .btn,
+.hero-cta .btn {
+  font-size: 0.88rem;
+  padding: 0.5rem 0.95rem;
+  border-radius: 8px;
+  min-height: 36px;
+}
+
+.section-cta-inline {
+  gap: 0.7rem;
+}
+
+.section-cta-center {
+  gap: 0.7rem;
+}
 
 /* ============================================
    Cards (Services, Brands, Events, Case Studies)
@@ -843,34 +883,35 @@ main {
 .card-brand .card-image-placeholder { aspect-ratio: 4/3; }
 .card-service .card-image-placeholder { aspect-ratio: 4/3; }
 
+
 /* Service card images */
 .service-img-strategic {
-  background-image: url("https://placehold.co/1200x800?text=Service+1");
+  background-image: url("https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1200&q=80");
   background-size: cover;
   background-position: center;
 }
 .service-img-media-relations {
-  background-image: url("https://placehold.co/1200x800?text=Service+2");
+  background-image: url("https://images.unsplash.com/photo-1556155092-490a1ba16284?auto=format&fit=crop&w=1200&q=80");
   background-size: cover;
   background-position: center;
 }
 .service-img-campaigns {
-  background-image: url("https://placehold.co/1200x800?text=Service+3");
+  background-image: url("https://images.unsplash.com/photo-1529119513315-c7c361862fc7?auto=format&fit=crop&w=1200&q=80");
   background-size: cover;
   background-position: center;
 }
 .service-img-digital {
-  background-image: url("https://placehold.co/1200x800?text=Service+4");
+  background-image: url("https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80");
   background-size: cover;
   background-position: center;
 }
 .service-img-branding {
-  background-image: url("https://placehold.co/1200x800?text=Service+5");
+  background-image: url("https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=1200&q=80");
   background-size: cover;
   background-position: center;
 }
 .service-img-events {
-  background-image: url("https://placehold.co/1200x800?text=Service+6");
+  background-image: url("https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=1200&q=80");
   background-size: cover;
   background-position: center;
 }
@@ -883,17 +924,17 @@ main {
 
 /* Brand card images (Our Brands section — public repository / Unsplash) */
 .brand-img-leaders {
-  background-image: url("https://placehold.co/1200x800?text=Leaders+Magazine");
+  background-image: url("https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1200&q=80");
   background-size: cover;
   background-position: center;
 }
 .brand-img-sports {
-  background-image: url("https://placehold.co/1200x800?text=Sports+Magazine");
+  background-image: url("https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=1200&q=80");
   background-size: cover;
   background-position: center;
 }
 .brand-img-news {
-  background-image: url("https://placehold.co/1200x800?text=News+Bulletin");
+  background-image: url("https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=1200&q=80");
   background-size: cover;
   background-position: center;
 }
@@ -1043,7 +1084,6 @@ main {
   color: var(--color-text-muted);
 }
 .all-services-list strong { color: var(--color-text); }
-.services-page-main { padding-top: var(--header-two-rows-height); }
 .page-breadcrumb { font-size: 0.9rem; color: var(--color-text-muted); margin: 0 0 var(--space-md); }
 .page-breadcrumb a { color: var(--color-primary); text-decoration: none; }
 .page-breadcrumb a:hover { text-decoration: underline; }
@@ -1371,7 +1411,7 @@ main {
 
 .footer-columns {
   display: grid;
-  grid-template-columns: 1.2fr 0.8fr 0.8fr 1.2fr;
+  grid-template-columns: 1fr 1fr 0.9fr 0.9fr 1.15fr;
   gap: var(--space-2xl);
 }
 
@@ -1559,15 +1599,14 @@ main {
   #studio .section-inner.section-split {
     grid-template-columns: 1fr 1fr;
   }
-  #careers .section-inner.section-split,
-  #stay-connected .section-inner.section-split {
+  #careers .section-inner.section-split {
     grid-template-columns: 1fr;
   }
   .section-split.reverse .section-content,
   .section-split.reverse .section-media { order: unset; }
   .carousel-track { grid-template-columns: 1fr; }
   .insights-grid { grid-template-columns: repeat(2, 1fr); }
-  .footer-columns { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .footer-columns { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .footer-newsletter { grid-column: 1 / -1; margin-top: var(--space-xl); }
 }
 @media (max-width: 768px) {
@@ -1778,4 +1817,108 @@ main {
 @keyframes textReveal {
   0% { transform: translateY(110%); opacity: 0; }
   100% { transform: translateY(0%); opacity: 1; }
+}
+
+
+/* === Premium polish overrides (content-safe) === */
+:root {
+  --text-body: clamp(1rem, 1.05vw + 0.55rem, 1.08rem);
+}
+
+.section-title {
+  font-size: clamp(2rem, 3.2vw, 2.9rem);
+  letter-spacing: -0.01em;
+  line-height: 1.18;
+}
+
+.section-subtitle {
+  max-width: 760px;
+  line-height: 1.72;
+}
+
+.section-text {
+  line-height: 1.8;
+  max-width: 68ch;
+}
+
+.page-hero {
+  background: linear-gradient(120deg, #151514 0%, #1f1e1c 62%, #262421 100%);
+}
+
+.page-hero-title {
+  letter-spacing: -0.015em;
+  max-width: 24ch;
+}
+
+.page-hero-tagline {
+  max-width: 720px;
+  line-height: 1.82;
+}
+
+.hero-content {
+  max-width: 900px;
+}
+
+.hero-description {
+  max-width: 760px;
+  line-height: 1.78;
+}
+
+.btn {
+  border-radius: 12px;
+  padding: 0.78rem 1.5rem;
+  letter-spacing: 0.01em;
+}
+
+.btn-primary,
+.btn-hero-primary {
+  box-shadow: 0 10px 24px -14px rgba(28, 27, 26, 0.55);
+}
+
+.btn-outline,
+.btn-hero-secondary,
+.btn-learn {
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.btn:focus-visible,
+.link-arrow:focus-visible,
+.link-arrow-text:focus-visible,
+a:focus-visible {
+  outline: 2px solid rgba(44, 80, 74, 0.55);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+
+/* === Final premium consistency (content-safe) === */
+.section-cta-center {
+  margin-top: calc(var(--space-xl) + 0.25rem);
+  gap: 0.85rem;
+}
+
+.section-cta-center .btn {
+  min-height: 44px;
+}
+
+.card-icon,
+.card-icon-event,
+.sector-card-icon svg {
+  color: var(--color-electric-blue);
+  opacity: 0.92;
+}
+
+.card h3,
+.service-card-title,
+.sector-card-title {
+  line-height: 1.32;
 }

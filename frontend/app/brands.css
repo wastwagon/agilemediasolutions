@@ -5,8 +5,7 @@
 
 /* Page wrapper */
 .services-page-main {
-  padding-top: var(--header-two-rows-height);
-  padding-bottom: var(--space-3xl);
+    padding-bottom: var(--space-3xl);
 }
 
 /* Grid — 3 cards per row, same as services */

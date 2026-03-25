@@ -32,6 +32,31 @@ The site logo lives at **`frontend/public/images/agilemediasolutionslogo.png`**.
 4. Open **http://localhost:8085** (or whatever you set as `FRONTEND_PORT`).
 5. After schema changes or first deploy, sign in to **Admin** and run **Migrate** so Postgres is seeded.
 
+## See changes immediately (hot reload)
+
+The **`docker compose up --build`** stack runs **production** images: the site is compiled once into the image, so **editing code does nothing until you rebuild** (that is normal).
+
+For **instant updates** while you work, run the **Next.js dev server** on your machine and keep only the API in Docker:
+
+**Windows Command Prompt:**
+
+```bat
+scripts\dev-hot.bat
+```
+
+**macOS / Linux:**
+
+```bash
+chmod +x scripts/dev-hot.sh
+./scripts/dev-hot.sh
+```
+
+- Starts **Postgres, Redis, and backend** in Docker.
+- Starts **`npm run dev`** in `frontend/` (usually **http://localhost:3000**).
+- First run creates **`frontend/.env.local`** from **`frontend/env.local.example`** so `/api` rewrites hit **`http://localhost:4005`** (change if your `BACKEND_EXT_PORT` differs).
+
+When you are happy with changes, run **`docker compose up -d --build`** again to refresh the production-style stack (e.g. **http://localhost:8085**).
+
 **Handy commands (repo root):**
 
 ```bash

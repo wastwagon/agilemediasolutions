@@ -5,8 +5,7 @@
 
 /* ---- Page shell ---- */
 .careers-page-main {
-  padding-top: var(--header-two-rows-height);
-  min-height: 100vh;
+    min-height: 100vh;
 }
 
 .section-careers-page {

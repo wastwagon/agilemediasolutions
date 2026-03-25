@@ -29,31 +29,46 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   // Login page doesn't get the layout
   if (pathname === '/admin') return <>{children}</>;
 
+  const navLinkStyle = (active: boolean): React.CSSProperties => ({
+    padding: '0.72rem 0.95rem',
+    borderRadius: '10px',
+    color: active ? '#FFFFFF' : 'rgba(255,255,255,0.82)',
+    textDecoration: 'none',
+    background: active ? 'linear-gradient(135deg, #2C504A, #3B6D66)' : 'transparent',
+    border: active ? '1px solid rgba(255,255,255,0.12)' : '1px solid transparent',
+    fontWeight: 600,
+    letterSpacing: '0.01em',
+    transition: 'all 0.2s ease'
+  });
+
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#F9FAFB' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'linear-gradient(180deg, #F7F8FA 0%, #EEF2F7 100%)' }}>
       {/* Sidebar */}
-      <aside style={{ width: '260px', background: '#111827', color: '#fff', padding: '2rem 1rem' }}>
-        <h1 style={{ fontFamily: 'Cormorant Garamond', fontSize: '1.5rem', marginBottom: '3rem', padding: '0 1rem' }}>Agile Media</h1>
+      <aside style={{ width: '272px', background: '#0F172A', color: '#fff', padding: '1.5rem 1rem', borderRight: '1px solid rgba(255,255,255,0.08)', position: 'sticky', top: 0, alignSelf: 'flex-start', height: '100vh' }}>
+        <h1 style={{ fontFamily: 'Cormorant Garamond', fontSize: '1.55rem', marginBottom: '2.2rem', padding: '0 0.75rem', color: '#F8FAFC' }}>Agile Media</h1>
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          <Link href="/admin/dashboard" style={{ padding: '0.75rem 1rem', borderRadius: '6px', color: '#fff', textDecoration: 'none', background: pathname === '/admin/dashboard' ? '#374151' : 'transparent' }}>Dashboard</Link>
-          <Link href="/admin/brands" style={{ padding: '0.75rem 1rem', borderRadius: '6px', color: '#fff', textDecoration: 'none', background: pathname === '/admin/brands' ? '#374151' : 'transparent' }}>Brands</Link>
-          <Link href="/admin/services" style={{ padding: '0.75rem 1rem', borderRadius: '6px', color: '#fff', textDecoration: 'none', background: pathname === '/admin/services' ? '#374151' : 'transparent' }}>Services</Link>
-          <Link href="/admin/pages" style={{ padding: '0.75rem 1rem', borderRadius: '6px', color: '#fff', textDecoration: 'none', background: pathname === '/admin/pages' ? '#374151' : 'transparent' }}>Pages</Link>
-          <Link href="/admin/events" style={{ padding: '0.75rem 1rem', borderRadius: '6px', color: '#fff', textDecoration: 'none', background: pathname === '/admin/events' ? '#374151' : 'transparent' }}>Events</Link>
-          <Link href="/admin/case-studies" style={{ padding: '0.75rem 1rem', borderRadius: '6px', color: '#fff', textDecoration: 'none', background: pathname === '/admin/case-studies' ? '#374151' : 'transparent' }}>Case Studies</Link>
-          <Link href="/admin/contacts" style={{ padding: '0.75rem 1rem', borderRadius: '6px', color: '#fff', textDecoration: 'none', background: pathname === '/admin/contacts' ? '#374151' : 'transparent' }}>Contact form</Link>
-          <Link href="/admin/settings" style={{ padding: '0.75rem 1rem', borderRadius: '6px', color: '#fff', textDecoration: 'none', background: pathname === '/admin/settings' ? '#374151' : 'transparent' }}>Settings</Link>
-          <hr style={{ border: 'none', height: '1px', background: '#374151', margin: '2rem 0' }} />
-          <button onClick={handleLogout} style={{ padding: '0.75rem 1rem', borderRadius: '6px', color: '#EF4444', background: 'transparent', border: 'none', textAlign: 'left', cursor: 'pointer', fontWeight: 600 }}>Log out</button>
+          <Link href="/admin/dashboard" style={navLinkStyle(pathname === '/admin/dashboard')}>Dashboard</Link>
+          <Link href="/admin/brands" style={navLinkStyle(pathname === '/admin/brands')}>Brands</Link>
+          <Link href="/admin/services" style={navLinkStyle(pathname === '/admin/services')}>Services</Link>
+          <Link href="/admin/pages" style={navLinkStyle(pathname === '/admin/pages')}>Pages</Link>
+          <Link href="/admin/media" style={navLinkStyle(pathname === '/admin/media')}>Media Library</Link>
+          <Link href="/admin/events" style={navLinkStyle(pathname === '/admin/events')}>Events</Link>
+          <Link href="/admin/case-studies" style={navLinkStyle(pathname === '/admin/case-studies')}>Case Studies</Link>
+          <Link href="/admin/contacts" style={navLinkStyle(pathname === '/admin/contacts')}>Contact form</Link>
+          <Link href="/admin/settings" style={navLinkStyle(pathname === '/admin/settings')}>Settings</Link>
+          <hr style={{ border: 'none', height: '1px', background: 'rgba(255,255,255,0.12)', margin: '1.4rem 0' }} />
+          <button onClick={handleLogout} style={{ padding: '0.7rem 0.95rem', borderRadius: '10px', color: '#FCA5A5', background: 'transparent', border: '1px solid rgba(252,165,165,0.25)', textAlign: 'left', cursor: 'pointer', fontWeight: 700 }}>Log out</button>
         </nav>
       </aside>
 
       {/* Main Content */}
       <main style={{ flex: 1, overflow: 'auto' }}>
-        <header style={{ height: '64px', background: '#fff', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 2rem' }}>
-          <span style={{ fontSize: '0.9rem', color: '#6B7280' }}>Logged in as <strong style={{color: '#111'}}>{typeof window !== 'undefined' ? localStorage.getItem('admin_user') : ''}</strong></span>
+        <header style={{ height: '68px', background: 'rgba(255,255,255,0.82)', backdropFilter: 'blur(8px)', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 2rem', position: 'sticky', top: 0, zIndex: 10 }}>
+          <span style={{ fontSize: '0.9rem', color: '#4B5563', background: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '999px', padding: '0.42rem 0.8rem' }}>
+            Logged in as <strong style={{ color: '#111827' }}>{typeof window !== 'undefined' ? localStorage.getItem('admin_user') : ''}</strong>
+          </span>
         </header>
-        <div style={{ padding: '2rem' }}>
+        <div style={{ padding: '2rem 2.1rem' }}>
           {children}
         </div>
       </main>

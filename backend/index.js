@@ -47,6 +47,59 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
+const ensureCoreSchema = async () => {
+  if (!pgPool) return;
+  await pgPool.query(`
+    CREATE TABLE IF NOT EXISTS admin_users (
+      id SERIAL PRIMARY KEY,
+      username TEXT NOT NULL UNIQUE,
+      password_hash TEXT NOT NULL,
+      email TEXT NOT NULL UNIQUE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS pages (
+      id SERIAL PRIMARY KEY,
+      slug TEXT NOT NULL UNIQUE,
+      title TEXT NOT NULL,
+      description TEXT,
+      content_json JSONB NOT NULL DEFAULT '{}',
+      status TEXT NOT NULL DEFAULT 'published',
+      published_at TIMESTAMPTZ,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  // Ensure new columns exist for older deployments
+  await pgPool.query(`ALTER TABLE pages ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'published';`);
+  await pgPool.query(`ALTER TABLE pages ADD COLUMN IF NOT EXISTS published_at TIMESTAMPTZ;`);
+  await pgPool.query(`UPDATE pages SET status = 'published' WHERE status IS NULL;`);
+
+  // Ensure default admin account exists (password: admin123)
+  await pgPool.query(
+    `INSERT INTO admin_users (username, password_hash, email)
+     VALUES ('admin', $1, 'admin@agilemediasolution.com')
+     ON CONFLICT (username) DO NOTHING`,
+    ['$2b$10$jCdH1GjZcCXWiuLhU9tKMOZ58RhcPofWLSSfXdgDY3LMgm5xV.oei']
+  );
+};
+
+const ensureMediaAssetsTable = async () => {
+  if (!pgPool) return;
+  await pgPool.query(`
+    CREATE TABLE IF NOT EXISTS media_assets (
+      id SERIAL PRIMARY KEY,
+      url TEXT NOT NULL UNIQUE,
+      filename TEXT NOT NULL,
+      original_name TEXT,
+      mime_type TEXT,
+      size_bytes BIGINT,
+      alt_text TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+};
+
 const pgPool = DATABASE_URL ? new Pool({ connectionString: DATABASE_URL }) : null;
 
 let redisClient = null;
@@ -69,6 +122,17 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
+const getAuthUserFromRequest = (req) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  if (!token) return null;
+  try {
+    return jwt.verify(token, JWT_SECRET);
+  } catch {
+    return null;
+  }
+};
+
 // Health Check
 app.get('/api/health', async (req, res) => {
   const result = { status: 'ok' };
@@ -87,12 +151,47 @@ app.get('/api/health', async (req, res) => {
   res.json(result);
 });
 
+// Schema readiness check (useful for remote deploy debugging)
+app.get('/api/health/schema', async (req, res) => {
+  if (!pgPool) return res.status(500).json({ ok: false, error: 'Database not available' });
+  try {
+    const checks = await Promise.all([
+      pgPool.query(`SELECT to_regclass('public.admin_users') AS reg`),
+      pgPool.query(`SELECT to_regclass('public.pages') AS reg`),
+      pgPool.query(
+        `SELECT column_name
+         FROM information_schema.columns
+         WHERE table_name = 'pages' AND column_name IN ('status', 'published_at')`
+      ),
+    ]);
+
+    const adminUsersExists = !!checks[0].rows?.[0]?.reg;
+    const pagesExists = !!checks[1].rows?.[0]?.reg;
+    const pageColumns = (checks[2].rows || []).map((r) => r.column_name);
+    const hasStatus = pageColumns.includes('status');
+    const hasPublishedAt = pageColumns.includes('published_at');
+
+    res.json({
+      ok: adminUsersExists && pagesExists && hasStatus && hasPublishedAt,
+      admin_users: adminUsersExists,
+      pages: pagesExists,
+      pages_columns: {
+        status: hasStatus,
+        published_at: hasPublishedAt,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 // Auth
 app.post('/api/auth/login', async (req, res) => {
   const { username, password } = req.body;
   if (!pgPool) return res.status(500).json({ error: 'Database not available' });
 
   try {
+    await ensureCoreSchema();
     const userResult = await pgPool.query('SELECT * FROM admin_users WHERE username = $1', [username]);
     const user = userResult.rows[0];
 
@@ -117,7 +216,83 @@ app.post('/api/upload', authenticateToken, upload.single('image'), (req, res) =>
   }
   // Construct the URL path the frontend will use to fetch the image
   const fileUrl = `/uploads/${req.file.filename}`;
-  res.status(201).json({ url: fileUrl });
+  // Persist to media library if DB is available
+  if (!pgPool) {
+    return res.status(201).json({ url: fileUrl });
+  }
+
+  ensureMediaAssetsTable()
+    .then(() => pgPool.query(
+    `INSERT INTO media_assets (url, filename, original_name, mime_type, size_bytes)
+     VALUES ($1, $2, $3, $4, $5)
+     ON CONFLICT (url) DO UPDATE SET
+       original_name = EXCLUDED.original_name,
+       mime_type = EXCLUDED.mime_type,
+       size_bytes = EXCLUDED.size_bytes
+     RETURNING *`,
+    [fileUrl, req.file.filename, req.file.originalname, req.file.mimetype, req.file.size]
+  ))
+    .then((result) => res.status(201).json({ url: fileUrl, asset: result.rows[0] }))
+    .catch(() => res.status(201).json({ url: fileUrl }));
+});
+
+// Media library
+app.get('/api/media', authenticateToken, async (req, res) => {
+  if (!pgPool) return res.status(500).json({ error: 'Database not available' });
+  try {
+    await ensureMediaAssetsTable();
+    const q = (req.query.q || '').toString().trim();
+    const limit = Math.min(parseInt((req.query.limit || '200').toString(), 10) || 200, 500);
+
+    const result = q
+      ? await pgPool.query(
+          `SELECT * FROM media_assets
+           WHERE (original_name ILIKE $1 OR url ILIKE $1 OR filename ILIKE $1)
+           ORDER BY created_at DESC
+           LIMIT $2`,
+          [`%${q}%`, limit]
+        )
+      : await pgPool.query(`SELECT * FROM media_assets ORDER BY created_at DESC LIMIT $1`, [limit]);
+
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/media/:id', authenticateToken, async (req, res) => {
+  if (!pgPool) return res.status(500).json({ error: 'Database not available' });
+  try {
+    await ensureMediaAssetsTable();
+    const result = await pgPool.query('DELETE FROM media_assets WHERE id = $1 RETURNING *', [req.params.id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Media asset not found' });
+
+    const asset = result.rows[0];
+    // Best-effort file delete (only for local uploads)
+    if (asset?.filename) {
+      const fp = path.join(uploadDir, asset.filename);
+      fs.unlink(fp, () => {});
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/media/:id', authenticateToken, async (req, res) => {
+  if (!pgPool) return res.status(500).json({ error: 'Database not available' });
+  try {
+    await ensureMediaAssetsTable();
+    const { alt_text } = req.body || {};
+    const result = await pgPool.query(
+      'UPDATE media_assets SET alt_text = $1 WHERE id = $2 RETURNING *',
+      [alt_text || null, req.params.id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Media asset not found' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Newsletter
@@ -319,36 +494,39 @@ app.delete('/api/case-studies/:id', authenticateToken, async (req, res) => {
 // Pages
 app.get('/api/pages', authenticateToken, async (req, res) => {
   try {
-    const result = await pgPool.query('SELECT id, slug, title, description, created_at, updated_at FROM pages ORDER BY created_at DESC');
+    const result = await pgPool.query('SELECT id, slug, title, description, status, published_at, created_at, updated_at FROM pages ORDER BY updated_at DESC');
     res.json(result.rows);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.get('/api/pages/:slug', async (req, res) => {
   try {
-    const result = await pgPool.query('SELECT * FROM pages WHERE slug = $1', [req.params.slug]);
+    const user = getAuthUserFromRequest(req);
+    const result = user
+      ? await pgPool.query('SELECT * FROM pages WHERE slug = $1', [req.params.slug])
+      : await pgPool.query("SELECT * FROM pages WHERE slug = $1 AND status = 'published'", [req.params.slug]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'Page not found' });
     res.json(result.rows[0]);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.post('/api/pages', authenticateToken, async (req, res) => {
-  const { slug, title, description, content_json } = req.body;
+  const { slug, title, description, content_json, status, published_at } = req.body;
   try {
     const result = await pgPool.query(
-      'INSERT INTO pages (slug, title, description, content_json) VALUES ($1, $2, $3, $4) RETURNING *',
-      [slug, title, description, content_json || {}]
+      'INSERT INTO pages (slug, title, description, content_json, status, published_at) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+      [slug, title, description, content_json || {}, status || 'draft', published_at || null]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.put('/api/pages/:slug', authenticateToken, async (req, res) => {
-  const { title, description, content_json } = req.body;
+  const { title, description, content_json, status, published_at } = req.body;
   try {
     const result = await pgPool.query(
-      'UPDATE pages SET title = $1, description = $2, content_json = $3, updated_at = NOW() WHERE slug = $4 RETURNING *',
-      [title, description, content_json, req.params.slug]
+      'UPDATE pages SET title = $1, description = $2, content_json = $3, status = $4, published_at = $5, updated_at = NOW() WHERE slug = $6 RETURNING *',
+      [title, description, content_json, status || 'draft', published_at || null, req.params.slug]
     );
     if (result.rows.length === 0) return res.status(404).json({ error: 'Page not found' });
     res.json(result.rows[0]);
@@ -440,8 +618,14 @@ app.post('/api/admin/run-migrations', authenticateToken, async (req, res) => {
         title TEXT NOT NULL,
         description TEXT,
         content_json JSONB NOT NULL DEFAULT '{}',
+        status TEXT NOT NULL DEFAULT 'published',
+        published_at TIMESTAMPTZ,
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
+
+      ALTER TABLE pages ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'published';
+      ALTER TABLE pages ADD COLUMN IF NOT EXISTS published_at TIMESTAMPTZ;
+      UPDATE pages SET status = 'published' WHERE status IS NULL;
 
       CREATE TABLE IF NOT EXISTS brands (
         id SERIAL PRIMARY KEY,
@@ -491,6 +675,17 @@ app.post('/api/admin/run-migrations', authenticateToken, async (req, res) => {
         order_index INTEGER DEFAULT 0,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
+
+      CREATE TABLE IF NOT EXISTS media_assets (
+        id SERIAL PRIMARY KEY,
+        url TEXT NOT NULL UNIQUE,
+        filename TEXT NOT NULL,
+        original_name TEXT,
+        mime_type TEXT,
+        size_bytes BIGINT,
+        alt_text TEXT,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
     `;
     await pgPool.query(query);
     await seedAgileContent(pgPool);
@@ -502,4 +697,7 @@ app.post('/api/admin/run-migrations', authenticateToken, async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Agile Media CMS Backend running on port ${PORT}`);
+  ensureCoreSchema().catch((err) => {
+    console.error('Core schema bootstrap failed:', err.message);
+  });
 });

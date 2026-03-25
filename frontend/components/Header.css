@@ -36,15 +36,15 @@
 }
 
 .modern-logo img {
-  height: 3.35rem;
+  height: 2.9rem;
   width: auto;
-  max-height: 56px;
+  max-height: 46px;
   object-fit: contain;
   transition: height 0.3s;
 }
 
 .modern-header.scrolled .modern-logo img {
-  height: 2.85rem;
+  height: 2.45rem;
 }
 
 /* Nav Desktop */
@@ -54,20 +54,20 @@
 
 @media (min-width: 1100px) {
   .modern-header {
-    height: 88px;
+    height: 84px;
   }
 
   .modern-header.scrolled {
-    height: 72px;
+    height: 68px;
   }
 
   .modern-logo img {
-    height: 4.75rem;
-    max-height: 80px;
+    height: 4rem;
+    max-height: 66px;
   }
 
   .modern-header.scrolled .modern-logo img {
-    height: 3.65rem;
+    height: 3.05rem;
   }
 
   .desktop-nav {
@@ -294,7 +294,7 @@
 
 .drawer-close:hover { opacity: 0.7; }
 
-.drawer-logo { height: 2.8rem; width: auto; }
+.drawer-logo { height: 2.4rem; width: auto; }
 
 .mobile-nav { flex: 1; overflow-y: auto; }
 .mobile-links { list-style: none; padding: 0; margin: 0; }

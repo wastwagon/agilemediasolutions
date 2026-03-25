@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import AdminImageUpload from '../../../components/AdminImageUpload';
+import MediaLibraryPicker from '../../../components/MediaLibraryPicker';
 
 export default function AdminEvents() {
   const [events, setEvents] = useState<any[]>([]);
@@ -165,6 +166,7 @@ export default function AdminEvents() {
                   onUploadSuccess={(url) => setImageUrl(url)} 
                   label="Upload image"
                 />
+                <MediaLibraryPicker onSelect={(url) => setImageUrl(url)} buttonLabel="Choose image from library" />
               </div>
               <div className={`form-group ${orderIndex ? 'has-value' : ''}`}>
                 <input type="number" id="orderIndex" value={orderIndex} onChange={(e) => setOrderIndex(e.target.value)} />

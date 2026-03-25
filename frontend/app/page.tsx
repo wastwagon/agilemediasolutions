@@ -81,7 +81,7 @@ export default function Page() {
   }, [loading, brands, services, events]);
 
   return (
-    <main>
+    <main className="home-page">
       <Hero />
 
       <section className="section section-who" id="who-we-are">
@@ -101,23 +101,6 @@ export default function Page() {
         </div>
       </section>
 
-      <section className="section section-services-intro" id="what-we-do">
-        <div className="section-inner section-split reverse animate-on-scroll">
-          <div className="section-content">
-            <h2 className="section-title">What We Do</h2>
-            <p className="section-text">
-              Our services span every aspect of strategic communication—from policy messaging to digital campaigns, crisis PR to institutional branding. We build the communications infrastructure that enables leadership, trust, and transformation.
-            </p>
-            <div className="section-cta-inline">
-              <Link href="#services" className="btn btn-learn">Explore Our Services →</Link>
-            </div>
-          </div>
-          <div className="section-media">
-            <div className="media-placeholder media-what-we-do" aria-hidden="true"></div>
-          </div>
-        </div>
-      </section>
-
       <section className="section section-cards" id="services">
         <div className="section-inner animate-on-scroll">
           <h2 className="section-title centered">Our services</h2>
@@ -126,7 +109,7 @@ export default function Page() {
           </p>
           <div className="cards-grid cards-services">
             {services.length > 0 ? (
-              services.map((s: Service) => (
+              services.slice(0, 4).map((s: Service) => (
                 <article key={s.id} className="card card-service animate-on-scroll">
                   <div className={`card-image-placeholder service-img-${s.icon || 'default'}`}></div>
                   <h3>{s.title}</h3>
@@ -162,19 +145,10 @@ export default function Page() {
 
       <section className="section section-brands" id="our-brands">
         <div className="section-inner animate-on-scroll">
-          <h2 className="section-title centered">Our Media Brands</h2>
+          <h2 className="section-title centered">Our Brands</h2>
           <p className="section-subtitle centered">
-            Agile Media Solutions owns and operates a powerful portfolio of African-focused media platforms across leadership, business, sports, trade, and hospitality.
+            Media Properties That Inform, Inspire, and Influence. Agile Media Solutions owns and operates a growing portfolio of high-impact media platforms that shape public discourse, elevate African voices, and spotlight key sectors across the continent.
           </p>
-          <ul className="section-subtitle centered" style={{ textAlign: 'left', maxWidth: '36rem', margin: '0 auto 2rem', lineHeight: 1.8 }}>
-            <li>African Leaders Magazine</li>
-            <li>Africa Sports Magazine</li>
-            <li>Africa News Bulletin</li>
-            <li>Africa Sportz</li>
-            <li>Africa Trade Directory</li>
-            <li>Africa Hospitality Magazine</li>
-            <li>Agile HR Magazine</li>
-          </ul>
           <div className="cards-grid cards-brands">
             {brands.length > 0 ? (
               brands.map((b: Brand) => (
@@ -205,7 +179,7 @@ export default function Page() {
             )}
           </div>
           <div className="section-cta-center">
-            <Link href="/brands" className="btn btn-outline btn-view-all-brands">View All Brands →</Link>
+            <Link href="/brands" className="btn btn-outline btn-view-all-brands">View All Brands</Link>
             <Link href="/contact#contact" className="btn btn-outline">Advertise With Us</Link>
           </div>
         </div>
@@ -213,17 +187,10 @@ export default function Page() {
 
       <section className="section section-events" id="events">
         <div className="section-inner animate-on-scroll">
-          <h2 className="section-title centered">Upcoming Signature Events</h2>
+          <h2 className="section-title centered">Signature Events</h2>
           <p className="section-subtitle centered">
-            Our events convene decision-makers, celebrate leadership, and activate communities around trade, industry, investment, and culture.
+            Curated Platforms That Bring Visionaries, Innovators, and Institutions Together.
           </p>
-          <ul className="section-subtitle centered" style={{ textAlign: 'left', maxWidth: '36rem', margin: '0 auto 2rem', lineHeight: 1.8 }}>
-            <li>Africa Trade Summit</li>
-            <li>Africa Trade Awards</li>
-            <li>Africa Industry Awards</li>
-            <li>Africa Investment Week</li>
-            <li>Afro Jazz Festival</li>
-          </ul>
           <div className="cards-grid cards-events">
             {events.length > 0 ? (
               events.slice(0, 3).map((e) => (
@@ -260,7 +227,7 @@ export default function Page() {
             )}
           </div>
           <div className="section-cta-center">
-            <Link href="/signature-events" className="btn btn-outline">See Event Calendar →</Link>
+            <Link href="/signature-events" className="btn btn-outline">See Event Calendar</Link>
             <Link href="/partnerships" className="link-arrow">Partner With Us <span aria-hidden="true">→</span></Link>
           </div>
         </div>
@@ -286,12 +253,6 @@ export default function Page() {
           <p className="section-subtitle centered">
             Stay updated with our bulletins, press briefings, news and thought leadership through the Agile Press Group.
           </p>
-          <ul className="section-subtitle centered" style={{ textAlign: 'left', maxWidth: '36rem', margin: '0 auto 2rem', lineHeight: 1.8 }}>
-            <li>Press releases</li>
-            <li>Articles &amp; opinion features</li>
-            <li>Media coverage</li>
-            <li>Newsletters</li>
-          </ul>
           <div className="section-cta-center">
             <Link href="/agile-press-group" className="btn btn-primary">Visit Agile Press Group →</Link>
             <Link href="/insights" className="btn btn-outline">Insights &amp; press room</Link>
@@ -308,20 +269,6 @@ export default function Page() {
           <div className="section-cta-center">
             <Link href="/careers" className="btn btn-primary">Explore Careers</Link>
             <Link href="/contact#contact" className="btn btn-outline">Become a Contributor</Link>
-          </div>
-        </div>
-      </section>
-
-      <section className="section section-stay" id="stay-connected">
-        <div className="section-inner section-split animate-on-scroll">
-          <div className="section-content">
-            <h2 className="section-title">Stay Connected</h2>
-            <p className="section-tagline">Let&apos;s tell better stories—together.</p>
-            <div className="section-cta-buttons" style={{ flexWrap: 'wrap', gap: '0.75rem' }}>
-              <Link href="/contact#contact" className="btn btn-primary">Contact Us</Link>
-              <Link href="#footer-social" className="btn btn-outline">Follow</Link>
-              <Link href="#newsletter" className="btn btn-outline">Subscribe to Newsletter</Link>
-            </div>
           </div>
         </div>
       </section>

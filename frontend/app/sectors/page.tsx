@@ -112,8 +112,8 @@ export default function Page() {
                     <path d="M2 12l10 5 10-5"></path>
                   </svg>
                 </div>
-                <h3 style={{ fontSize: '1.25rem', marginBottom: 'var(--space-sm)', color: '#FFFFFF' }}>{sector.name}</h3>
-                <p style={{ fontSize: '0.95rem', color: 'rgba(255,255,255,0.7)', lineHeight: '1.6' }}>{sector.description}</p>
+                <h3 className="sector-card-title">{sector.name}</h3>
+                <p className="sector-card-desc">{sector.description}</p>
               </article>
             ))}
           </div>

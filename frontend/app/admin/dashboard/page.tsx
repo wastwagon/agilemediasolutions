@@ -25,28 +25,31 @@ function AnimatedCounter({ from = 0, to }: { from?: number, to: number }) {
 }
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState({ contacts: 0, brands: 0, services: 0, pages: 0 });
+  const [stats, setStats] = useState({ contacts: 0, brands: 0, services: 0, pages: 0, media: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       const token = localStorage.getItem('admin_token');
       try {
-        const [contactsRes, brandsRes, servicesRes, pagesRes] = await Promise.all([
+        const [contactsRes, brandsRes, servicesRes, pagesRes, mediaRes] = await Promise.all([
           fetch('/api/admin/contacts', { headers: { 'Authorization': `Bearer ${token}` } }),
           fetch('/api/brands'),
           fetch('/api/services'),
           fetch('/api/pages', { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch('/api/media', { headers: { 'Authorization': `Bearer ${token}` } }),
         ]);
         const contacts = contactsRes.ok ? await contactsRes.json() : [];
         const brands = brandsRes.ok ? await brandsRes.json() : [];
         const services = servicesRes.ok ? await servicesRes.json() : [];
         const pages = pagesRes.ok ? await pagesRes.json() : [];
+        const media = mediaRes.ok ? await mediaRes.json() : [];
         setStats({
           contacts: Array.isArray(contacts) ? contacts.length : 0,
           brands: Array.isArray(brands) ? brands.length : 0,
           services: Array.isArray(services) ? services.length : 0,
           pages: Array.isArray(pages) ? pages.length : 0,
+          media: Array.isArray(media) ? media.length : 0,
         });
       } catch (err) {
         console.error('Fetch error:', err);
@@ -141,6 +144,15 @@ export default function AdminDashboard() {
             <AnimatedCounter to={stats.pages} />
           </span>
           <Link href="/admin/pages" className="magnetic" style={{ fontSize: '0.85rem', color: '#0D213B', textDecoration: 'none', fontWeight: 600, marginTop: 'auto', paddingTop: '1rem', display: 'inline-block' }}>Manage pages</Link>
+        </motion.div>
+
+        <motion.div variants={cardVariants} whileHover={{ y: -5, boxShadow: '0 12px 30px rgba(13, 33, 59, 0.08)' }} transition={{ type: 'spring', stiffness: 300, damping: 20 }} style={commandCardStyle}>
+          <div style={{ position: 'absolute', top: -10, right: -10, width: '40px', height: '40px', background: 'rgba(44, 80, 74, 0.12)', borderRadius: '50%' }}></div>
+          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#6B7280', letterSpacing: '0.02em' }}>Media assets</span>
+          <span style={{ fontSize: '3rem', fontFamily: 'Cormorant Garamond, serif', fontWeight: 600, color: '#111827', lineHeight: 1 }}>
+            <AnimatedCounter to={stats.media} />
+          </span>
+          <Link href="/admin/media" className="magnetic" style={{ fontSize: '0.85rem', color: '#2C504A', textDecoration: 'none', fontWeight: 600, marginTop: 'auto', paddingTop: '1rem', display: 'inline-block' }}>Open media library</Link>
         </motion.div>
       </motion.div>
     </div>

@@ -66,9 +66,7 @@ export default function Hero() {
         </h1>
         <p className="hero-description">{currentData.subtitle}</p>
         <div className="hero-cta" style={{ flexWrap: 'wrap', gap: '0.75rem', justifyContent: 'center' }}>
-          <a href="/contact#contact" className="btn btn-hero-primary">Work With Us</a>
           <a href="/brands" className="btn btn-hero-secondary">Explore Our Brands</a>
-          <a href="/contact#contact" className="btn btn-hero-secondary">Contact Us</a>
         </div>
       </div>
     </section>

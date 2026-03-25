@@ -35,6 +35,8 @@ CREATE TABLE IF NOT EXISTS pages (
   title TEXT NOT NULL,
   description TEXT,
   content_json JSONB NOT NULL DEFAULT '{}',
+  status TEXT NOT NULL DEFAULT 'published',
+  published_at TIMESTAMPTZ,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -84,6 +86,18 @@ CREATE TABLE IF NOT EXISTS sectors (
   description TEXT,
   icon TEXT,
   order_index INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Media library (WordPress-like reusable uploads)
+CREATE TABLE IF NOT EXISTS media_assets (
+  id SERIAL PRIMARY KEY,
+  url TEXT NOT NULL UNIQUE,
+  filename TEXT NOT NULL,
+  original_name TEXT,
+  mime_type TEXT,
+  size_bytes BIGINT,
+  alt_text TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
