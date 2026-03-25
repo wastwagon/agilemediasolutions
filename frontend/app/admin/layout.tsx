@@ -33,7 +33,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navLinkStyle = (active: boolean): React.CSSProperties => ({
     padding: '0.72rem 0.95rem',
     borderRadius: '10px',
-    color: active ? '#FFFFFF' : 'rgba(255,255,255,0.82)',
+    color: '#FFFFFF',
     textDecoration: 'none',
     background: active ? 'linear-gradient(135deg, #2C504A, #3B6D66)' : 'transparent',
     border: active ? '1px solid rgba(255,255,255,0.12)' : '1px solid transparent',
