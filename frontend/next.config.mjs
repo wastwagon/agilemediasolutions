@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
+const rawBackendOrigin = process.env.BACKEND_INTERNAL_URL || "";
 const backendOrigin =
-  process.env.BACKEND_INTERNAL_URL || "http://backend:4000";
+  rawBackendOrigin.startsWith("http://backend:")
+    ? rawBackendOrigin
+    : "http://backend:4000";
 
 const nextConfig = {
   output: "standalone",
