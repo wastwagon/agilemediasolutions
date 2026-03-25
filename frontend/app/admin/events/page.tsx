@@ -28,10 +28,10 @@ export default function AdminEvents() {
         const data = await res.json();
         setEvents(data);
       } else {
-        setError('Failed to fetch events');
+        setError('Could not load events.');
       }
     } catch (err) {
-      setError('Error connecting to backend');
+      setError('Could not connect to the server.');
     } finally {
       setLoading(false);
     }
@@ -77,10 +77,10 @@ export default function AdminEvents() {
       if (res.ok) {
         fetchData();
       } else {
-        alert('Failed to delete event');
+        alert('Could not delete this event.');
       }
     } catch (err) {
-      alert('Error deleting event');
+      alert('Something went wrong while deleting.');
     }
   };
 
@@ -107,25 +107,25 @@ export default function AdminEvents() {
         handleCancel();
         fetchData();
       } else {
-        alert('Failed to save event');
+        alert('Could not save changes.');
       }
     } catch (err) {
-      alert('Error saving event');
+      alert('Something went wrong while saving.');
     }
   };
 
-  if (loading && events.length === 0) return <div className="admin-loading" style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Loading events...</div>;
+  if (loading && events.length === 0) return <div className="admin-loading" style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Loading…</div>;
 
   return (
     <div className="admin-page animate-on-scroll is-visible">
       <div className="admin-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
         <div>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.5rem', marginBottom: '0.5rem', color: 'var(--color-dark-blue)' }}>Events CMS</h1>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '1.1rem' }}>Manage the signature events featured on the site.</p>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.5rem', marginBottom: '0.5rem', color: 'var(--color-dark-blue)' }}>Events</h1>
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '1.1rem' }}>Edit events shown on the Signature Events page.</p>
         </div>
         {!isAdding && (
           <button onClick={handleCreateClick} className="btn btn-primary">
-            + Add New Event
+            Add event
           </button>
         )}
       </div>
@@ -133,7 +133,7 @@ export default function AdminEvents() {
       {isAdding && (
         <div style={{ background: '#fff', padding: '2.5rem', borderRadius: '16px', border: '1px solid var(--color-border)', marginBottom: '2.5rem', boxShadow: 'var(--shadow-sm)' }}>
           <h3 style={{ marginBottom: '2rem', fontFamily: 'var(--font-display)', fontSize: '1.5rem', color: 'var(--color-dark-blue)' }}>
-            {editingEvent ? 'Edit Event Details' : 'Create New Event'}
+            {editingEvent ? 'Edit event' : 'New event'}
           </h3>
           <form onSubmit={handleSubmit}>
             <div className="form-row-split" style={{ marginBottom: '1.5rem' }}>
@@ -144,38 +144,38 @@ export default function AdminEvents() {
               </div>
               <div className={`form-group ${linkUrl ? 'has-value' : ''}`}>
                 <input type="text" id="linkUrl" value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} />
-                <label htmlFor="linkUrl">Call to Action Link (Optional)</label>
+                <label htmlFor="linkUrl">Link (optional)</label>
                 <div className="form-border"></div>
               </div>
             </div>
 
             <div className={`form-group form-group-textarea ${description ? 'has-value' : ''}`} style={{ marginBottom: '1.5rem' }}>
               <textarea id="description" rows={3} value={description} onChange={(e) => setDescription(e.target.value)}></textarea>
-              <label htmlFor="description">Event Description (Optional)</label>
+              <label htmlFor="description">Description (optional)</label>
               <div className="form-border"></div>
             </div>
 
             <div className="form-row-split" style={{ marginBottom: '2.5rem' }}>
               <div className={`form-group ${imageUrl ? 'has-value' : ''}`}>
                 <input type="text" id="imageUrl" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
-                <label htmlFor="imageUrl">Background Image URL</label>
+                <label htmlFor="imageUrl">Image URL</label>
                 <div className="form-border"></div>
                 <AdminImageUpload 
                   currentUrl={imageUrl} 
                   onUploadSuccess={(url) => setImageUrl(url)} 
-                  label="Upload Event Banner"
+                  label="Upload image"
                 />
               </div>
               <div className={`form-group ${orderIndex ? 'has-value' : ''}`}>
                 <input type="number" id="orderIndex" value={orderIndex} onChange={(e) => setOrderIndex(e.target.value)} />
-                <label htmlFor="orderIndex">Sort Order Index</label>
+                <label htmlFor="orderIndex">Sort order</label>
                 <div className="form-border"></div>
               </div>
             </div>
 
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
               <button type="button" onClick={handleCancel} className="btn btn-outline" style={{ border: 'none' }}>Cancel</button>
-              <button type="submit" className="btn btn-primary">{editingEvent ? 'Save Changes' : 'Publish Event'}</button>
+              <button type="submit" className="btn btn-primary">{editingEvent ? 'Save changes' : 'Add event'}</button>
             </div>
           </form>
         </div>
@@ -188,15 +188,15 @@ export default function AdminEvents() {
           <table style={{ width: '100%', minWidth: '800px', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead style={{ background: 'var(--color-bg-alt)', borderBottom: '1px solid var(--color-border)' }}>
               <tr>
-                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', width: '80px', textAlign: 'center' }}>Ord</th>
-                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Event Banner</th>
-                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Event Info</th>
+                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', width: '80px', textAlign: 'center' }}>Order</th>
+                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Image</th>
+                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Event</th>
                 <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {events.length === 0 ? (
-                <tr><td colSpan={4} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>No events configured.</td></tr>
+                <tr><td colSpan={4} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>No events yet. Add one to get started.</td></tr>
               ) : (
                 events.map((ev) => (
                   <tr key={ev.id} style={{ borderBottom: '1px solid var(--color-border)', background: '#fff' }}>
@@ -211,7 +211,7 @@ export default function AdminEvents() {
                     <td style={{ padding: '1.5rem 1.2rem', verticalAlign: 'middle' }}>
                       <div style={{ fontWeight: 600, color: 'var(--color-dark-blue)', marginBottom: '4px', fontSize: '1.1rem' }}>{ev.title}</div>
                       {ev.description && <div style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)', marginBottom: '8px', maxWidth: '400px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ev.description}</div>}
-                      {ev.link_url && <a href={ev.link_url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-primary)', fontSize: '0.85rem', textDecoration: 'none', fontWeight: 600 }}>Visit Event Page →</a>}
+                      {ev.link_url && <a href={ev.link_url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-primary)', fontSize: '0.85rem', textDecoration: 'none', fontWeight: 600 }}>Open link</a>}
                     </td>
                     <td style={{ padding: '1.5rem 1.2rem', verticalAlign: 'middle', textAlign: 'right' }}>
                       <button 

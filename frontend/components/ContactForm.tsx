@@ -63,22 +63,22 @@ export default function ContactForm() {
       {status === 'success' ? (
         <div className="form-success-message">
           <div className="success-icon">✓</div>
-          <h3>Message Sent</h3>
-          <p>Thank you for reaching out. Our team will review your inquiry and get back to you within 48 hours.</p>
+          <h3>Message sent</h3>
+          <p>Thanks for writing in. We will read your message and reply within about two working days.</p>
         </div>
       ) : (
         <>
           <div className="form-row-split">
             <div className={`form-group ${formData.name ? 'has-value' : ''} ${errors.name ? 'has-error' : ''}`}>
               <input type="text" id="name" name="name" required value={formData.name} onChange={handleChange} disabled={status === 'loading'} />
-              <label htmlFor="name">Your Name</label>
+              <label htmlFor="name">Name</label>
               <div className="form-border"></div>
               {errors.name && <span className="form-error-msg" role="alert">{errors.name}</span>}
             </div>
             
             <div className={`form-group ${formData.email ? 'has-value' : ''} ${errors.email ? 'has-error' : ''}`}>
               <input type="email" id="email" name="email" required value={formData.email} onChange={handleChange} disabled={status === 'loading'} />
-              <label htmlFor="email">Email Address</label>
+              <label htmlFor="email">Email</label>
               <div className="form-border"></div>
               {errors.email && <span className="form-error-msg" role="alert">{errors.email}</span>}
             </div>
@@ -86,26 +86,26 @@ export default function ContactForm() {
 
           <div className={`form-group ${formData.topic ? 'has-value' : ''}`}>
             <input type="text" id="topic" name="topic" value={formData.topic} onChange={handleChange} disabled={status === 'loading'} />
-            <label htmlFor="topic">Topic (Optional)</label>
+            <label htmlFor="topic">Topic (optional)</label>
             <div className="form-border"></div>
           </div>
 
           <div className={`form-group form-group-textarea ${formData.message ? 'has-value' : ''} ${errors.message ? 'has-error' : ''}`}>
             <textarea id="message" name="message" required rows={4} value={formData.message} onChange={handleChange} disabled={status === 'loading'}></textarea>
-            <label htmlFor="message">Your Message</label>
+            <label htmlFor="message">Message</label>
             <div className="form-border"></div>
             {errors.message && <span className="form-error-msg" role="alert">{errors.message}</span>}
           </div>
 
           <div className="form-submit-row">
             <button type="submit" className="btn btn-primary btn-submit" disabled={status === 'loading'}>
-              {status === 'loading' ? 'Sending...' : 'Send Message'}
+              {status === 'loading' ? 'Sending…' : 'Send message'}
             </button>
           </div>
           
           {status === 'error' && (
             <div className="form-error-global">
-              An unexpected error occurred. Please try again later or contact us directly.
+              Something went wrong. Please try again in a moment, or email us using the address in the header.
             </div>
           )}
         </>

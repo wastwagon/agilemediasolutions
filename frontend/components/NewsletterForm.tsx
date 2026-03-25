@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 
 export default function NewsletterForm() {
   const [email, setEmail] = useState('');
@@ -33,7 +34,7 @@ export default function NewsletterForm() {
       {status === 'success' ? (
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-primary)', animation: 'heroLineIn 0.5s var(--ease-out) forwards' }}>
           <span style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>✓</span>
-          <span style={{ fontWeight: 500 }}>Thank you for subscribing.</span>
+          <span style={{ fontWeight: 500 }}>You are subscribed. Thanks.</span>
         </div>
       ) : (
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
@@ -47,14 +48,21 @@ export default function NewsletterForm() {
               onChange={(e) => setEmail(e.target.value)}
               disabled={status === 'loading'}
             />
-            <label htmlFor="newsletter-email">Email Address</label>
+            <label htmlFor="newsletter-email">Email</label>
             <div className="form-border"></div>
-            {status === 'error' && <span className="form-error-msg" style={{ display: 'block', marginTop: '0.5rem' }}>Network error. Try again.</span>}
+            {status === 'error' && <span className="form-error-msg" style={{ display: 'block', marginTop: '0.5rem' }}>Could not subscribe. Check your connection and try again.</span>}
           </div>
           <button type="submit" className="btn btn-primary" disabled={status === 'loading'} style={{ alignSelf: 'stretch' }}>
-            {status === 'loading' ? '...' : 'Subscribe'}
+            {status === 'loading' ? 'Subscribing…' : 'Subscribe'}
           </button>
         </div>
+      )}
+      {status !== 'success' && (
+        <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted, #6b7280)', marginTop: '0.75rem', lineHeight: 1.5 }}>
+          We use your email only for this list. See our{' '}
+          <Link href="/privacy" style={{ color: 'var(--color-primary, #2C504A)', textDecoration: 'underline' }}>privacy policy</Link>
+          .
+        </p>
       )}
     </form>
   );

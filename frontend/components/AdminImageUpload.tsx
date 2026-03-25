@@ -8,7 +8,7 @@ interface AdminImageUploadProps {
   label?: string;
 }
 
-export default function AdminImageUpload({ currentUrl, onUploadSuccess, label = "Upload Image" }: AdminImageUploadProps) {
+export default function AdminImageUpload({ currentUrl, onUploadSuccess, label = "Upload image" }: AdminImageUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -79,10 +79,10 @@ export default function AdminImageUpload({ currentUrl, onUploadSuccess, label = 
             />
         </div>
       </div>
-      {uploading && <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: '#2563EB' }}>Uploading...</div>}
+      {uploading && <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: '#2563EB' }}>Uploading…</div>}
       {error && <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: '#DC2626' }}>{error}</div>}
       <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: '#6B7280' }}>
-         Drag & Drop or click to upload. You can also paste an external URL in the field above.
+         Choose a file, or paste an image URL in the field above.
       </div>
     </div>
   );

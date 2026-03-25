@@ -2,6 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 
+const FALLBACK_SLIDES = [
+  {
+    title: 'Powering Narratives. Elevating Voices. Driving Impact.',
+    subtitle:
+      'Agile Media Solutions is an international media, PR, and communications firm helping governments, institutions, brands, and movements shape the messages that move nations, markets, and minds.',
+  },
+];
+
 export default function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [slides, setSlides] = useState<any[]>([]);
@@ -23,9 +31,7 @@ export default function Hero() {
     fetchHomeData();
   }, []);
 
-  const activeSlides = slides.length > 0 ? slides : [
-    { title: "Powering Narratives. Elevating Voices. Driving Impact.", subtitle: "Agile Media Solutions is an international media, PR, and communications firm helping governments, institutions, brands, and movements shape the messages that move nations, markets, and minds." }
-  ];
+  const activeSlides = slides.length > 0 ? slides : FALLBACK_SLIDES;
 
   const slidesCount = activeSlides.length;
 
@@ -59,9 +65,10 @@ export default function Hero() {
           ))}
         </h1>
         <p className="hero-description">{currentData.subtitle}</p>
-        <div className="hero-cta">
+        <div className="hero-cta" style={{ flexWrap: 'wrap', gap: '0.75rem', justifyContent: 'center' }}>
           <a href="/contact#contact" className="btn btn-hero-primary">Work With Us</a>
           <a href="/brands" className="btn btn-hero-secondary">Explore Our Brands</a>
+          <a href="/contact#contact" className="btn btn-hero-secondary">Contact Us</a>
         </div>
       </div>
     </section>

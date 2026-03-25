@@ -11,6 +11,7 @@ const bcrypt = require('bcryptjs');
 const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
+const { seedAgileContent } = require('./seedContent');
 
 const app = express();
 
@@ -430,8 +431,8 @@ app.post('/api/admin/run-migrations', authenticateToken, async (req, res) => {
       );
 
       INSERT INTO admin_users (username, password_hash, email) 
-      VALUES ('admin', '$2b$10$jCdH1GjZcCXWiuLhU9tKMOZ58RhcPofWLSSfXdgDY3LMgm5xV.oei', 'admin@agilemediasolution.com')
-      ON CONFLICT (username) DO NOTHING;
+      VALUES ('admin', '$2b$10$/NC9NTmVlaIok.b/fcWoWOJd0yjhyb3rFETF.QDjQ0jWptytGKWNa', 'admin@agilemediasolution.com')
+      ON CONFLICT (username) DO UPDATE SET password_hash = EXCLUDED.password_hash;
 
       CREATE TABLE IF NOT EXISTS pages (
         id SERIAL PRIMARY KEY,
@@ -490,33 +491,9 @@ app.post('/api/admin/run-migrations', authenticateToken, async (req, res) => {
         order_index INTEGER DEFAULT 0,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
-
-      -- Seed Sectors if empty
-      INSERT INTO sectors (name, description, order_index)
-      SELECT 'Government & Public Institutions', 'Strategic messaging, reform visibility, and public trust-building.', 1
-      WHERE NOT EXISTS (SELECT 1 FROM sectors WHERE name = 'Government & Public Institutions');
-
-      INSERT INTO sectors (name, description, order_index)
-      SELECT 'International Development', 'Donor communications and stakeholder engagement for UN agencies and partners.', 2
-      WHERE NOT EXISTS (SELECT 1 FROM sectors WHERE name = 'International Development');
-
-      INSERT INTO sectors (name, description, order_index)
-      SELECT 'Finance, Investment & Trade', 'Investor-facing communications and ESG storytelling for financial bodies.', 3
-      WHERE NOT EXISTS (SELECT 1 FROM sectors WHERE name = 'Finance, Investment & Trade');
-
-      INSERT INTO sectors (name, description, order_index)
-      SELECT 'Technology & Innovation', 'Bold messaging and digital campaigns for startups and tech ecosystems.', 4
-      WHERE NOT EXISTS (SELECT 1 FROM sectors WHERE name = 'Technology & Innovation');
-
-      INSERT INTO sectors (name, description, order_index)
-      SELECT 'Climate & Sustainability', 'Content strategies for climate action and green finance.', 5
-      WHERE NOT EXISTS (SELECT 1 FROM sectors WHERE name = 'Climate & Sustainability');
-      
-      INSERT INTO pages (slug, title, description, content_json) 
-      VALUES ('home', 'Agile Media Solution | Strategic Communications & Narrative Building', 'Expert communications agency specializing in strategy, storytelling, and public influence across Africa.', '{"hero_slides": [{"title": "We build the communications infrastructure for leadership.", "subtitle": "Strategic Narrative. Global Influence. African Impact."}, {"title": "Shaping conversations that drive transformation.", "subtitle": "Excellence in Media Relations & Reputation Management."}]}')
-      ON CONFLICT (slug) DO NOTHING;
     `;
     await pgPool.query(query);
+    await seedAgileContent(pgPool);
     res.json({ success: true, message: 'Migration and seeding completed successfully.' });
   } catch (err) { 
     res.status(500).json({ error: err.message }); 

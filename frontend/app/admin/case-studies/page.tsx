@@ -28,10 +28,10 @@ export default function AdminCaseStudies() {
         const data = await res.json();
         setCaseStudies(data);
       } else {
-        setError('Failed to fetch case studies');
+        setError('Could not load case studies.');
       }
     } catch (err) {
-      setError('Error connecting to backend');
+      setError('Could not connect to the server.');
     } finally {
       setLoading(false);
     }
@@ -77,10 +77,10 @@ export default function AdminCaseStudies() {
       if (res.ok) {
         fetchData();
       } else {
-        alert('Failed to delete case study');
+        alert('Could not delete this case study.');
       }
     } catch (err) {
-      alert('Error deleting case study');
+      alert('Something went wrong while deleting.');
     }
   };
 
@@ -107,25 +107,25 @@ export default function AdminCaseStudies() {
         handleCancel();
         fetchData();
       } else {
-        alert('Failed to save case study');
+        alert('Could not save changes.');
       }
     } catch (err) {
-      alert('Error saving case study');
+      alert('Something went wrong while saving.');
     }
   };
 
-  if (loading && caseStudies.length === 0) return <div className="admin-loading" style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Loading case studies...</div>;
+  if (loading && caseStudies.length === 0) return <div className="admin-loading" style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Loading…</div>;
 
   return (
     <div className="admin-page animate-on-scroll is-visible">
       <div className="admin-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
         <div>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.5rem', marginBottom: '0.5rem', color: 'var(--color-dark-blue)' }}>Case Studies CMS</h1>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '1.1rem' }}>Manage the portfolio of successful campaigns and activations.</p>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.5rem', marginBottom: '0.5rem', color: 'var(--color-dark-blue)' }}>Case studies</h1>
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '1.1rem' }}>Edit case studies shown on your site.</p>
         </div>
         {!isAdding && (
           <button onClick={handleCreateClick} className="btn btn-primary">
-            + Add New Case Study
+            Add case study
           </button>
         )}
       </div>
@@ -133,49 +133,49 @@ export default function AdminCaseStudies() {
       {isAdding && (
         <div style={{ background: '#fff', padding: '2.5rem', borderRadius: '16px', border: '1px solid var(--color-border)', marginBottom: '2.5rem', boxShadow: 'var(--shadow-sm)' }}>
           <h3 style={{ marginBottom: '2rem', fontFamily: 'var(--font-display)', fontSize: '1.5rem', color: 'var(--color-dark-blue)' }}>
-            {editingCase ? 'Edit Case Study' : 'Create New Case Study'}
+            {editingCase ? 'Edit case study' : 'New case study'}
           </h3>
           <form onSubmit={handleSubmit}>
             <div className="form-row-split" style={{ marginBottom: '1.5rem' }}>
               <div className={`form-group ${title ? 'has-value' : ''}`}>
                 <input type="text" id="title" required value={title} onChange={(e) => setTitle(e.target.value)} />
-                <label htmlFor="title">Campaign / Project Title</label>
+                <label htmlFor="title">Title</label>
                 <div className="form-border"></div>
               </div>
               <div className={`form-group ${clientName ? 'has-value' : ''}`}>
                 <input type="text" id="clientName" value={clientName} onChange={(e) => setClientName(e.target.value)} />
-                <label htmlFor="clientName">Client or Partner Name (Optional)</label>
+                <label htmlFor="clientName">Client name (optional)</label>
                 <div className="form-border"></div>
               </div>
             </div>
 
             <div className={`form-group form-group-textarea ${description ? 'has-value' : ''}`} style={{ marginBottom: '1.5rem' }}>
               <textarea id="description" rows={3} value={description} onChange={(e) => setDescription(e.target.value)}></textarea>
-              <label htmlFor="description">Campaign Impact Description (Optional)</label>
+              <label htmlFor="description">Summary (optional)</label>
               <div className="form-border"></div>
             </div>
 
             <div className="form-row-split" style={{ marginBottom: '2.5rem' }}>
               <div className={`form-group ${imageUrl ? 'has-value' : ''}`}>
                 <input type="text" id="imageUrl" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
-                <label htmlFor="imageUrl">Background Image URL</label>
+                <label htmlFor="imageUrl">Image URL</label>
                 <div className="form-border"></div>
                 <AdminImageUpload 
                   currentUrl={imageUrl} 
                   onUploadSuccess={(url) => setImageUrl(url)} 
-                  label="Upload Case Study Thumbnail"
+                  label="Upload image"
                 />
               </div>
               <div className={`form-group ${orderIndex ? 'has-value' : ''}`}>
                 <input type="number" id="orderIndex" value={orderIndex} onChange={(e) => setOrderIndex(e.target.value)} />
-                <label htmlFor="orderIndex">Sort Order Index</label>
+                <label htmlFor="orderIndex">Sort order</label>
                 <div className="form-border"></div>
               </div>
             </div>
 
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
               <button type="button" onClick={handleCancel} className="btn btn-outline" style={{ border: 'none' }}>Cancel</button>
-              <button type="submit" className="btn btn-primary">{editingCase ? 'Save Changes' : 'Publish Case Study'}</button>
+              <button type="submit" className="btn btn-primary">{editingCase ? 'Save changes' : 'Add case study'}</button>
             </div>
           </form>
         </div>
@@ -188,15 +188,15 @@ export default function AdminCaseStudies() {
           <table style={{ width: '100%', minWidth: '800px', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead style={{ background: 'var(--color-bg-alt)', borderBottom: '1px solid var(--color-border)' }}>
               <tr>
-                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', width: '80px', textAlign: 'center' }}>Ord</th>
-                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Visual</th>
-                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Campaign Information</th>
+                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', width: '80px', textAlign: 'center' }}>Order</th>
+                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Image</th>
+                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Details</th>
                 <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {caseStudies.length === 0 ? (
-                <tr><td colSpan={4} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>No case studies configured.</td></tr>
+                <tr><td colSpan={4} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>No case studies yet. Add one to get started.</td></tr>
               ) : (
                 caseStudies.map((c) => (
                   <tr key={c.id} style={{ borderBottom: '1px solid var(--color-border)', background: '#fff' }}>
@@ -210,7 +210,7 @@ export default function AdminCaseStudies() {
                     </td>
                     <td style={{ padding: '1.5rem 1.2rem', verticalAlign: 'middle' }}>
                       <div style={{ fontWeight: 600, color: 'var(--color-dark-blue)', marginBottom: '4px', fontSize: '1.1rem' }}>{c.title}</div>
-                      {c.client_name && <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--color-gray)', marginBottom: '4px' }}>Client: {c.client_name}</div>}
+                      {c.client_name && <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--color-gray)', marginBottom: '4px' }}>Client — {c.client_name}</div>}
                       {c.description && <div style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)', marginBottom: '8px', maxWidth: '400px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.description}</div>}
                     </td>
                     <td style={{ padding: '1.5rem 1.2rem', verticalAlign: 'middle', textAlign: 'right' }}>

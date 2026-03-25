@@ -26,10 +26,10 @@ export default function AdminPages() {
         const data = await res.json();
         setPages(data);
       } else {
-        setError('Failed to fetch pages');
+        setError('Could not load pages.');
       }
     } catch (err) {
-      setError('Error connecting to backend');
+      setError('Could not connect to the server.');
     } finally {
       setLoading(false);
     }
@@ -50,10 +50,10 @@ export default function AdminPages() {
       if (res.ok) {
         fetchData();
       } else {
-        alert('Failed to delete page');
+        alert('Could not delete this page.');
       }
     } catch (err) {
-      alert('Error deleting page');
+      alert('Something went wrong while deleting.');
     }
   };
 
@@ -73,7 +73,7 @@ export default function AdminPages() {
         setContentJson(JSON.stringify(data.content_json || {}, null, 2));
       }
     } catch (err) {
-      alert('Error fetching page details');
+      alert('Could not load this page.');
     }
   };
 
@@ -98,7 +98,7 @@ export default function AdminPages() {
     try {
       parsedContent = JSON.parse(contentJson || '{}');
     } catch (err) {
-      alert('Invalid JSON in content field');
+      alert('The page data field must be valid JSON.');
       return;
     }
 
@@ -127,25 +127,25 @@ export default function AdminPages() {
         fetchData();
       } else {
         const errData = await res.json();
-        alert('Failed to save page: ' + (errData.error || 'Unknown error'));
+        alert('Could not save: ' + (errData.error || 'Unknown error'));
       }
     } catch (err) {
-      alert('Error saving page');
+      alert('Something went wrong while saving.');
     }
   };
 
-  if (loading && pages.length === 0) return <div className="admin-loading" style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Loading pages...</div>;
+  if (loading && pages.length === 0) return <div className="admin-loading" style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Loading…</div>;
 
   return (
     <div className="admin-page animate-on-scroll is-visible">
       <div className="admin-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
         <div>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.5rem', marginBottom: '0.5rem', color: 'var(--color-dark-blue)' }}>Pages CMS</h1>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '1.1rem' }}>Manage SEO, titles, and dynamic JSON content for website pages.</p>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.5rem', marginBottom: '0.5rem', color: 'var(--color-dark-blue)' }}>Pages</h1>
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '1.1rem' }}>Page titles, meta description, and JSON content for the site.</p>
         </div>
         {!isAdding && (
           <button onClick={handleCreateClick} className="btn btn-primary">
-            + Add New Page
+            Add page
           </button>
         )}
       </div>
@@ -153,25 +153,25 @@ export default function AdminPages() {
       {isAdding && (
         <div style={{ background: '#fff', padding: '2.5rem', borderRadius: '16px', border: '1px solid var(--color-border)', marginBottom: '2.5rem', boxShadow: 'var(--shadow-sm)' }}>
           <h3 style={{ marginBottom: '2rem', fontFamily: 'var(--font-display)', fontSize: '1.5rem', color: 'var(--color-dark-blue)' }}>
-            {editingPage ? 'Edit Page Attributes' : 'Create New Page'}
+            {editingPage ? 'Edit page' : 'New page'}
           </h3>
           <form onSubmit={handleSubmit}>
             <div className="form-row-split" style={{ marginBottom: '1.5rem' }}>
               <div className={`form-group ${title ? 'has-value' : ''}`}>
                 <input type="text" id="title" required value={title} onChange={(e) => setTitle(e.target.value)} />
-                <label htmlFor="title">Meta Title</label>
+                <label htmlFor="title">Page title</label>
                 <div className="form-border"></div>
               </div>
               <div className={`form-group ${slug ? 'has-value' : ''}`}>
                 <input type="text" id="slug" required value={slug} onChange={(e) => setSlug(e.target.value)} readOnly={!!editingPage} />
-                <label htmlFor="slug">URL Slug (e.g. 'about')</label>
+                <label htmlFor="slug">URL slug (e.g. about)</label>
                 <div className="form-border"></div>
               </div>
             </div>
 
             <div className={`form-group form-group-textarea ${description ? 'has-value' : ''}`} style={{ marginBottom: '1.5rem' }}>
               <textarea id="description" rows={2} value={description} onChange={(e) => setDescription(e.target.value)}></textarea>
-              <label htmlFor="description">Meta Description (SEO)</label>
+              <label htmlFor="description">Meta description</label>
               <div className="form-border"></div>
             </div>
 
@@ -183,13 +183,13 @@ export default function AdminPages() {
                 onChange={(e) => setContentJson(e.target.value)}
                 style={{ fontFamily: 'monospace', fontSize: '13px', letterSpacing: '0px' }}
               ></textarea>
-              <label htmlFor="contentJson">Content (JSON Blocks)</label>
+              <label htmlFor="contentJson">Page data (JSON)</label>
               <div className="form-border"></div>
             </div>
 
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
               <button type="button" onClick={handleCancel} className="btn btn-outline" style={{ border: 'none' }}>Cancel</button>
-              <button type="submit" className="btn btn-primary">{editingPage ? 'Save Page' : 'Publish Page'}</button>
+              <button type="submit" className="btn btn-primary">{editingPage ? 'Save changes' : 'Add page'}</button>
             </div>
           </form>
         </div>
@@ -202,15 +202,15 @@ export default function AdminPages() {
           <table style={{ width: '100%', minWidth: '800px', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead style={{ background: 'var(--color-bg-alt)', borderBottom: '1px solid var(--color-border)' }}>
               <tr>
-                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Page Info</th>
-                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Slug Route</th>
-                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Last Revised</th>
+                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Page</th>
+                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>URL</th>
+                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Last updated</th>
                 <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {pages.length === 0 ? (
-                <tr><td colSpan={4} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>No pages configured.</td></tr>
+                <tr><td colSpan={4} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>No pages yet. Add one to get started.</td></tr>
               ) : (
                 pages.map((p) => (
                   <tr key={p.id} style={{ borderBottom: '1px solid var(--color-border)', background: '#fff' }}>

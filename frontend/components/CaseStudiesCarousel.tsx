@@ -93,7 +93,7 @@ export default function CaseStudiesCarousel() {
         ))}
       </motion.div>
       <p style={{ textAlign: 'center', fontSize: '0.85rem', color: '#6B7280', marginTop: '1rem', fontStyle: 'italic' }}>
-        ← Drag to explore →
+        Drag sideways to see more
       </p>
     </div>
   );

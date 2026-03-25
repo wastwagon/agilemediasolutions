@@ -28,10 +28,10 @@ export default function AdminBrands() {
         const data = await res.json();
         setBrands(data);
       } else {
-        setError('Failed to fetch brands');
+        setError('Could not load brands.');
       }
     } catch (err) {
-      setError('Error connecting to backend');
+      setError('Could not connect to the server.');
     } finally {
       setLoading(false);
     }
@@ -77,10 +77,10 @@ export default function AdminBrands() {
       if (res.ok) {
         fetchData();
       } else {
-        alert('Failed to delete brand');
+        alert('Could not delete this brand.');
       }
     } catch (err) {
-      alert('Error deleting brand');
+      alert('Something went wrong while deleting.');
     }
   };
 
@@ -107,25 +107,25 @@ export default function AdminBrands() {
         handleCancel();
         fetchData();
       } else {
-        alert('Failed to save brand');
+        alert('Could not save changes.');
       }
     } catch (err) {
-      alert('Error saving brand');
+      alert('Something went wrong while saving.');
     }
   };
 
-  if (loading && brands.length === 0) return <div className="admin-loading" style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Loading brands...</div>;
+  if (loading && brands.length === 0) return <div className="admin-loading" style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Loading…</div>;
 
   return (
     <div className="admin-page animate-on-scroll is-visible">
       <div className="admin-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
         <div>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.5rem', marginBottom: '0.5rem', color: 'var(--color-dark-blue)' }}>Brands CMS</h1>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '1.1rem' }}>Manage the media properties and sub-brands displayed globally.</p>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.5rem', marginBottom: '0.5rem', color: 'var(--color-dark-blue)' }}>Brands</h1>
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '1.1rem' }}>Edit the brands shown on your site.</p>
         </div>
         {!isAdding && (
           <button onClick={handleCreateClick} className="btn btn-primary">
-            + Add New Brand
+            Add brand
           </button>
         )}
       </div>
@@ -133,7 +133,7 @@ export default function AdminBrands() {
       {isAdding && (
         <div style={{ background: '#fff', padding: '2.5rem', borderRadius: '16px', border: '1px solid var(--color-border)', marginBottom: '2.5rem', boxShadow: 'var(--shadow-sm)' }}>
           <h3 style={{ marginBottom: '2rem', fontFamily: 'var(--font-display)', fontSize: '1.5rem', color: 'var(--color-dark-blue)' }}>
-            {editingBrand ? 'Edit Brand Profile' : 'Create New Brand'}
+            {editingBrand ? 'Edit brand' : 'New brand'}
           </h3>
           <form onSubmit={handleSubmit}>
             <div className="form-row-split" style={{ marginBottom: '1.5rem' }}>
@@ -144,38 +144,38 @@ export default function AdminBrands() {
               </div>
               <div className={`form-group ${websiteUrl ? 'has-value' : ''}`}>
                 <input type="text" id="websiteUrl" value={websiteUrl} onChange={(e) => setWebsiteUrl(e.target.value)} />
-                <label htmlFor="websiteUrl">Website URL (Optional)</label>
+                <label htmlFor="websiteUrl">Website (optional)</label>
                 <div className="form-border"></div>
               </div>
             </div>
 
             <div className={`form-group form-group-textarea ${description ? 'has-value' : ''}`} style={{ marginBottom: '1.5rem' }}>
               <textarea id="description" rows={3} value={description} onChange={(e) => setDescription(e.target.value)}></textarea>
-              <label htmlFor="description">Brand Description (Optional)</label>
+              <label htmlFor="description">Description (optional)</label>
               <div className="form-border"></div>
             </div>
 
             <div className="form-row-split" style={{ marginBottom: '2.5rem' }}>
               <div className={`form-group ${imageUrl ? 'has-value' : ''}`}>
                 <input type="text" id="imageUrl" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
-                <label htmlFor="imageUrl">Logo Image URL</label>
+                <label htmlFor="imageUrl">Logo image URL</label>
                 <div className="form-border"></div>
                 <AdminImageUpload 
                   currentUrl={imageUrl} 
                   onUploadSuccess={(url) => setImageUrl(url)} 
-                  label="Upload Brand Logo"
+                  label="Upload logo"
                 />
               </div>
               <div className={`form-group ${orderIndex ? 'has-value' : ''}`}>
                 <input type="number" id="orderIndex" value={orderIndex} onChange={(e) => setOrderIndex(e.target.value)} />
-                <label htmlFor="orderIndex">Sort Order Index</label>
+                <label htmlFor="orderIndex">Sort order</label>
                 <div className="form-border"></div>
               </div>
             </div>
 
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
               <button type="button" onClick={handleCancel} className="btn btn-outline" style={{ border: 'none' }}>Cancel</button>
-              <button type="submit" className="btn btn-primary">{editingBrand ? 'Save Changes' : 'Publish Brand'}</button>
+              <button type="submit" className="btn btn-primary">{editingBrand ? 'Save changes' : 'Add brand'}</button>
             </div>
           </form>
         </div>
@@ -188,15 +188,15 @@ export default function AdminBrands() {
           <table style={{ width: '100%', minWidth: '800px', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead style={{ background: 'var(--color-bg-alt)', borderBottom: '1px solid var(--color-border)' }}>
               <tr>
-                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', width: '80px', textAlign: 'center' }}>Ord</th>
-                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Brand Logo</th>
-                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Brand Info</th>
+                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', width: '80px', textAlign: 'center' }}>Order</th>
+                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Logo</th>
+                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Brand</th>
                 <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {brands.length === 0 ? (
-                <tr><td colSpan={4} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>No brands configured.</td></tr>
+                <tr><td colSpan={4} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>No brands yet. Add one to get started.</td></tr>
               ) : (
                 brands.map((b) => (
                   <tr key={b.id} style={{ borderBottom: '1px solid var(--color-border)', background: '#fff' }}>
@@ -211,7 +211,7 @@ export default function AdminBrands() {
                     <td style={{ padding: '1.5rem 1.2rem', verticalAlign: 'middle' }}>
                       <div style={{ fontWeight: 600, color: 'var(--color-dark-blue)', marginBottom: '4px', fontSize: '1.1rem' }}>{b.name}</div>
                       {b.description && <div style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)', marginBottom: '8px', maxWidth: '400px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{b.description}</div>}
-                      {b.website_url && <a href={b.website_url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-primary)', fontSize: '0.85rem', textDecoration: 'none', fontWeight: 600 }}>Visit Website →</a>}
+                      {b.website_url && <a href={b.website_url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-primary)', fontSize: '0.85rem', textDecoration: 'none', fontWeight: 600 }}>Open website</a>}
                     </td>
                     <td style={{ padding: '1.5rem 1.2rem', verticalAlign: 'middle', textAlign: 'right' }}>
                       <button 

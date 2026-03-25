@@ -1,6 +1,7 @@
+# Optional: run only the Next.js frontend from this folder.
+# For API + DB, use docker-compose.yml at the repository root.
 services:
   web:
-    image: agile-media-website:latest
     build: .
     ports:
-      - "8080:80"
+      - "3000:3000"

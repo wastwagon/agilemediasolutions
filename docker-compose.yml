@@ -5,6 +5,7 @@ services:
       dockerfile: Dockerfile
       args:
         - NEXT_PUBLIC_SITE_NAME=${NEXT_PUBLIC_SITE_NAME:-Agile Media Solutions}
+        - BACKEND_INTERNAL_URL=${BACKEND_INTERNAL_URL:-http://backend:4000}
     container_name: modern_frontend
     restart: unless-stopped
     environment:
@@ -29,6 +30,7 @@ services:
       - DATABASE_URL=postgres://${POSTGRES_USER:-agile_user}:${POSTGRES_PASSWORD:-agile_password}@postgres:5432/${POSTGRES_DB:-agile_db}
       - REDIS_URL=redis://redis:6379
       - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:8085}
+      - JWT_SECRET=${JWT_SECRET:-agile_media_change_me_in_production}
     ports:
       - "${BACKEND_EXT_PORT:-4005}:${BACKEND_PORT:-4000}"
     depends_on:

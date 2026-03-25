@@ -27,10 +27,10 @@ export default function AdminServices() {
         const data = await res.json();
         setServices(data);
       } else {
-        setError('Failed to fetch services');
+        setError('Could not load services.');
       }
     } catch (err) {
-      setError('Error connecting to backend');
+      setError('Could not connect to the server.');
     } finally {
       setLoading(false);
     }
@@ -74,10 +74,10 @@ export default function AdminServices() {
       if (res.ok) {
         fetchData();
       } else {
-        alert('Failed to delete service');
+        alert('Could not delete this service.');
       }
     } catch (err) {
-      alert('Error deleting service');
+      alert('Something went wrong while deleting.');
     }
   };
 
@@ -104,25 +104,25 @@ export default function AdminServices() {
         handleCancel();
         fetchData();
       } else {
-        alert('Failed to save service');
+        alert('Could not save changes.');
       }
     } catch (err) {
-      alert('Error saving service');
+      alert('Something went wrong while saving.');
     }
   };
 
-  if (loading && services.length === 0) return <div className="admin-loading" style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Loading services...</div>;
+  if (loading && services.length === 0) return <div className="admin-loading" style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Loading…</div>;
 
   return (
     <div className="admin-page animate-on-scroll is-visible">
       <div className="admin-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
         <div>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.5rem', marginBottom: '0.5rem', color: 'var(--color-dark-blue)' }}>Services CMS</h1>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '1.1rem' }}>Manage the core capabilities and offerings displayed across the platform.</p>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.5rem', marginBottom: '0.5rem', color: 'var(--color-dark-blue)' }}>Services</h1>
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '1.1rem' }}>Edit the services listed on your site.</p>
         </div>
         {!isAdding && (
           <button onClick={handleCreateClick} className="btn btn-primary">
-            + Add New Service
+            Add service
           </button>
         )}
       </div>
@@ -130,42 +130,42 @@ export default function AdminServices() {
       {isAdding && (
         <div style={{ background: '#fff', padding: '2.5rem', borderRadius: '16px', border: '1px solid var(--color-border)', marginBottom: '2.5rem', boxShadow: 'var(--shadow-sm)' }}>
           <h3 style={{ marginBottom: '2rem', fontFamily: 'var(--font-display)', fontSize: '1.5rem', color: 'var(--color-dark-blue)' }}>
-            {editingService ? 'Edit Service' : 'Create New Service'}
+            {editingService ? 'Edit service' : 'New service'}
           </h3>
           <form onSubmit={handleSubmit}>
             <div className={`form-group ${title ? 'has-value' : ''}`} style={{ marginBottom: '1.5rem' }}>
               <input type="text" id="title" required value={title} onChange={(e) => setTitle(e.target.value)} />
-              <label htmlFor="title">Service Title</label>
+              <label htmlFor="title">Title</label>
               <div className="form-border"></div>
             </div>
 
             <div className={`form-group form-group-textarea ${description ? 'has-value' : ''}`} style={{ marginBottom: '1.5rem' }}>
               <textarea id="description" rows={3} value={description} onChange={(e) => setDescription(e.target.value)}></textarea>
-              <label htmlFor="description">Service Description</label>
+              <label htmlFor="description">Description</label>
               <div className="form-border"></div>
             </div>
 
             <div className="form-row-split" style={{ marginBottom: '2.5rem' }}>
               <div className={`form-group ${icon ? 'has-value' : ''}`}>
                 <input type="text" id="icon" value={icon} onChange={(e) => setIcon(e.target.value)} />
-                <label htmlFor="icon">Icon Identifier</label>
+                <label htmlFor="icon">Icon (name or image URL)</label>
                 <div className="form-border"></div>
                 <AdminImageUpload 
                   currentUrl={icon} 
                   onUploadSuccess={(url) => setIcon(url)} 
-                  label="Upload Service Icon"
+                  label="Upload icon image"
                 />
               </div>
               <div className={`form-group ${orderIndex ? 'has-value' : ''}`}>
                 <input type="number" id="orderIndex" value={orderIndex} onChange={(e) => setOrderIndex(e.target.value)} />
-                <label htmlFor="orderIndex">Sort Order Index</label>
+                <label htmlFor="orderIndex">Sort order</label>
                 <div className="form-border"></div>
               </div>
             </div>
 
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
               <button type="button" onClick={handleCancel} className="btn btn-outline" style={{ border: 'none' }}>Cancel</button>
-              <button type="submit" className="btn btn-primary">{editingService ? 'Save Service' : 'Publish Service'}</button>
+              <button type="submit" className="btn btn-primary">{editingService ? 'Save changes' : 'Add service'}</button>
             </div>
           </form>
         </div>
@@ -178,15 +178,15 @@ export default function AdminServices() {
           <table style={{ width: '100%', minWidth: '800px', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead style={{ background: 'var(--color-bg-alt)', borderBottom: '1px solid var(--color-border)' }}>
               <tr>
-                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', width: '80px', textAlign: 'center' }}>Ord</th>
-                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Service Details</th>
+                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', width: '80px', textAlign: 'center' }}>Order</th>
+                <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Service</th>
                 <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Icon</th>
                 <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {services.length === 0 ? (
-                <tr><td colSpan={4} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>No services configured.</td></tr>
+                <tr><td colSpan={4} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>No services yet. Add one to get started.</td></tr>
               ) : (
                 services.map((s) => (
                   <tr key={s.id} style={{ borderBottom: '1px solid var(--color-border)', background: '#fff' }}>

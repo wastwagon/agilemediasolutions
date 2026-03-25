@@ -11,6 +11,10 @@ COPY . .
 ARG NEXT_PUBLIC_SITE_NAME
 ENV NEXT_PUBLIC_SITE_NAME=${NEXT_PUBLIC_SITE_NAME}
 
+# Must match your Compose/stack service URL (Coolify: same compose network as backend)
+ARG BACKEND_INTERNAL_URL=http://backend:4000
+ENV BACKEND_INTERNAL_URL=${BACKEND_INTERNAL_URL}
+
 RUN npm run build
 
 FROM node:20-alpine AS runner

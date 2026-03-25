@@ -27,10 +27,10 @@ export default function AdminContacts() {
         const data = await res.json();
         setContacts(data);
       } else {
-        setError('Failed to fetch contact messages');
+        setError('Could not load messages.');
       }
     } catch (err) {
-      setError('Error connecting to backend');
+      setError('Could not connect to the server.');
     } finally {
       setLoading(false);
     }
@@ -56,7 +56,7 @@ export default function AdminContacts() {
         fetchContacts();
       }
     } catch (err) {
-      alert('Failed to update status');
+      alert('Could not update status.');
     }
   };
 
@@ -72,18 +72,18 @@ export default function AdminContacts() {
         fetchContacts();
       }
     } catch (err) {
-      alert('Failed to delete message');
+      alert('Could not delete this message.');
     }
   };
 
-  if (loading) return <div className="admin-loading" style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Loading leads...</div>;
+  if (loading) return <div className="admin-loading" style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Loading…</div>;
   if (error) return <div className="admin-error" style={{ padding: '3rem', textAlign: 'center', color: '#E63946' }}>{error}</div>;
 
   return (
     <div className="admin-page animate-on-scroll is-visible">
       <div className="admin-header">
-        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.5rem', marginBottom: '0.5rem', color: 'var(--color-dark-blue)' }}>Lead Pipeline</h1>
-        <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem', fontSize: '1.1rem' }}>Manage incoming inquiries and connect with your audience.</p>
+        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.5rem', marginBottom: '0.5rem', color: 'var(--color-dark-blue)' }}>Contact form</h1>
+        <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem', fontSize: '1.1rem' }}>Messages sent from the contact form on your site.</p>
       </div>
 
       <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid var(--color-border)', overflow: 'scroll', boxShadow: 'var(--shadow-sm)' }}>
@@ -91,7 +91,7 @@ export default function AdminContacts() {
           <thead style={{ background: 'var(--color-bg-alt)', borderBottom: '1px solid var(--color-border)' }}>
             <tr>
               <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Date</th>
-              <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Lead Info</th>
+              <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>From</th>
               <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Message</th>
               <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</th>
               <th style={{ padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right' }}>Actions</th>
@@ -99,7 +99,7 @@ export default function AdminContacts() {
           </thead>
           <tbody>
             {contacts.length === 0 ? (
-              <tr><td colSpan={5} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>No leads in the pipeline.</td></tr>
+              <tr><td colSpan={5} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>No messages yet.</td></tr>
             ) : (
               contacts.map((c) => (
                 <tr key={c.id} style={{ borderBottom: '1px solid var(--color-border)', background: c.status === 'new' ? '#fff' : '#f9fafa', transition: 'background 0.3s' }}>
@@ -111,7 +111,7 @@ export default function AdminContacts() {
                     <div style={{ fontSize: '0.9rem', color: 'var(--color-primary)' }}>{c.email}</div>
                   </td>
                   <td style={{ padding: '1.5rem 1.2rem', verticalAlign: 'top', maxWidth: '400px' }}>
-                    {c.topic && <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: '4px', textTransform: 'uppercase' }}>TOPIC: {c.topic}</div>}
+                    {c.topic && <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: '4px' }}>Topic: {c.topic}</div>}
                     <div style={{ fontSize: '0.95rem', color: 'var(--color-text)', lineHeight: 1.5 }}>{c.message}</div>
                   </td>
                   <td style={{ padding: '1.5rem 1.2rem', verticalAlign: 'top' }}>
@@ -136,7 +136,7 @@ export default function AdminContacts() {
                       onMouseOver={(e) => e.currentTarget.style.opacity = '0.7'}
                       onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
                     >
-                      {c.status === 'new' ? 'Mark Resolved' : 'Mark New'}
+                      {c.status === 'new' ? 'Mark as done' : 'Mark as new'}
                     </button>
                     <button 
                       onClick={() => handleDelete(c.id)}

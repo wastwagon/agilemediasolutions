@@ -27,15 +27,14 @@ export default function AdminLogin() {
         const data = await res.json();
         localStorage.setItem('admin_token', data.token);
         localStorage.setItem('admin_user', data.username);
-        // Add a slight delay for kinetic transition feel
         setTimeout(() => router.push('/admin/dashboard'), 400);
       } else {
         const data = await res.json();
-        setError(data.error || 'Login failed');
+        setError(data.error || 'Sign-in failed');
         setLoading(false);
       }
     } catch (err) {
-      setError('Connection error. Is the backend running?');
+      setError('Could not reach the server. Check that the app is running.');
       setLoading(false);
     }
   };
@@ -56,7 +55,7 @@ export default function AdminLogin() {
       display: 'flex', 
       alignItems: 'center', 
       justifyContent: 'center', 
-      background: 'linear-gradient(135deg, #F9FAFB 0%, #E5E7EB 100%)', // High-end neutral background
+      background: 'linear-gradient(135deg, #F9FAFB 0%, #E5E7EB 100%)',
       position: 'relative',
       overflow: 'hidden'
     }}>
@@ -80,8 +79,8 @@ export default function AdminLogin() {
         }}
       >
         <motion.div variants={itemVariants} style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-          <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '2.5rem', marginBottom: '0.5rem', color: '#0D213B', fontWeight: 700 }}>Agile CMS</h2>
-          <p style={{ fontFamily: 'DM Sans, sans-serif', color: '#6B7280', fontSize: '0.85rem', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: 600 }}>Administrative Control Center</p>
+          <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '2.5rem', marginBottom: '0.5rem', color: '#0D213B', fontWeight: 700 }}>Sign in</h2>
+          <p style={{ fontFamily: 'DM Sans, sans-serif', color: '#6B7280', fontSize: '0.95rem', fontWeight: 500 }}>Agile Media — manage site content</p>
         </motion.div>
         
         <AnimatePresence>
@@ -170,7 +169,7 @@ export default function AdminLogin() {
                 transition: 'transform 0.2s ease'
               }}
             >
-              {loading ? 'Authenticating...' : 'Sign In to Dashboard →'}
+              {loading ? 'Signing in…' : 'Sign in'}
             </button>
           </motion.div>
         </form>

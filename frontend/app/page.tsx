@@ -57,10 +57,9 @@ export default function Page() {
     fetchData();
   }, []);
 
-  // Re-run animation observer when data changes
   useEffect(() => {
     if (loading) return;
-    
+
     const animated = document.querySelectorAll('.animate-on-scroll');
     const observerOptions = {
         root: null,
@@ -93,7 +92,7 @@ export default function Page() {
               We are a multidisciplinary communications agency operating at the intersection of strategy, storytelling, and public influence. From presidential campaigns to global brand launches, our work blends intelligence, creativity, and execution power—helping clients lead conversations and shape change.
             </p>
             <div className="section-cta-inline">
-              <Link href="/about" className="btn btn-learn">Learn More About Us</Link>
+              <Link href="/about" className="btn btn-learn">Learn More About Us →</Link>
             </div>
           </div>
           <div className="section-media">
@@ -110,7 +109,7 @@ export default function Page() {
               Our services span every aspect of strategic communication—from policy messaging to digital campaigns, crisis PR to institutional branding. We build the communications infrastructure that enables leadership, trust, and transformation.
             </p>
             <div className="section-cta-inline">
-              <Link href="#services" className="btn btn-learn">Explore Our Services</Link>
+              <Link href="#services" className="btn btn-learn">Explore Our Services →</Link>
             </div>
           </div>
           <div className="section-media">
@@ -138,18 +137,18 @@ export default function Page() {
               <>
                 <article className="card card-service animate-on-scroll">
                   <div className="card-image-placeholder service-img-strategic"></div>
-                  <h3>Strategic Communications & Narrative Building</h3>
-                  <p>Tailored messaging frameworks and storytelling strategies that align with your institutional goals and public identity.<br /><Link href="/services" className="link-arrow-text">Learn more →</Link></p>
+                  <h3>Strategic Communications &amp; Narrative Building</h3>
+                  <p>We develop tailored messaging frameworks, storytelling strategies, and communication blueprints that align with your institutional goals and public identity. Includes: Message mapping, speechwriting, narrative architecture, and positioning strategies.<br /><Link href="/services" className="link-arrow-text">Learn more →</Link></p>
                 </article>
                 <article className="card card-service animate-on-scroll">
                   <div className="card-image-placeholder service-img-media-relations"></div>
-                  <h3>Media Relations & Reputation Management</h3>
-                  <p>Build and sustain public trust through managed perception, strong media relationships, and preparation for visibility and scrutiny.<br /><Link href="/services" className="link-arrow-text">Learn more →</Link></p>
+                  <h3>Media Relations &amp; Reputation Management</h3>
+                  <p>We help you build and sustain public trust by managing perception, cultivating media relationships, and preparing for both visibility and scrutiny. Includes: Press engagement, media training, crisis response, reputation recovery.<br /><Link href="/services" className="link-arrow-text">Learn more →</Link></p>
                 </article>
                 <article className="card card-service animate-on-scroll">
                   <div className="card-image-placeholder service-img-campaigns"></div>
-                  <h3>Campaigns, Advocacy & Stakeholder Engagement</h3>
-                  <p>High-impact campaigns that mobilize audiences, shift public opinion, and influence policy or behavior.<br /><Link href="/services" className="link-arrow-text">Learn more →</Link></p>
+                  <h3>Campaigns, Advocacy &amp; Stakeholder Engagement</h3>
+                  <p>We design high-impact campaigns that mobilize audiences, shift public opinion, and influence policy or behavior. Includes: Advocacy communications, civic mobilization, stakeholder mapping, and coalition engagement.<br /><Link href="/services" className="link-arrow-text">Learn more →</Link></p>
                 </article>
               </>
             )}
@@ -163,10 +162,19 @@ export default function Page() {
 
       <section className="section section-brands" id="our-brands">
         <div className="section-inner animate-on-scroll">
-          <h2 className="section-title centered">Our Brands</h2>
+          <h2 className="section-title centered">Our Media Brands</h2>
           <p className="section-subtitle centered">
-            Media Properties That Inform, Inspire, and Influence. Agile Media Solutions owns and operates a growing portfolio of high-impact media platforms that shape public discourse, elevate African voices, and spotlight key sectors across the continent.
+            Agile Media Solutions owns and operates a powerful portfolio of African-focused media platforms across leadership, business, sports, trade, and hospitality.
           </p>
+          <ul className="section-subtitle centered" style={{ textAlign: 'left', maxWidth: '36rem', margin: '0 auto 2rem', lineHeight: 1.8 }}>
+            <li>African Leaders Magazine</li>
+            <li>Africa Sports Magazine</li>
+            <li>Africa News Bulletin</li>
+            <li>Africa Sportz</li>
+            <li>Africa Trade Directory</li>
+            <li>Africa Hospitality Magazine</li>
+            <li>Agile HR Magazine</li>
+          </ul>
           <div className="cards-grid cards-brands">
             {brands.length > 0 ? (
               brands.map((b: Brand) => (
@@ -181,23 +189,23 @@ export default function Page() {
                 <article className="card card-brand animate-on-scroll">
                   <div className="card-image-placeholder brand-img-leaders"></div>
                   <h3>African Leaders Magazine</h3>
-                  <p>A continental platform spotlighting leadership, policy, and governance across Africa for decision-makers and institutions.<br /><Link href="/brands" className="link-arrow-text">Learn more →</Link></p>
+                  <p>A continental platform spotlighting leadership, policy, and governance across Africa.<br /><Link href="/brands" className="link-arrow-text">Learn more →</Link></p>
                 </article>
                 <article className="card card-brand animate-on-scroll">
                   <div className="card-image-placeholder brand-img-sports"></div>
                   <h3>Africa Sports Magazine</h3>
-                  <p>Monthly insights on performance, business, and culture in African sports—celebrating athletes, rising stars, and sports diplomacy.<br /><Link href="/brands" className="link-arrow-text">Learn more →</Link></p>
+                  <p>Highlighting the athletes, leagues, and moments driving Africa&apos;s sporting evolution.<br /><Link href="/brands" className="link-arrow-text">Learn more →</Link></p>
                 </article>
                 <article className="card card-brand animate-on-scroll">
                   <div className="card-image-placeholder brand-img-news"></div>
                   <h3>Africa News Bulletin</h3>
-                  <p>Daily curated updates on politics, economy, institutions, and regional affairs for decision-makers across the continent.<br /><Link href="/brands" className="link-arrow-text">Learn more →</Link></p>
+                  <p>A daily newswire delivering curated updates on politics, economy, institutions, and regional affairs.<br /><Link href="/brands" className="link-arrow-text">Learn more →</Link></p>
                 </article>
               </>
             )}
           </div>
           <div className="section-cta-center">
-            <Link href="/brands" className="btn btn-outline btn-view-all-brands">View All Brands</Link>
+            <Link href="/brands" className="btn btn-outline btn-view-all-brands">View All Brands →</Link>
             <Link href="/contact#contact" className="btn btn-outline">Advertise With Us</Link>
           </div>
         </div>
@@ -205,10 +213,17 @@ export default function Page() {
 
       <section className="section section-events" id="events">
         <div className="section-inner animate-on-scroll">
-          <h2 className="section-title centered">Signature Events</h2>
+          <h2 className="section-title centered">Upcoming Signature Events</h2>
           <p className="section-subtitle centered">
-            Curated Platforms That Bring Visionaries, Innovators, and Institutions Together. 
+            Our events convene decision-makers, celebrate leadership, and activate communities around trade, industry, investment, and culture.
           </p>
+          <ul className="section-subtitle centered" style={{ textAlign: 'left', maxWidth: '36rem', margin: '0 auto 2rem', lineHeight: 1.8 }}>
+            <li>Africa Trade Summit</li>
+            <li>Africa Trade Awards</li>
+            <li>Africa Industry Awards</li>
+            <li>Africa Investment Week</li>
+            <li>Afro Jazz Festival</li>
+          </ul>
           <div className="cards-grid cards-events">
             {events.length > 0 ? (
               events.slice(0, 3).map((e) => (
@@ -229,23 +244,23 @@ export default function Page() {
                 <article className="card card-event animate-on-scroll">
                   <div className="card-image-placeholder event-img-summit"></div>
                   <h3>Africa Trade Summit</h3>
-                  <p>Accelerating intra-African trade, investment, and economic transformation.<br /><Link href="/signature-events" className="link-arrow-text">Learn more →</Link></p>
+                  <p>Accelerating Intra-African Trade, Investment, and Economic Transformation.<br /><Link href="/signature-events" className="link-arrow-text">Learn more →</Link></p>
                 </article>
                 <article className="card card-event animate-on-scroll">
                   <div className="card-image-placeholder event-img-trade-awards"></div>
                   <h3>Africa Trade Awards</h3>
-                  <p>Celebrating excellence across the continent’s trade ecosystem.<br /><Link href="/signature-events" className="link-arrow-text">Learn more →</Link></p>
+                  <p>Celebrating Excellence Across the Continent&apos;s Trade Ecosystem.<br /><Link href="/signature-events" className="link-arrow-text">Learn more →</Link></p>
                 </article>
                 <article className="card card-event animate-on-scroll">
                   <div className="card-image-placeholder event-img-jazz"></div>
                   <h3>Afro Jazz Festival</h3>
-                  <p>Celebrating the soul of Africa through music, art, and culture.<br /><Link href="/signature-events" className="link-arrow-text">Learn more →</Link></p>
+                  <p>Celebrating the Soul of Africa Through Music, Art, and Culture.<br /><Link href="/signature-events" className="link-arrow-text">Learn more →</Link></p>
                 </article>
               </>
             )}
           </div>
           <div className="section-cta-center">
-            <Link href="/signature-events" className="btn btn-outline">See Event Calendar</Link>
+            <Link href="/signature-events" className="btn btn-outline">See Event Calendar →</Link>
             <Link href="/partnerships" className="link-arrow">Partner With Us <span aria-hidden="true">→</span></Link>
           </div>
         </div>
@@ -253,12 +268,46 @@ export default function Page() {
 
       <section className="section section-case-studies" id="case-studies">
         <div className="section-inner animate-on-scroll">
-          <h2 className="section-title centered">Case Studies & Portfolio</h2>
-          <p className="section-subtitle centered">Strategic Impact. Creative Execution. Measurable Results.</p>
+          <h2 className="section-title centered">Case Studies &amp; Campaign Highlights</h2>
+          <p className="section-subtitle centered">
+            Explore our portfolio of strategic communications projects across Africa and the global stage—from cross-border campaigns to policy communications and narrative repositioning.
+          </p>
           <CaseStudiesCarousel />
           <div className="section-cta-center">
+            <Link href="/case-studies" className="btn btn-outline">See Case Studies →</Link>
             <Link href="/contact#contact" className="btn btn-primary">Start a Project</Link>
-            <Link href="/contact#contact" className="btn btn-outline">Book a Discovery Call</Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="section section-insights-home" id="insights-press">
+        <div className="section-inner animate-on-scroll">
+          <h2 className="section-title centered">Insights &amp; Press Room</h2>
+          <p className="section-subtitle centered">
+            Stay updated with our bulletins, press briefings, news and thought leadership through the Agile Press Group.
+          </p>
+          <ul className="section-subtitle centered" style={{ textAlign: 'left', maxWidth: '36rem', margin: '0 auto 2rem', lineHeight: 1.8 }}>
+            <li>Press releases</li>
+            <li>Articles &amp; opinion features</li>
+            <li>Media coverage</li>
+            <li>Newsletters</li>
+          </ul>
+          <div className="section-cta-center">
+            <Link href="/agile-press-group" className="btn btn-primary">Visit Agile Press Group →</Link>
+            <Link href="/insights" className="btn btn-outline">Insights &amp; press room</Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="section section-careers-home" id="join-team">
+        <div className="section-inner animate-on-scroll" style={{ textAlign: 'center', maxWidth: '40rem', margin: '0 auto' }}>
+          <h2 className="section-title centered">Join the Team</h2>
+          <p className="section-subtitle centered">
+            We&apos;re building a creative, strategic, and fearless team across Africa and beyond.
+          </p>
+          <div className="section-cta-center">
+            <Link href="/careers" className="btn btn-primary">Explore Careers</Link>
+            <Link href="/contact#contact" className="btn btn-outline">Become a Contributor</Link>
           </div>
         </div>
       </section>
@@ -267,9 +316,10 @@ export default function Page() {
         <div className="section-inner section-split animate-on-scroll">
           <div className="section-content">
             <h2 className="section-title">Stay Connected</h2>
-            <p className="section-tagline">Let's tell better stories—together.</p>
-            <div className="section-cta-buttons">
+            <p className="section-tagline">Let&apos;s tell better stories—together.</p>
+            <div className="section-cta-buttons" style={{ flexWrap: 'wrap', gap: '0.75rem' }}>
               <Link href="/contact#contact" className="btn btn-primary">Contact Us</Link>
+              <Link href="#footer-social" className="btn btn-outline">Follow</Link>
               <Link href="#newsletter" className="btn btn-outline">Subscribe to Newsletter</Link>
             </div>
           </div>

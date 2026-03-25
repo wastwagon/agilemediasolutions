@@ -33,7 +33,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div style={{ display: 'flex', minHeight: '100vh', background: '#F9FAFB' }}>
       {/* Sidebar */}
       <aside style={{ width: '260px', background: '#111827', color: '#fff', padding: '2rem 1rem' }}>
-        <h1 style={{ fontFamily: 'Cormorant Garamond', fontSize: '1.5rem', marginBottom: '3rem', padding: '0 1rem' }}>Agile Admin</h1>
+        <h1 style={{ fontFamily: 'Cormorant Garamond', fontSize: '1.5rem', marginBottom: '3rem', padding: '0 1rem' }}>Agile Media</h1>
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           <Link href="/admin/dashboard" style={{ padding: '0.75rem 1rem', borderRadius: '6px', color: '#fff', textDecoration: 'none', background: pathname === '/admin/dashboard' ? '#374151' : 'transparent' }}>Dashboard</Link>
           <Link href="/admin/brands" style={{ padding: '0.75rem 1rem', borderRadius: '6px', color: '#fff', textDecoration: 'none', background: pathname === '/admin/brands' ? '#374151' : 'transparent' }}>Brands</Link>
@@ -41,10 +41,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Link href="/admin/pages" style={{ padding: '0.75rem 1rem', borderRadius: '6px', color: '#fff', textDecoration: 'none', background: pathname === '/admin/pages' ? '#374151' : 'transparent' }}>Pages</Link>
           <Link href="/admin/events" style={{ padding: '0.75rem 1rem', borderRadius: '6px', color: '#fff', textDecoration: 'none', background: pathname === '/admin/events' ? '#374151' : 'transparent' }}>Events</Link>
           <Link href="/admin/case-studies" style={{ padding: '0.75rem 1rem', borderRadius: '6px', color: '#fff', textDecoration: 'none', background: pathname === '/admin/case-studies' ? '#374151' : 'transparent' }}>Case Studies</Link>
-          <Link href="/admin/contacts" style={{ padding: '0.75rem 1rem', borderRadius: '6px', color: '#fff', textDecoration: 'none', background: pathname === '/admin/contacts' ? '#374151' : 'transparent' }}>Contact Messages</Link>
+          <Link href="/admin/contacts" style={{ padding: '0.75rem 1rem', borderRadius: '6px', color: '#fff', textDecoration: 'none', background: pathname === '/admin/contacts' ? '#374151' : 'transparent' }}>Contact form</Link>
           <Link href="/admin/settings" style={{ padding: '0.75rem 1rem', borderRadius: '6px', color: '#fff', textDecoration: 'none', background: pathname === '/admin/settings' ? '#374151' : 'transparent' }}>Settings</Link>
           <hr style={{ border: 'none', height: '1px', background: '#374151', margin: '2rem 0' }} />
-          <button onClick={handleLogout} style={{ padding: '0.75rem 1rem', borderRadius: '6px', color: '#EF4444', background: 'transparent', border: 'none', textAlign: 'left', cursor: 'pointer', fontWeight: 600 }}>Log Out</button>
+          <button onClick={handleLogout} style={{ padding: '0.75rem 1rem', borderRadius: '6px', color: '#EF4444', background: 'transparent', border: 'none', textAlign: 'left', cursor: 'pointer', fontWeight: 600 }}>Log out</button>
         </nav>
       </aside>
 

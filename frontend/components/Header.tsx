@@ -11,8 +11,8 @@ const navItems = [
     label: 'About', 
     href: '/about',
     subItems: [
-      { label: 'Who We Are', href: '/about' },
-      { label: 'Sectors We Serve', href: '/sectors' },
+      { label: 'About us', href: '/about' },
+      { label: 'Sectors', href: '/sectors' },
       { label: 'Partnerships', href: '/partnerships' }
     ]
   },
@@ -20,18 +20,19 @@ const navItems = [
     label: 'Services', 
     href: '/services',
     subItems: [
-      { label: 'All Services', href: '/services' },
-      { label: 'Digital Engagement', href: '/digital-engagement' },
-      { label: 'Campaigns & Advocacy', href: '/services' }
+      { label: 'All services', href: '/services' },
+      { label: 'Digital engagement', href: '/digital-engagement' },
+      { label: 'Studio', href: '/studio' }
     ]
   },
-  { label: 'Media & Brands', href: '/brands' },
+  { label: 'Media & brands', href: '/brands' },
   { 
     label: 'Insights', 
     href: '/insights',
     subItems: [
-      { label: 'Press Room', href: '/insights' },
-      { label: 'Case Studies', href: '/case-studies' }
+      { label: 'Press room', href: '/insights' },
+      { label: 'Agile Press Group', href: '/agile-press-group' },
+      { label: 'Case studies', href: '/case-studies' }
     ]
   },
   { label: 'Events', href: '/signature-events' },
@@ -61,7 +62,7 @@ export default function Header() {
     <header className={`modern-header ${scrolled ? 'scrolled' : ''} ${isOpen ? 'menu-open' : ''}`}>
       <div className="header-container">
         <Link href="/" className="modern-logo">
-          <img src="/images/ams-logo.png" alt="Agile Media Solutions" />
+          <img src="/images/agilemediasolutionslogo.png" alt="Agile Media Solutions" />
         </Link>
 
         {/* Desktop Nav */}
@@ -90,7 +91,7 @@ export default function Header() {
 
         {/* Action Right */}
         <div className="header-actions">
-          <Link href="/contact" className="action-btn">Work With Us</Link>
+          <Link href="/contact#contact" className="action-btn">Work With Us</Link>
           <button 
             className="hamburger-btn" 
             onClick={() => setIsOpen(!isOpen)}
@@ -110,7 +111,7 @@ export default function Header() {
         <div className="drawer-inner">
           <div className="drawer-header">
             <Link href="/" onClick={() => setIsOpen(false)}>
-              <img src="/images/ams-logo.png" alt="Logo" className="drawer-logo" />
+              <img src="/images/agilemediasolutionslogo.png" alt="Agile Media Solutions" className="drawer-logo" />
             </Link>
             <button className="drawer-close" onClick={() => setIsOpen(false)} aria-label="Close menu">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -136,10 +137,10 @@ export default function Header() {
           </nav>
           <div className="drawer-footer">
              <div className="drawer-socials">
-                <a href="#">FB</a>
-                <a href="#">TW</a>
-                <a href="#">IG</a>
-                <a href="#">LI</a>
+                <a href="https://facebook.com" target="_blank" rel="noopener noreferrer">Facebook</a>
+                <a href="https://x.com" target="_blank" rel="noopener noreferrer">X</a>
+                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">Instagram</a>
+                <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">LinkedIn</a>
              </div>
           </div>
         </div>

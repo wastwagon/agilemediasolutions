@@ -10,9 +10,9 @@ export default function Page() {
           <span className="page-hero-label">Partnerships</span>
           <h1 className="page-hero-title">Collaborating for Visibility, Influence, and Impact</h1>
           <p className="page-hero-tagline">
-            Agile Media Solutions works in close partnership with institutions, businesses, governments, and creatives to co-create platforms, amplify causes, and deliver shared value. We don't just work for clients—we build strategic relationships that grow movements, markets, and messages.
+            Agile Media Solutions works in close partnership with institutions, businesses, governments, and creatives to co-create platforms, amplify causes, and deliver shared value. We don&apos;t just work for clients—we build strategic relationships that grow movements, markets, and messages.
           </p>
-          <p className="page-hero-tagline" style={{marginTop: 'var(--space-md)', marginBottom: '0'}}>
+          <p className="page-hero-tagline" style={{ marginTop: 'var(--space-md)', marginBottom: '0' }}>
             Whether you are launching a campaign, hosting a global summit, expanding across regions, or creating your own branded media platform—we offer the expertise, reach, and execution power to bring your vision to life.
           </p>
         </div>
@@ -75,11 +75,17 @@ export default function Page() {
 
         <div className="partnerships-cta-strip">
           <div className="partnerships-cta-inner">
-            <p className="partnerships-cta-text">Ready to collaborate?</p>
+            <p className="partnerships-cta-text">Tell us about your partnership idea.</p>
             <div className="partnerships-cta-buttons">
-              <a href="/contact#contact" className="btn btn-partnerships-primary">Propose a Partnership</a>
-              <a href="/contact#contact" className="btn btn-partnerships-outline">View Current Collaborators</a>
-              <a href="/contact#contact" className="btn btn-partnerships-outline">Download Our Media Kit</a>
+              <a href="/contact#contact" className="btn btn-partnerships-primary">
+                Propose a Partnership
+              </a>
+              <a href="/contact#contact" className="btn btn-partnerships-outline">
+                View Current Collaborators
+              </a>
+              <a href="/contact#contact" className="btn btn-partnerships-outline">
+                Download Our Media Kit
+              </a>
             </div>
           </div>
         </div>

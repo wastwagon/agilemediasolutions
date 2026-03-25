@@ -7,7 +7,7 @@ export default function SettingsPage() {
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   const handleRunMigrations = async () => {
-    if (!confirm('Are you sure you want to run the database migration and seeding? This will ensure all necessary tables exist and core data is seeded. Existing data will remain unaffected.')) return;
+    if (!confirm('Run database setup? This creates any missing tables and adds default data. It will not delete existing rows.')) return;
     
     setLoading(true);
     setMessage(null);
@@ -24,12 +24,12 @@ export default function SettingsPage() {
       const data = await response.json();
       
       if (response.ok && data.success) {
-        setMessage({ type: 'success', text: data.message || 'Migration and seeding completed successfully.' });
+        setMessage({ type: 'success', text: data.message || 'Database setup finished.' });
       } else {
-        setMessage({ type: 'error', text: data.error || 'Failed to run migrations.' });
+        setMessage({ type: 'error', text: data.error || 'Database setup failed.' });
       }
     } catch (err: any) {
-      setMessage({ type: 'error', text: err.message || 'An unexpected error occurred.' });
+      setMessage({ type: 'error', text: err.message || 'Something went wrong.' });
     } finally {
       setLoading(false);
     }
@@ -37,13 +37,12 @@ export default function SettingsPage() {
 
   return (
     <div>
-      <h2 style={{ fontSize: '2rem', fontWeight: 600, marginBottom: '2rem', fontFamily: 'Cormorant Garamond' }}>System Settings</h2>
+      <h2 style={{ fontSize: '2rem', fontWeight: 600, marginBottom: '2rem', fontFamily: 'Cormorant Garamond' }}>Settings</h2>
       
       <div style={{ background: '#fff', padding: '2rem', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
-        <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1rem' }}>Database Maintenance</h3>
+        <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1rem' }}>Database</h3>
         <p style={{ color: '#4B5563', marginBottom: '1.5rem', lineHeight: 1.6 }}>
-          If auto-migration and seeding did not work during the initial setup, you can manually trigger the process here. 
-          This will establish the correct database schema (creating missing tables) and seed necessary base data (such as the default admin user and initial web pages).
+          Use this if the database was empty or tables are missing after install. It creates tables and default records (including the admin user) where needed.
         </p>
         
         {message && (
@@ -74,7 +73,7 @@ export default function SettingsPage() {
             transition: 'opacity 0.2s'
           }}
         >
-          {loading ? 'Running...' : 'Run Migrations & Seeding'}
+          {loading ? 'Working…' : 'Run database setup'}
         </button>
       </div>
     </div>

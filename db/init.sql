@@ -56,6 +56,47 @@ CREATE TABLE IF NOT EXISTS services (
   order_index INTEGER DEFAULT 0,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-INSERT INTO pages (slug, title, description, content_json) 
-VALUES ('home', 'Agile Media Solution | Strategic Communications & Narrative Building', 'Expert communications agency specializing in strategy, storytelling, and public influence across Africa.', '{"hero_slides": [{"title": "We build the communications infrastructure for leadership.", "subtitle": "Strategic Narrative. Global Influence. African Impact."}, {"title": "Shaping conversations that drive transformation.", "subtitle": "Excellence in Media Relations & Reputation Management."}]}')
-ON CONFLICT (slug) DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS events (
+  id SERIAL PRIMARY KEY,
+  title TEXT NOT NULL,
+  description TEXT,
+  image_url TEXT,
+  link_url TEXT,
+  order_index INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS case_studies (
+  id SERIAL PRIMARY KEY,
+  title TEXT NOT NULL,
+  client_name TEXT,
+  description TEXT,
+  image_url TEXT,
+  content_json JSONB DEFAULT '{}',
+  order_index INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS sectors (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT,
+  icon TEXT,
+  order_index INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Home page JSON for /api/pages/home (hero); run admin "Migrate" or seedContent.js for full services/brands/etc.
+INSERT INTO pages (slug, title, description, content_json)
+VALUES (
+  'home',
+  'Agile Media Solutions | Communications & media',
+  'Agile Media Solutions is an international media, PR, and communications firm helping governments, institutions, brands, and movements shape the messages that move nations, markets, and minds.',
+  '{"hero_slides": [{"title": "Powering Narratives. Elevating Voices. Driving Impact.", "subtitle": "Agile Media Solutions is an international media, PR, and communications firm helping governments, institutions, brands, and movements shape the messages that move nations, markets, and minds."}]}'::jsonb
+)
+ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  description = EXCLUDED.description,
+  content_json = EXCLUDED.content_json,
+  updated_at = NOW();
