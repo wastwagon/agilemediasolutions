@@ -46,17 +46,23 @@ export default function Hero() {
 
   return (
     <section className="hero" id="home">
-      <div className="hero-slideshow">
-        {[...Array(slidesCount)].map((_, i) => (
-          <div 
-            key={i} 
-            className={`hero-slide ${currentSlide === i ? 'hero-slide-active' : ''}`} 
-            data-slide={i}
-          ></div>
-        ))}
+      <div className="hero-video" aria-hidden="true">
+        <video
+          className="hero-video-el"
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="metadata"
+          poster="/images/hero-politics.jpg"
+        >
+          <source src="/videos/herobannervideo.mp4" type="video/mp4" />
+        </video>
       </div>
       <div className="hero-overlay"></div>
+      <div className="hero-noise" aria-hidden="true"></div>
       <div className="hero-content">
+        <span className="hero-kicker">Creative Communications Studio</span>
         <h1 className="hero-headline">
           {currentData.title.split('. ').map((line: string, idx: number, arr: string[]) => (
              <span key={idx} className="hero-line-mask">
@@ -68,6 +74,11 @@ export default function Hero() {
         <div className="hero-cta" style={{ flexWrap: 'wrap', gap: '0.75rem', justifyContent: 'center' }}>
           <a href="/brands" className="btn btn-hero-secondary">Explore Our Brands</a>
         </div>
+      </div>
+      <div className="hero-social-rail" aria-label="Social channels">
+        <a href="https://facebook.com" target="_blank" rel="noopener noreferrer">Facebook</a>
+        <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">Instagram</a>
+        <a href="https://x.com" target="_blank" rel="noopener noreferrer">X</a>
       </div>
     </section>
   );

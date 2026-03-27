@@ -89,7 +89,7 @@ export default function Page() {
   }, []);
 
   return (
-    <main className="services-page-main">
+    <main className="services-page-main creative-public-page">
       <div className="page-hero">
         <div className="page-hero-inner">
           <span className="page-hero-label">Case studies & portfolio</span>
@@ -105,7 +105,13 @@ export default function Page() {
 
       <section className="section section-case-studies" id="case-studies">
         <div className="section-inner">
-          <h2 className="section-title centered">What We Showcase</h2>
+          <div className="inner-section-head">
+            <div>
+              <span className="section-label">Scope</span>
+              <h2 className="section-title">What We Showcase</h2>
+            </div>
+            <Link href="/contact#contact" className="inner-section-link">Discuss your brief</Link>
+          </div>
           <div className="services-grid" style={{ marginBottom: 'var(--space-3xl)' }}>
             {SHOWCASE_ITEMS.map((item) => (
               <article key={item.title} className="service-card">
@@ -117,7 +123,8 @@ export default function Page() {
             ))}
           </div>
 
-          <h2 className="section-title centered">Selected Highlights</h2>
+          <span className="section-label">Featured Campaigns</span>
+          <h2 className="section-title">Selected Highlights</h2>
           <p className="section-subtitle centered">Representative programmes from our strategic communications work.</p>
 
           <div className="services-grid">
@@ -149,7 +156,8 @@ export default function Page() {
                 ))}
           </div>
 
-          <h2 className="section-title centered" style={{ marginTop: 'var(--space-3xl)' }}>
+          <span className="section-label" style={{ marginTop: 'var(--space-3xl)', display: 'inline-block' }}>Creative Output</span>
+          <h2 className="section-title" style={{ marginTop: '0.5rem' }}>
             Visual Portfolio
           </h2>
           <div className="section-cta-center services-page-cta">

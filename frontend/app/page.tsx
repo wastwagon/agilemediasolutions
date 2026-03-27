@@ -33,6 +33,7 @@ export default function Page() {
   const [brands, setBrands] = useState<Brand[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [events, setEvents] = useState<EventData[]>([]);
+  const [activeServiceIdx, setActiveServiceIdx] = useState<number | null>(0);
   const [loading, setLoading] = useState(true);
 
   useScrollAnimations();
@@ -80,13 +81,82 @@ export default function Page() {
     };
   }, [loading, brands, services, events]);
 
+  const fallbackHomeServices: Service[] = [
+    {
+      id: 1,
+      title: 'Strategic Communications & Narrative Building',
+      description:
+        'We develop tailored messaging frameworks, storytelling strategies, and communication blueprints that align with your institutional goals and public identity.',
+      icon: 'strategic',
+    },
+    {
+      id: 2,
+      title: 'Media Relations & Reputation Management',
+      description:
+        'We help you build and sustain public trust by managing perception, cultivating media relationships, and preparing for both visibility and scrutiny.',
+      icon: 'media-relations',
+    },
+    {
+      id: 3,
+      title: 'Campaigns, Advocacy & Stakeholder Engagement',
+      description:
+        'We design high-impact campaigns that mobilize audiences, shift public opinion, and influence policy or behavior across sectors.',
+      icon: 'campaigns',
+    },
+    {
+      id: 4,
+      title: 'Digital, Social & Multimedia Communications',
+      description:
+        'We deliver digital-first communications across platforms, combining strategy, design, and audience analytics for sustained engagement.',
+      icon: 'digital',
+    },
+  ];
+
+  const homeServices = (() => {
+    const primary = services.slice(0, 4);
+    if (primary.length >= 4) return primary;
+
+    const existingTitles = new Set(primary.map((s) => s.title.trim().toLowerCase()));
+    const fill = fallbackHomeServices.filter((s) => !existingTitles.has(s.title.trim().toLowerCase())).slice(0, 4 - primary.length);
+    return [...primary, ...fill];
+  })();
+
+  useEffect(() => {
+    if (activeServiceIdx !== null && activeServiceIdx > homeServices.length - 1) {
+      setActiveServiceIdx(0);
+    }
+  }, [activeServiceIdx, homeServices.length]);
+
   return (
-    <main className="home-page">
+    <main className="home-page creative-home">
       <Hero />
 
-      <section className="section section-who" id="who-we-are">
+      <section className="creative-marquee" aria-label="Brand statement ticker">
+        <div className="creative-marquee-track">
+          <span>Strategic Storytelling</span>
+          <span>•</span>
+          <span>Media Intelligence</span>
+          <span>•</span>
+          <span>Campaign Architecture</span>
+          <span>•</span>
+          <span>Digital Influence</span>
+          <span>•</span>
+          <span>Creative Production</span>
+          <span>•</span>
+          <span>Strategic Storytelling</span>
+          <span>•</span>
+          <span>Media Intelligence</span>
+          <span>•</span>
+          <span>Campaign Architecture</span>
+          <span>•</span>
+          <span>Digital Influence</span>
+        </div>
+      </section>
+
+      <section className="section section-who creative-section-band" id="who-we-are">
         <div className="section-inner section-split animate-on-scroll">
           <div className="section-content">
+            <span className="section-label">About Agile</span>
             <h2 className="section-title">Who We Are</h2>
             <p className="section-text">
               We are a multidisciplinary communications agency operating at the intersection of strategy, storytelling, and public influence. From presidential campaigns to global brand launches, our work blends intelligence, creativity, and execution power—helping clients lead conversations and shape change.
@@ -101,40 +171,49 @@ export default function Page() {
         </div>
       </section>
 
-      <section className="section section-cards" id="services">
+      <section className="section section-cards creative-section-band-alt" id="services">
         <div className="section-inner animate-on-scroll">
-          <h2 className="section-title centered">Our services</h2>
+          <div className="home-section-head">
+            <div>
+              <span className="section-label">Capabilities</span>
+              <h2 className="section-title">Our services</h2>
+            </div>
+            <Link href="/services" className="section-head-link">View all services</Link>
+          </div>
           <p className="section-subtitle centered">
             Comprehensive communications solutions. Strategically designed. Precisely delivered.
           </p>
-          <div className="cards-grid cards-services">
-            {services.length > 0 ? (
-              services.slice(0, 4).map((s: Service) => (
-                <article key={s.id} className="card card-service animate-on-scroll">
-                  <div className={`card-image-placeholder service-img-${s.icon || 'default'}`}></div>
-                  <h3>{s.title}</h3>
-                  <p>{s.description}<br /><Link href="/services" className="link-arrow-text">Learn more →</Link></p>
+          <div className="services-template-panel">
+            {homeServices.map((s, idx) => {
+              const isActive = idx === activeServiceIdx;
+              const imageClass = s.icon ? `service-img-${s.icon}` : 'service-img-strategic';
+              return (
+                <article key={`${s.id}-${s.title}`} className={`service-template-row ${isActive ? 'is-active' : ''}`}>
+                  <button
+                    type="button"
+                    className="service-template-trigger"
+                    onClick={() => setActiveServiceIdx((prev) => (prev === idx ? null : idx))}
+                    aria-expanded={isActive}
+                  >
+                    <span className="service-template-index">{String(idx + 1).padStart(2, '0')}</span>
+                    <h3 className="service-template-title">{s.title}</h3>
+                    <span className="service-template-toggle" aria-hidden="true">{isActive ? '−' : '+'}</span>
+                  </button>
+                  <div className="service-template-content">
+                    <div className="service-template-copy">
+                      <p>{s.description}</p>
+                      <ul>
+                        <li>Strategy and planning</li>
+                        <li>Execution and media support</li>
+                        <li>Monitoring and optimization</li>
+                      </ul>
+                      <Link href="/services" className="link-arrow-text">Learn more →</Link>
+                    </div>
+                    <div className={`service-template-image card-image-placeholder ${imageClass}`} aria-hidden="true"></div>
+                  </div>
                 </article>
-              ))
-            ) : (
-              <>
-                <article className="card card-service animate-on-scroll">
-                  <div className="card-image-placeholder service-img-strategic"></div>
-                  <h3>Strategic Communications &amp; Narrative Building</h3>
-                  <p>We develop tailored messaging frameworks, storytelling strategies, and communication blueprints that align with your institutional goals and public identity. Includes: Message mapping, speechwriting, narrative architecture, and positioning strategies.<br /><Link href="/services" className="link-arrow-text">Learn more →</Link></p>
-                </article>
-                <article className="card card-service animate-on-scroll">
-                  <div className="card-image-placeholder service-img-media-relations"></div>
-                  <h3>Media Relations &amp; Reputation Management</h3>
-                  <p>We help you build and sustain public trust by managing perception, cultivating media relationships, and preparing for both visibility and scrutiny. Includes: Press engagement, media training, crisis response, reputation recovery.<br /><Link href="/services" className="link-arrow-text">Learn more →</Link></p>
-                </article>
-                <article className="card card-service animate-on-scroll">
-                  <div className="card-image-placeholder service-img-campaigns"></div>
-                  <h3>Campaigns, Advocacy &amp; Stakeholder Engagement</h3>
-                  <p>We design high-impact campaigns that mobilize audiences, shift public opinion, and influence policy or behavior. Includes: Advocacy communications, civic mobilization, stakeholder mapping, and coalition engagement.<br /><Link href="/services" className="link-arrow-text">Learn more →</Link></p>
-                </article>
-              </>
-            )}
+              );
+            })}
           </div>
           <div className="section-cta-center">
             <Link href="/services" className="btn btn-outline">View all services</Link>
@@ -143,9 +222,15 @@ export default function Page() {
         </div>
       </section>
 
-      <section className="section section-brands" id="our-brands">
+      <section className="section section-brands creative-section-band" id="our-brands">
         <div className="section-inner animate-on-scroll">
-          <h2 className="section-title centered">Our Brands</h2>
+          <div className="home-section-head">
+            <div>
+              <span className="section-label">Media Network</span>
+              <h2 className="section-title">Our Brands</h2>
+            </div>
+            <Link href="/brands" className="section-head-link">Explore portfolio</Link>
+          </div>
           <p className="section-subtitle centered">
             Media Properties That Inform, Inspire, and Influence. Agile Media Solutions owns and operates a growing portfolio of high-impact media platforms that shape public discourse, elevate African voices, and spotlight key sectors across the continent.
           </p>
@@ -185,9 +270,15 @@ export default function Page() {
         </div>
       </section>
 
-      <section className="section section-events" id="events">
+      <section className="section section-events creative-section-band-alt" id="events">
         <div className="section-inner animate-on-scroll">
-          <h2 className="section-title centered">Signature Events</h2>
+          <div className="home-section-head">
+            <div>
+              <span className="section-label">Flagship Convenings</span>
+              <h2 className="section-title">Signature Events</h2>
+            </div>
+            <Link href="/signature-events" className="section-head-link">See all events</Link>
+          </div>
           <p className="section-subtitle centered">
             Curated Platforms That Bring Visionaries, Innovators, and Institutions Together.
           </p>
@@ -233,9 +324,15 @@ export default function Page() {
         </div>
       </section>
 
-      <section className="section section-case-studies" id="case-studies">
+      <section className="section section-case-studies creative-section-band" id="case-studies">
         <div className="section-inner animate-on-scroll">
-          <h2 className="section-title centered">Case Studies &amp; Campaign Highlights</h2>
+          <div className="home-section-head">
+            <div>
+              <span className="section-label">Selected Work</span>
+              <h2 className="section-title">Case Studies &amp; Campaign Highlights</h2>
+            </div>
+            <Link href="/case-studies" className="section-head-link">View projects</Link>
+          </div>
           <p className="section-subtitle centered">
             Explore our portfolio of strategic communications projects across Africa and the global stage—from cross-border campaigns to policy communications and narrative repositioning.
           </p>
@@ -247,9 +344,15 @@ export default function Page() {
         </div>
       </section>
 
-      <section className="section section-insights-home" id="insights-press">
+      <section className="section section-insights-home creative-section-band-alt" id="insights-press">
         <div className="section-inner animate-on-scroll">
-          <h2 className="section-title centered">Insights &amp; Press Room</h2>
+          <div className="home-section-head">
+            <div>
+              <span className="section-label">Press + Intelligence</span>
+              <h2 className="section-title">Insights &amp; Press Room</h2>
+            </div>
+            <Link href="/insights" className="section-head-link">Read updates</Link>
+          </div>
           <p className="section-subtitle centered">
             Stay updated with our bulletins, press briefings, news and thought leadership through the Agile Press Group.
           </p>
@@ -260,8 +363,9 @@ export default function Page() {
         </div>
       </section>
 
-      <section className="section section-careers-home" id="join-team">
+      <section className="section section-careers-home creative-section-band" id="join-team">
         <div className="section-inner animate-on-scroll" style={{ textAlign: 'center', maxWidth: '40rem', margin: '0 auto' }}>
+          <span className="section-label">Talent</span>
           <h2 className="section-title centered">Join the Team</h2>
           <p className="section-subtitle centered">
             We&apos;re building a creative, strategic, and fearless team across Africa and beyond.

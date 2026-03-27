@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 export default function Page() {
   return (
-    <main className="services-page-main">
+    <main className="services-page-main creative-public-page">
       <div className="page-hero">
         <div className="page-hero-inner">
           <span className="page-hero-label">Studio</span>
@@ -19,7 +19,13 @@ export default function Page() {
 
       <section className="section section-digital" id="studio">
         <div className="section-inner animate-on-scroll">
-          <h2 className="section-title digital-title">What We Do</h2>
+          <div className="inner-section-head">
+            <div>
+              <span className="section-label">Production Stack</span>
+              <h2 className="section-title digital-title">What We Do</h2>
+            </div>
+            <Link href="/contact#contact" className="inner-section-link">Book the studio</Link>
+          </div>
 
           <div className="digital-offerings">
             <div className="digital-offering">

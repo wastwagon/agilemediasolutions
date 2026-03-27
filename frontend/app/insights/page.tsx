@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 export default function Page() {
   return (
-    <main className="services-page-main">
+    <main className="services-page-main creative-public-page">
       <div className="page-hero">
         <div className="page-hero-inner">
           <span className="page-hero-label">Insights &amp; press room</span>
@@ -15,7 +15,13 @@ export default function Page() {
       </div>
       <section className="section section-insights" id="insights">
         <div className="section-inner animate-on-scroll">
-          <h2 className="section-title centered">Insights &amp; Press Room</h2>
+          <div className="inner-section-head">
+            <div>
+              <span className="section-label">Editorial Desk</span>
+              <h2 className="section-title">Insights &amp; Press Room</h2>
+            </div>
+            <Link href="/agile-press-group" className="inner-section-link">Visit press group</Link>
+          </div>
           <div className="insights-grid">
             <article className="insight-card animate-on-scroll">
               <h3>Insights</h3>

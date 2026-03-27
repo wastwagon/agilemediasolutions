@@ -48,7 +48,7 @@ const SIGNATURE_EVENTS = [
 
 export default function Page() {
   return (
-    <main className="services-page-main">
+    <main className="services-page-main creative-public-page">
       <div className="page-hero">
         <div className="page-hero-inner">
           <span className="page-hero-label">Signature events</span>
@@ -63,6 +63,13 @@ export default function Page() {
       </div>
       <section className="section section-cards">
         <div className="section-inner">
+          <div className="inner-section-head">
+            <div>
+              <span className="section-label">Event Portfolio</span>
+              <h2 className="section-title">Signature Experiences and Convenings</h2>
+            </div>
+            <Link href="/contact#contact" className="inner-section-link">Sponsorship options</Link>
+          </div>
           <div className="services-grid">
             {SIGNATURE_EVENTS.map((e) => (
               <article key={e.title} className="service-card">

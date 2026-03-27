@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 export default function Page() {
   return (
-    <main className="services-page-main">
+    <main className="services-page-main creative-public-page">
       <div className="page-hero">
         <div className="page-hero-inner">
           <span className="page-hero-label">Agile Press Group</span>
@@ -19,7 +19,13 @@ export default function Page() {
 
       <section className="section section-digital" id="agile-press-group">
         <div className="section-inner animate-on-scroll">
-          <h2 className="section-title digital-title">Our Editorial Vision</h2>
+          <div className="inner-section-head">
+            <div>
+              <span className="section-label">Publishing Core</span>
+              <h2 className="section-title digital-title">Our Editorial Vision</h2>
+            </div>
+            <Link href="/contact#contact" className="inner-section-link">Start publishing</Link>
+          </div>
           <ul className="digital-list">
             <li>
               <strong>Authentic:</strong> Rooted in African stories, lived experiences, and voices

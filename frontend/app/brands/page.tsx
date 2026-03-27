@@ -55,7 +55,7 @@ const DOCUMENT_BRANDS: { imgClass: string; title: string; body: string; audience
 
 export default function Page() {
   return (
-    <main className="services-page-main">
+    <main className="services-page-main creative-public-page">
       <div className="page-hero">
         <div className="page-hero-inner">
           <span className="page-hero-label">Our brands</span>
@@ -70,6 +70,13 @@ export default function Page() {
       </div>
       <section className="section section-cards">
         <div className="section-inner">
+          <div className="inner-section-head">
+            <div>
+              <span className="section-label">Portfolio</span>
+              <h2 className="section-title">Our Publishing and Media Platforms</h2>
+            </div>
+            <Link href="/contact#contact" className="inner-section-link">Media partnerships</Link>
+          </div>
           <div className="services-grid">
             {DOCUMENT_BRANDS.map((b) => (
               <article key={b.title} className="service-card">

@@ -125,7 +125,7 @@ export default function Page() {
   };
 
   return (
-    <main className="services-page-main">
+    <main className="services-page-main creative-public-page">
       <div className="page-hero">
         <motion.div className="page-hero-inner" variants={heroContainer} initial="hidden" animate="show">
           <div style={{ overflow: 'hidden', paddingBottom: '4px' }}>
@@ -148,15 +148,19 @@ export default function Page() {
 
       <section className="section section-cards">
         <div className="section-inner">
-          <motion.h2
-            className="section-title centered"
+          <motion.div
+            className="inner-section-head"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-50px' }}
             transition={{ duration: 0.6 }}
           >
-            Explore our integrated service offerings
-          </motion.h2>
+            <div>
+              <span className="section-label">Capabilities</span>
+              <h2 className="section-title">Explore our integrated service offerings</h2>
+            </div>
+            <Link href="/contact#contact" className="inner-section-link">Book strategy call</Link>
+          </motion.div>
           <motion.p
             className="section-subtitle centered all-services-intro"
             initial={{ opacity: 0, y: 20 }}

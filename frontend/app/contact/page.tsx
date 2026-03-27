@@ -4,7 +4,7 @@ import ContactForm from '../../components/ContactForm';
 
 export default function Page() {
   return (
-    <main>
+    <main className="creative-public-page">
       <div className="page-hero">
         <div className="page-hero-inner">
           <span className="page-hero-label">Contact</span>
@@ -20,7 +20,13 @@ export default function Page() {
 
       <section className="section section-contact" id="contact">
         <div className="section-inner">
-          <h2 className="section-title centered">Get In Touch</h2>
+          <div className="inner-section-head">
+            <div>
+              <span className="section-label">Connections</span>
+              <h2 className="section-title">Get In Touch</h2>
+            </div>
+            <Link href="/services" className="inner-section-link">View services</Link>
+          </div>
 
           <div className="insights-grid" style={{ marginBottom: 'var(--space-2xl)' }}>
             <article className="insight-card">
@@ -52,7 +58,8 @@ export default function Page() {
             </article>
           </div>
 
-          <h2 className="section-title centered">Send a message</h2>
+          <span className="section-label">Quick Brief</span>
+          <h2 className="section-title">Send a message</h2>
           <p className="section-subtitle centered">Use the form for campaigns, partnerships, media enquiries, or general questions.</p>
           <ContactForm />
 

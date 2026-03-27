@@ -83,7 +83,7 @@ const DOCUMENT_SECTORS: { name: string; description: string }[] = [
 
 export default function Page() {
   return (
-    <main className="services-page-main">
+    <main className="services-page-main creative-public-page">
       <div className="page-hero">
         <div className="page-hero-inner">
           <span className="page-hero-label">Sectors we serve</span>

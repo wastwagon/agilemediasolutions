@@ -20,7 +20,7 @@ export default function AboutPage() {
   };
 
   return (
-    <main className="page-hero-wrapper">
+    <main className="page-hero-wrapper creative-public-page">
       <div className="page-hero">
         <motion.div className="page-hero-inner" variants={container} initial="hidden" animate="show">
           <div style={{ overflow: 'hidden', paddingBottom: '4px' }}>
@@ -51,6 +51,7 @@ export default function AboutPage() {
               viewport={{ once: true, margin: '-100px' }}
               transition={{ duration: 0.8, ease: 'easeOut' }}
             >
+              <span className="section-label">Our Identity</span>
               <h2 className="section-title">Who We Are</h2>
               <p className="section-text">
                 We are a multidisciplinary communications agency operating at the intersection of strategy, storytelling, and public influence. From presidential campaigns to global brand launches, our work blends intelligence, creativity, and execution power—helping clients lead conversations and shape change.
@@ -81,8 +82,9 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="section section-values" style={{ background: '#fff' }}>
+      <section className="section section-values">
         <div className="section-inner">
+          <span className="section-label" style={{ textAlign: 'center' }}>Presence</span>
           <motion.h2
             className="section-title centered"
             initial={{ opacity: 0, y: 20 }}

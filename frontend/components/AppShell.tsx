@@ -27,6 +27,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <div className="footer-impact-text">Agile Media</div>
         <div className="footer-top">
           <div className="footer-inner">
+            <div className="footer-branding">
+              <Link href="/" className="footer-logo" aria-label="Agile Media Solutions home">
+                <img src="/images/agilemediasolutionslogo.png" alt="Agile Media Solutions" />
+              </Link>
+              <p className="footer-branding-copy">
+                We shape narratives that move institutions, markets, and culture across Africa and beyond.
+              </p>
+            </div>
             <div className="footer-columns">
               <div className="footer-col">
                 <h4>Company</h4>

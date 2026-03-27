@@ -2,7 +2,7 @@ import React from 'react';
 
 export default function Page() {
   return (
-    <main className="careers-page-main">
+    <main className="careers-page-main creative-public-page">
       <section className="section section-careers-page" id="careers">
         <div className="careers-hero">
           <div className="careers-hero-inner">
