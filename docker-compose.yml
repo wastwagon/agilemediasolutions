@@ -1,3 +1,5 @@
+# Multi-app VPS: set a unique COMPOSE_PROJECT_NAME per Coolify resource (or unique folder name)
+# so volume names stay distinct. Avoid duplicate host ports (FRONTEND_PORT, BACKEND_EXT_PORT, etc.).
 services:
   frontend:
     build:
@@ -6,7 +8,6 @@ services:
       args:
         - NEXT_PUBLIC_SITE_NAME=${NEXT_PUBLIC_SITE_NAME:-Agile Media Solutions}
         - BACKEND_INTERNAL_URL=${BACKEND_INTERNAL_URL:-http://backend:4000}
-    container_name: modern_frontend
     restart: unless-stopped
     environment:
       - NODE_ENV=production
@@ -22,7 +23,6 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: modern_backend
     restart: unless-stopped
     environment:
       - PORT=${BACKEND_PORT:-4000}
@@ -43,7 +43,6 @@ services:
 
   postgres:
     image: postgres:16-alpine
-    container_name: modern_postgres
     restart: unless-stopped
     environment:
       - POSTGRES_DB=${POSTGRES_DB:-agile_db}
@@ -59,7 +58,6 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: modern_redis
     restart: unless-stopped
     command: ["redis-server", "--appendonly", "yes"]
     ports:
