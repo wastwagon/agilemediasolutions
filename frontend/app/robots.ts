@@ -1,10 +1,13 @@
 import type { MetadataRoute } from 'next';
+import { publicSiteUrl } from '@/lib/publicSite';
 
 export default function robots(): MetadataRoute.Robots {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.agilemediasolutions.com';
+  const siteUrl = publicSiteUrl();
 
   return {
-    rules: [{ userAgent: '*', allow: '/' }],
+    rules: [
+      { userAgent: '*', allow: '/', disallow: ['/admin'] },
+    ],
     sitemap: `${siteUrl}/sitemap.xml`,
     host: siteUrl,
   };

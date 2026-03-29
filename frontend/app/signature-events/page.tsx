@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import SectionHeader from '../../components/SectionHeader';
 
 const SIGNATURE_EVENTS = [
   {
@@ -63,13 +64,13 @@ export default function Page() {
       </div>
       <section className="section section-cards">
         <div className="section-inner">
-          <div className="inner-section-head">
-            <div>
-              <span className="section-label">Event Portfolio</span>
-              <h2 className="section-title">Signature Experiences and Convenings</h2>
-            </div>
-            <Link href="/contact#contact" className="inner-section-link">Sponsorship options</Link>
-          </div>
+          <SectionHeader
+            variant="inner"
+            label="Event Portfolio"
+            title="Signature Experiences and Convenings"
+            linkHref="/contact#contact"
+            linkLabel="Sponsorship options"
+          />
           <div className="services-grid">
             {SIGNATURE_EVENTS.map((e) => (
               <article key={e.title} className="service-card">

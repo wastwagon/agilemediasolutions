@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import SectionHeader from '../../components/SectionHeader';
 
 export default function Page() {
   return (
@@ -19,13 +20,14 @@ export default function Page() {
 
       <section className="section section-digital" id="agile-press-group">
         <div className="section-inner animate-on-scroll">
-          <div className="inner-section-head">
-            <div>
-              <span className="section-label">Publishing Core</span>
-              <h2 className="section-title digital-title">Our Editorial Vision</h2>
-            </div>
-            <Link href="/contact#contact" className="inner-section-link">Start publishing</Link>
-          </div>
+          <SectionHeader
+            variant="inner"
+            label="Publishing Core"
+            title="Our Editorial Vision"
+            linkHref="/contact#contact"
+            linkLabel="Start publishing"
+            titleClassName="digital-title"
+          />
           <ul className="digital-list">
             <li>
               <strong>Authentic:</strong> Rooted in African stories, lived experiences, and voices

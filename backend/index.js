@@ -12,6 +12,8 @@ const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
 const { seedAgileContent } = require('./seedContent');
+const { sanitizePageContentJson, pageRowWithSanitizedContent } = require('./sanitizePageContent');
+const RESERVED_APP_SLUGS = require(path.join(__dirname, 'reserved-slugs.json'));
 
 const app = express();
 
@@ -586,30 +588,32 @@ app.get('/api/pages/:slug', async (req, res) => {
       ? await pgPool.query('SELECT * FROM pages WHERE slug = $1', [req.params.slug])
       : await pgPool.query("SELECT * FROM pages WHERE slug = $1 AND status = 'published'", [req.params.slug]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'Page not found' });
-    res.json(result.rows[0]);
+    res.json(pageRowWithSanitizedContent(result.rows[0]));
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.post('/api/pages', authenticateToken, async (req, res) => {
   const { slug, title, description, content_json, status, published_at } = req.body;
+  const contentJson = sanitizePageContentJson(content_json);
   try {
     const result = await pgPool.query(
       'INSERT INTO pages (slug, title, description, content_json, status, published_at) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-      [slug, title, description, content_json || {}, status || 'draft', published_at || null]
+      [slug, title, description, contentJson, status || 'draft', published_at || null]
     );
-    res.status(201).json(result.rows[0]);
+    res.status(201).json(pageRowWithSanitizedContent(result.rows[0]));
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.put('/api/pages/:slug', authenticateToken, async (req, res) => {
   const { title, description, content_json, status, published_at } = req.body;
+  const contentJson = sanitizePageContentJson(content_json);
   try {
     const result = await pgPool.query(
       'UPDATE pages SET title = $1, description = $2, content_json = $3, status = $4, published_at = $5, updated_at = NOW() WHERE slug = $6 RETURNING *',
-      [title, description, content_json, status || 'draft', published_at || null, req.params.slug]
+      [title, description, contentJson, status || 'draft', published_at || null, req.params.slug]
     );
     if (result.rows.length === 0) return res.status(404).json({ error: 'Page not found' });
-    res.json(result.rows[0]);
+    res.json(pageRowWithSanitizedContent(result.rows[0]));
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -619,6 +623,23 @@ app.delete('/api/pages/:id', authenticateToken, async (req, res) => {
     if (result.rows.length === 0) return res.status(404).json({ error: 'Page not found' });
     res.json({ message: 'Page deleted successfully' });
   } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+/** Published CMS pages whose slugs are not taken by static Next routes (for sitemap, SEO). */
+app.get('/api/public/published-cms-pages', async (req, res) => {
+  if (!pgPool) return res.status(503).json({ error: 'Database not available' });
+  try {
+    await ensureCoreSchema();
+    const result = await pgPool.query(
+      `SELECT slug, updated_at FROM pages
+       WHERE status = 'published' AND NOT (slug = ANY($1::text[]))
+       ORDER BY slug ASC`,
+      [RESERVED_APP_SLUGS]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Contact

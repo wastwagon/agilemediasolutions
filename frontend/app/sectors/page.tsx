@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import SectionHeader from '../../components/SectionHeader';
 
 const DOCUMENT_SECTORS: { name: string; description: string }[] = [
   {
@@ -96,6 +97,13 @@ export default function Page() {
 
       <section className="section section-sectors" id="sectors">
         <div className="section-inner animate-on-scroll">
+          <SectionHeader
+            variant="inner"
+            label="Coverage"
+            title="Sectors we support"
+            linkHref="/contact#contact"
+            linkLabel="Discuss your mandate"
+          />
           <div className="section-sectors-intro">
             <p className="section-text" style={{ textAlign: 'center', maxWidth: '800px', margin: '0 auto var(--space-3xl)' }}>
               Our sector-specific approach ensures every message is aligned with context, policy, audience, and purpose.

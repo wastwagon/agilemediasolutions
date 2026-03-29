@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import AdminImageUpload from '../../../components/AdminImageUpload';
+import AdminUrlLink from '../../../components/AdminUrlLink';
 import MediaLibraryPicker from '../../../components/MediaLibraryPicker';
 
 export default function AdminEvents() {
@@ -215,7 +216,7 @@ export default function AdminEvents() {
                     <td style={{ padding: '1.5rem 1.2rem', verticalAlign: 'middle' }}>
                       <div style={{ fontWeight: 600, color: 'var(--color-dark-blue)', marginBottom: '4px', fontSize: '1.1rem' }}>{ev.title}</div>
                       {ev.description && <div style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)', marginBottom: '8px', maxWidth: '400px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ev.description}</div>}
-                      {ev.link_url && <a href={ev.link_url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-primary)', fontSize: '0.85rem', textDecoration: 'none', fontWeight: 600 }}>Open link</a>}
+                      {ev.link_url && <AdminUrlLink href={ev.link_url}>Open link</AdminUrlLink>}
                     </td>
                     <td style={{ padding: '1.5rem 1.2rem', verticalAlign: 'middle', textAlign: 'right' }}>
                       <button 

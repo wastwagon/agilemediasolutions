@@ -221,3 +221,48 @@
     text-align: center;
   }
 }
+
+/* Partnerships on creative shell — light cards stay readable on dark page */
+main.partnerships-page-main.creative-public-page .section-partnerships-page {
+  background: transparent;
+}
+
+main.partnerships-page-main.creative-public-page .partnerships-content {
+  background: transparent;
+  padding-top: var(--space-xl);
+}
+
+main.partnerships-page-main.creative-public-page .section-partnerships-page h2.partnerships-heading {
+  color: var(--color-dark-blue);
+  letter-spacing: -0.01em;
+}
+
+main.partnerships-page-main.creative-public-page .partnerships-type-title {
+  color: var(--color-dark-blue);
+}
+
+main.partnerships-page-main.creative-public-page .partnerships-type-desc {
+  color: var(--color-text-muted);
+}
+
+main.partnerships-page-main.creative-public-page .partnerships-list li {
+  color: var(--color-text);
+}
+
+main.partnerships-page-main.creative-public-page .partnerships-block.partnerships-types,
+main.partnerships-page-main.creative-public-page .partnerships-block.partnerships-card {
+  background: var(--color-bg);
+  border-color: var(--color-border);
+  box-shadow: var(--shadow-sm);
+}
+
+main.partnerships-page-main.creative-public-page .partnerships-type-card {
+  background: var(--color-bg-alt);
+  border-color: var(--color-border);
+}
+
+main.partnerships-page-main.creative-public-page .partnerships-cta-strip {
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: var(--space-2xl);
+}

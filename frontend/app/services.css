@@ -235,3 +235,57 @@
 .services-page-cta .btn {
   border-radius: 12px;
 }
+
+/* --- Hybrid layout: services-page-main + creative-public-page (brands, services, insights, …) ---
+   services.css loads after styles.css and was overriding the dark shell with a light gradient,
+   which made light-on-light card text effectively invisible. Lock the creative theme when both classes are on <main>. */
+.services-page-main.creative-public-page {
+  background:
+    radial-gradient(70rem 30rem at 92% -15%, rgba(58, 133, 124, 0.2), transparent 58%),
+    radial-gradient(66rem 28rem at 2% -8%, rgba(30, 58, 54, 0.38), transparent 64%),
+    #121214;
+}
+
+.services-page-main.creative-public-page .section-label {
+  color: #99f6e4;
+}
+
+.services-page-main.creative-public-page .section-title {
+  color: #f8fafc;
+}
+
+.services-page-main.creative-public-page .section-subtitle,
+.services-page-main.creative-public-page .all-services-intro {
+  color: rgba(248, 250, 252, 0.78);
+}
+
+.services-page-main.creative-public-page .service-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 20px 36px -30px rgba(0, 0, 0, 0.62);
+}
+
+.services-page-main.creative-public-page .service-card:hover {
+  border-color: rgba(153, 246, 228, 0.45);
+  box-shadow: 0 26px 46px -28px rgba(0, 0, 0, 0.72);
+}
+
+.services-page-main.creative-public-page .service-card-title {
+  color: #f8fafc;
+}
+
+.services-page-main.creative-public-page .service-card-desc {
+  color: rgba(248, 250, 252, 0.78);
+}
+
+.services-page-main.creative-public-page .service-card-desc strong {
+  color: rgba(248, 250, 252, 0.92);
+}
+
+.services-page-main.creative-public-page .service-card-image {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.services-page-main.creative-public-page .services-page-cta {
+  border-top-color: rgba(255, 255, 255, 0.12);
+}

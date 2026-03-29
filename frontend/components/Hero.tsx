@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 const FALLBACK_SLIDES = [
   {
@@ -72,7 +73,7 @@ export default function Hero() {
         </h1>
         <p className="hero-description">{currentData.subtitle}</p>
         <div className="hero-cta" style={{ flexWrap: 'wrap', gap: '0.75rem', justifyContent: 'center' }}>
-          <a href="/brands" className="btn btn-hero-secondary">Explore Our Brands</a>
+          <Link href="/brands" className="btn btn-hero-secondary">Explore Our Brands</Link>
         </div>
       </div>
       <div className="hero-social-rail" aria-label="Social channels">

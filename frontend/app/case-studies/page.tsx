@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import SectionHeader from '../../components/SectionHeader';
 
 interface CaseStudy {
   id: number;
@@ -105,13 +106,13 @@ export default function Page() {
 
       <section className="section section-case-studies" id="case-studies">
         <div className="section-inner">
-          <div className="inner-section-head">
-            <div>
-              <span className="section-label">Scope</span>
-              <h2 className="section-title">What We Showcase</h2>
-            </div>
-            <Link href="/contact#contact" className="inner-section-link">Discuss your brief</Link>
-          </div>
+          <SectionHeader
+            variant="inner"
+            label="Scope"
+            title="What We Showcase"
+            linkHref="/contact#contact"
+            linkLabel="Discuss your brief"
+          />
           <div className="services-grid" style={{ marginBottom: 'var(--space-3xl)' }}>
             {SHOWCASE_ITEMS.map((item) => (
               <article key={item.title} className="service-card">
@@ -123,8 +124,13 @@ export default function Page() {
             ))}
           </div>
 
-          <span className="section-label">Featured Campaigns</span>
-          <h2 className="section-title">Selected Highlights</h2>
+          <SectionHeader
+            variant="inner"
+            label="Featured Campaigns"
+            title="Selected Highlights"
+            linkHref="/contact#contact"
+            linkLabel="Start a project"
+          />
           <p className="section-subtitle centered">Representative programmes from our strategic communications work.</p>
 
           <div className="services-grid">
@@ -156,10 +162,14 @@ export default function Page() {
                 ))}
           </div>
 
-          <span className="section-label" style={{ marginTop: 'var(--space-3xl)', display: 'inline-block' }}>Creative Output</span>
-          <h2 className="section-title" style={{ marginTop: '0.5rem' }}>
-            Visual Portfolio
-          </h2>
+          <SectionHeader
+            variant="inner"
+            label="Creative Output"
+            title="Visual Portfolio"
+            linkHref="/insights"
+            linkLabel="Insights & press"
+            className="case-studies-page-subsection"
+          />
           <div className="section-cta-center services-page-cta">
             <Link href="/contact#contact" className="btn btn-outline">
               Watch Campaign Reels

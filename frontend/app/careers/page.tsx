@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 
 export default function Page() {
   return (
@@ -83,15 +84,15 @@ export default function Page() {
             <div className="careers-cta-inner">
               <p className="careers-cta-text">Ready to apply?</p>
               <div className="careers-cta-buttons">
-                <a href="/contact#contact" className="btn btn-careers-primary">
+                <Link href="/contact#contact" className="btn btn-careers-primary">
                   See Open Positions
-                </a>
-                <a href="/contact#contact" className="btn btn-careers-outline">
+                </Link>
+                <Link href="/contact#contact" className="btn btn-careers-outline">
                   Join Our Talent Network
-                </a>
-                <a href="/about" className="btn btn-careers-outline">
+                </Link>
+                <Link href="/about" className="btn btn-careers-outline">
                   Meet Our Team
-                </a>
+                </Link>
               </div>
             </div>
           </div>

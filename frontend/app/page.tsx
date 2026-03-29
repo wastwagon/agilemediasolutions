@@ -4,6 +4,9 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Hero from '../components/Hero';
 import CaseStudiesCarousel from '../components/CaseStudiesCarousel';
+import SectionHeader from '../components/SectionHeader';
+import HomeFeaturedWork, { type HomeFeaturedStudy } from '../components/HomeFeaturedWork';
+import HomeInsightsPreview from '../components/HomeInsightsPreview';
 import { useScrollAnimations } from '../hooks/useScrollAnimations';
 
 interface Brand {
@@ -33,6 +36,7 @@ export default function Page() {
   const [brands, setBrands] = useState<Brand[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [events, setEvents] = useState<EventData[]>([]);
+  const [caseStudiesHome, setCaseStudiesHome] = useState<HomeFeaturedStudy[]>([]);
   const [activeServiceIdx, setActiveServiceIdx] = useState<number | null>(0);
   const [loading, setLoading] = useState(true);
 
@@ -41,14 +45,19 @@ export default function Page() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [brandsRes, servicesRes, eventsRes] = await Promise.all([
+        const [brandsRes, servicesRes, eventsRes, caseRes] = await Promise.all([
           fetch('/api/brands'),
           fetch('/api/services'),
-          fetch('/api/events')
+          fetch('/api/events'),
+          fetch('/api/case-studies'),
         ]);
         if (brandsRes.ok) setBrands(await brandsRes.json());
         if (servicesRes.ok) setServices(await servicesRes.json());
         if (eventsRes.ok) setEvents(await eventsRes.json());
+        if (caseRes.ok) {
+          const list = await caseRes.json();
+          if (Array.isArray(list)) setCaseStudiesHome(list);
+        }
       } catch (err) {
         console.error('Failed to fetch home page data:', err);
       } finally {
@@ -79,7 +88,7 @@ export default function Page() {
     return () => {
         animated.forEach((el) => observer.unobserve(el));
     };
-  }, [loading, brands, services, events]);
+  }, [loading, brands, services, events, caseStudiesHome]);
 
   const fallbackHomeServices: Service[] = [
     {
@@ -171,15 +180,42 @@ export default function Page() {
         </div>
       </section>
 
+      <section
+        className="creative-marquee creative-marquee--reverse creative-marquee--quiet"
+        aria-label="Institutional focus areas"
+      >
+        <div className="creative-marquee-track creative-marquee-track--reverse">
+          <span>Institutional trust</span>
+          <span>•</span>
+          <span>Cross-border narrative</span>
+          <span>•</span>
+          <span>Executive visibility</span>
+          <span>•</span>
+          <span>Summit &amp; event media</span>
+          <span>•</span>
+          <span>Measured impact</span>
+          <span>•</span>
+          <span>Institutional trust</span>
+          <span>•</span>
+          <span>Cross-border narrative</span>
+          <span>•</span>
+          <span>Executive visibility</span>
+          <span>•</span>
+          <span>Summit &amp; event media</span>
+          <span>•</span>
+          <span>Measured impact</span>
+        </div>
+      </section>
+
       <section className="section section-cards creative-section-band-alt" id="services">
         <div className="section-inner animate-on-scroll">
-          <div className="home-section-head">
-            <div>
-              <span className="section-label">Capabilities</span>
-              <h2 className="section-title">Our services</h2>
-            </div>
-            <Link href="/services" className="section-head-link">View all services</Link>
-          </div>
+          <SectionHeader
+            variant="home"
+            label="Capabilities"
+            title="Our services"
+            linkHref="/services"
+            linkLabel="View all services"
+          />
           <p className="section-subtitle centered">
             Comprehensive communications solutions. Strategically designed. Precisely delivered.
           </p>
@@ -224,13 +260,13 @@ export default function Page() {
 
       <section className="section section-brands creative-section-band" id="our-brands">
         <div className="section-inner animate-on-scroll">
-          <div className="home-section-head">
-            <div>
-              <span className="section-label">Media Network</span>
-              <h2 className="section-title">Our Brands</h2>
-            </div>
-            <Link href="/brands" className="section-head-link">Explore portfolio</Link>
-          </div>
+          <SectionHeader
+            variant="home"
+            label="Media Network"
+            title="Our Brands"
+            linkHref="/brands"
+            linkLabel="Explore portfolio"
+          />
           <p className="section-subtitle centered">
             Media Properties That Inform, Inspire, and Influence. Agile Media Solutions owns and operates a growing portfolio of high-impact media platforms that shape public discourse, elevate African voices, and spotlight key sectors across the continent.
           </p>
@@ -272,13 +308,13 @@ export default function Page() {
 
       <section className="section section-events creative-section-band-alt" id="events">
         <div className="section-inner animate-on-scroll">
-          <div className="home-section-head">
-            <div>
-              <span className="section-label">Flagship Convenings</span>
-              <h2 className="section-title">Signature Events</h2>
-            </div>
-            <Link href="/signature-events" className="section-head-link">See all events</Link>
-          </div>
+          <SectionHeader
+            variant="home"
+            label="Flagship Convenings"
+            title="Signature Events"
+            linkHref="/signature-events"
+            linkLabel="See all events"
+          />
           <p className="section-subtitle centered">
             Curated Platforms That Bring Visionaries, Innovators, and Institutions Together.
           </p>
@@ -326,16 +362,17 @@ export default function Page() {
 
       <section className="section section-case-studies creative-section-band" id="case-studies">
         <div className="section-inner animate-on-scroll">
-          <div className="home-section-head">
-            <div>
-              <span className="section-label">Selected Work</span>
-              <h2 className="section-title">Case Studies &amp; Campaign Highlights</h2>
-            </div>
-            <Link href="/case-studies" className="section-head-link">View projects</Link>
-          </div>
+          <SectionHeader
+            variant="home"
+            label="Selected Work"
+            title={<>Case Studies &amp; Campaign Highlights</>}
+            linkHref="/case-studies"
+            linkLabel="View projects"
+          />
           <p className="section-subtitle centered">
             Explore our portfolio of strategic communications projects across Africa and the global stage—from cross-border campaigns to policy communications and narrative repositioning.
           </p>
+          <HomeFeaturedWork studies={caseStudiesHome} />
           <CaseStudiesCarousel />
           <div className="section-cta-center">
             <Link href="/case-studies" className="btn btn-outline">See Case Studies →</Link>
@@ -346,13 +383,13 @@ export default function Page() {
 
       <section className="section section-insights-home creative-section-band-alt" id="insights-press">
         <div className="section-inner animate-on-scroll">
-          <div className="home-section-head">
-            <div>
-              <span className="section-label">Press + Intelligence</span>
-              <h2 className="section-title">Insights &amp; Press Room</h2>
-            </div>
-            <Link href="/insights" className="section-head-link">Read updates</Link>
-          </div>
+          <SectionHeader
+            variant="home"
+            label="Press + Intelligence"
+            title={<>Insights &amp; Press Room</>}
+            linkHref="/insights"
+            linkLabel="Read updates"
+          />
           <p className="section-subtitle centered">
             Stay updated with our bulletins, press briefings, news and thought leadership through the Agile Press Group.
           </p>
@@ -360,13 +397,19 @@ export default function Page() {
             <Link href="/agile-press-group" className="btn btn-primary">Visit Agile Press Group →</Link>
             <Link href="/insights" className="btn btn-outline">Insights &amp; press room</Link>
           </div>
+          <HomeInsightsPreview />
         </div>
       </section>
 
       <section className="section section-careers-home creative-section-band" id="join-team">
         <div className="section-inner animate-on-scroll" style={{ textAlign: 'center', maxWidth: '40rem', margin: '0 auto' }}>
-          <span className="section-label">Talent</span>
-          <h2 className="section-title centered">Join the Team</h2>
+          <SectionHeader
+            variant="home"
+            layout="stack"
+            label="Talent"
+            title="Join the Team"
+            titleClassName="centered"
+          />
           <p className="section-subtitle centered">
             We&apos;re building a creative, strategic, and fearless team across Africa and beyond.
           </p>

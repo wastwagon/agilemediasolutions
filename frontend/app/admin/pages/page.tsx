@@ -1,13 +1,19 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import MediaLibraryPicker from '../../../components/MediaLibraryPicker';
 import AdminImageUpload from '../../../components/AdminImageUpload';
+import {
+  coerceBlockSectionAnchor,
+  isBlockAnchorInputInvalid,
+  preparePageBlockAnchorsForSave,
+} from '@/lib/blockSectionAnchor';
 
 type PageBlock =
-  | { id: string; type: 'text'; heading?: string; body?: string }
-  | { id: string; type: 'image'; url?: string; alt?: string; caption?: string }
-  | { id: string; type: 'cta'; label?: string; href?: string; variant?: 'primary' | 'outline' };
+  | { id: string; anchorId?: string; type: 'text'; heading?: string; body?: string }
+  | { id: string; anchorId?: string; type: 'image'; url?: string; alt?: string; caption?: string }
+  | { id: string; anchorId?: string; type: 'cta'; label?: string; href?: string; variant?: 'primary' | 'outline' };
 
 type HeroSlide = {
   id: string;
@@ -39,6 +45,11 @@ export default function AdminPages() {
   const actionBtnStyle: React.CSSProperties = { background: 'var(--color-bg-alt)', border: '1px solid var(--color-border)', borderRadius: 8, cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700, padding: '0.4rem 0.62rem', marginLeft: '0.55rem' };
 
   const isHome = useMemo(() => slug === 'home', [slug]);
+
+  const hasInvalidAnchors = useMemo(
+    () => blocks.some((b) => isBlockAnchorInputInvalid(b.anchorId)),
+    [blocks]
+  );
 
   const fetchData = async () => {
     setLoading(true);
@@ -99,11 +110,16 @@ export default function AdminPages() {
         setPublishedAt(data.published_at ? new Date(data.published_at).toISOString().slice(0, 16) : '');
         const cj = data.content_json || {};
         const cjBlocks = Array.isArray(cj.blocks) ? cj.blocks : [];
-        const normalizedBlocks: PageBlock[] = cjBlocks.map((b: any) => ({
-          id: b.id || uid(),
-          type: b.type,
-          ...b,
-        }));
+        const normalizedBlocks: PageBlock[] = cjBlocks.map((b: any) => {
+          const rawAnchor = typeof b.anchorId === 'string' ? b.anchorId.trim() : '';
+          const anchorId = rawAnchor ? coerceBlockSectionAnchor(rawAnchor) ?? rawAnchor : undefined;
+          return {
+            ...b,
+            id: b.id || uid(),
+            type: b.type,
+            anchorId,
+          };
+        });
         setBlocks(normalizedBlocks);
 
         const hs = Array.isArray(cj.hero_slides) ? cj.hero_slides : [];
@@ -145,6 +161,19 @@ export default function AdminPages() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (hasInvalidAnchors) {
+      const first = blocks.find((x) => isBlockAnchorInputInvalid(x.anchorId));
+      const el = first
+        ? (document.getElementById(`page-block-anchor-input-${first.id}`) as HTMLInputElement | null)
+        : null;
+      if (el) {
+        el.focus({ preventScroll: true });
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else {
+        document.getElementById('page-builder-anchor-errors')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      return;
+    }
     const data = {
       slug,
       title,
@@ -152,7 +181,7 @@ export default function AdminPages() {
       status,
       published_at: status === 'published' ? (publishedAt ? new Date(publishedAt).toISOString() : new Date().toISOString()) : null,
       content_json: {
-        blocks,
+        blocks: preparePageBlockAnchorsForSave(blocks),
         ...(isHome ? { hero_slides: heroSlides.map((s) => ({ title: s.title, subtitle: s.subtitle })) } : {}),
       }
     };
@@ -244,7 +273,7 @@ export default function AdminPages() {
             </div>
             {slug && slug !== 'home' && (
               <div style={{ marginTop: '-0.5rem', marginBottom: '1rem' }}>
-                <a
+                <Link
                   href={`/${slug}`}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -253,7 +282,7 @@ export default function AdminPages() {
                   title={status === 'published' ? 'Open public page' : 'Only published pages are public'}
                 >
                   Preview page
-                </a>
+                </Link>
               </div>
             )}
 
@@ -264,6 +293,25 @@ export default function AdminPages() {
             </div>
 
             <div style={{ marginBottom: '2.5rem' }}>
+              {hasInvalidAnchors ? (
+                <div
+                  id="page-builder-anchor-errors"
+                  role="alert"
+                  style={{
+                    marginBottom: '1rem',
+                    padding: '0.85rem 1rem',
+                    borderRadius: 12,
+                    border: '1px solid rgba(185,28,28,0.35)',
+                    background: 'rgba(185,28,28,0.06)',
+                    color: '#991B1B',
+                    fontSize: '0.92rem',
+                    fontWeight: 600,
+                  }}
+                >
+                  Fix or clear invalid section anchors in the blocks below before saving. Blur each anchor field to auto-format, or
+                  empty the field to remove the anchor.
+                </div>
+              ) : null}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
                 <div>
                   <div style={{ fontWeight: 800, color: 'var(--color-dark-blue)' }}>Page content</div>
@@ -364,8 +412,20 @@ export default function AdminPages() {
                 </div>
               ) : (
                 <div style={{ display: 'grid', gap: '0.75rem' }}>
-                  {blocks.map((b, idx) => (
-                    <div key={b.id} style={{ border: '1px solid var(--color-border)', borderRadius: 14, padding: '1rem', background: '#fff' }}>
+                  {blocks.map((b, idx) => {
+                    const anchorInvalid = isBlockAnchorInputInvalid(b.anchorId);
+                    return (
+                    <div
+                      key={b.id}
+                      style={{
+                        border: anchorInvalid
+                          ? '1px solid rgba(185, 28, 28, 0.42)'
+                          : '1px solid var(--color-border)',
+                        borderRadius: 14,
+                        padding: '1rem',
+                        background: anchorInvalid ? 'rgba(185, 28, 28, 0.03)' : '#fff',
+                      }}
+                    >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
                         <div style={{ fontWeight: 800, color: 'var(--color-dark-blue)' }}>
                           {b.type === 'text' ? 'Text' : b.type === 'image' ? 'Image' : 'Button'} block
@@ -384,6 +444,65 @@ export default function AdminPages() {
                           <button type="button" className="btn btn-outline" style={{ border: 'none', color: '#B91C1C' }} onClick={() => setBlocks((prev) => prev.filter((x) => x.id !== b.id))}>
                             Delete
                           </button>
+                        </div>
+                      </div>
+
+                      <div
+                        className={`form-group ${(b.anchorId || '') ? 'has-value' : ''}`}
+                        style={{ marginBottom: '0.75rem' }}
+                      >
+                        <input
+                          id={`page-block-anchor-input-${b.id}`}
+                          type="text"
+                          value={b.anchorId || ''}
+                          aria-invalid={anchorInvalid}
+                          aria-describedby={anchorInvalid ? `page-block-anchor-hint-${b.id}` : undefined}
+                          onChange={(e) =>
+                            setBlocks((prev) =>
+                              prev.map((x) => (x.id === b.id ? { ...x, anchorId: e.target.value } : x))
+                            )
+                          }
+                          onBlur={() => {
+                            const v = (b.anchorId || '').trim();
+                            if (!v) {
+                              setBlocks((prev) =>
+                                prev.map((x) => (x.id === b.id ? { ...x, anchorId: undefined } : x))
+                              );
+                              return;
+                            }
+                            const c = coerceBlockSectionAnchor(v);
+                            setBlocks((prev) =>
+                              prev.map((x) => (x.id === b.id ? { ...x, anchorId: c ?? undefined } : x))
+                            );
+                          }}
+                          placeholder="e.g. pricing"
+                        />
+                        <label>Section anchor (optional)</label>
+                        <div className="form-border"></div>
+                        {anchorInvalid ? (
+                          <div
+                            id={`page-block-anchor-hint-${b.id}`}
+                            role="alert"
+                            style={{
+                              fontSize: '0.78rem',
+                              color: '#B91C1C',
+                              marginTop: '0.35rem',
+                              fontWeight: 600,
+                            }}
+                          >
+                            This value cannot be used as a link anchor. Use letters, numbers, hyphens, and underscores—or leave
+                            blank. Blur the field to auto-fix, or clear it.
+                          </div>
+                        ) : null}
+                        <div
+                          style={{
+                            fontSize: '0.78rem',
+                            color: 'var(--color-text-muted)',
+                            marginTop: anchorInvalid ? '0.25rem' : '0.35rem',
+                          }}
+                        >
+                          Spaces become hyphens; leading digits get an <code style={{ fontSize: '0.74rem' }}>id-</code> prefix.
+                          Link: <code style={{ fontSize: '0.74rem' }}>/{slug || 'page'}#your-anchor</code>
                         </div>
                       </div>
 
@@ -488,18 +607,26 @@ export default function AdminPages() {
                         </div>
                       )}
                     </div>
-                  ))}
+                  );
+                  })}
                 </div>
               )}
 
               <div style={{ marginTop: '0.9rem', color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
-                Tip: For images, use Upload or choose from the Media Library so you can reuse assets site-wide.
+                Tip: For images, use Upload or choose from the Media Library so you can reuse assets site-wide. Use section anchors for in-page links—you cannot save while an anchor is invalid.
               </div>
             </div>
 
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
               <button type="button" onClick={handleCancel} className="btn btn-outline" style={{ border: 'none' }}>Cancel</button>
-              <button type="submit" className="btn btn-primary">{editingPage ? 'Save changes' : 'Add page'}</button>
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={hasInvalidAnchors}
+                title={hasInvalidAnchors ? 'Fix or clear invalid section anchors first' : undefined}
+              >
+                {editingPage ? 'Save changes' : 'Add page'}
+              </button>
             </div>
           </form>
         </div>
@@ -558,14 +685,14 @@ export default function AdminPages() {
                     </td>
                     <td style={{ padding: '1.5rem 1.2rem', verticalAlign: 'middle', textAlign: 'right' }}>
                       {p.slug !== 'home' && p.status === 'published' && (
-                        <a
+                        <Link
                           href={`/${p.slug}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           style={{ ...actionBtnStyle, color: 'var(--color-primary)', textDecoration: 'none', display: 'inline-block' }}
                         >
                           View
-                        </a>
+                        </Link>
                       )}
                       <button 
                         onClick={() => handleEdit(p.slug)}

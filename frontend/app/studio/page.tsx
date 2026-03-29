@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import SectionHeader from '../../components/SectionHeader';
 
 export default function Page() {
   return (
@@ -19,13 +20,14 @@ export default function Page() {
 
       <section className="section section-digital" id="studio">
         <div className="section-inner animate-on-scroll">
-          <div className="inner-section-head">
-            <div>
-              <span className="section-label">Production Stack</span>
-              <h2 className="section-title digital-title">What We Do</h2>
-            </div>
-            <Link href="/contact#contact" className="inner-section-link">Book the studio</Link>
-          </div>
+          <SectionHeader
+            variant="inner"
+            label="Production Stack"
+            title="What We Do"
+            linkHref="/contact#contact"
+            linkLabel="Book the studio"
+            titleClassName="digital-title"
+          />
 
           <div className="digital-offerings">
             <div className="digital-offering">

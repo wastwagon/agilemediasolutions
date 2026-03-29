@@ -13,7 +13,7 @@ export default function SettingsPage() {
     setMessage(null);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4005'}/api/admin/run-migrations`, {
+      const response = await fetch('/api/admin/run-migrations', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,

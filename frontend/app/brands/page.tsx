@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import SectionHeader from '../../components/SectionHeader';
 
 const DOCUMENT_BRANDS: { imgClass: string; title: string; body: string; audience?: string; format?: string }[] = [
   {
@@ -70,13 +71,13 @@ export default function Page() {
       </div>
       <section className="section section-cards">
         <div className="section-inner">
-          <div className="inner-section-head">
-            <div>
-              <span className="section-label">Portfolio</span>
-              <h2 className="section-title">Our Publishing and Media Platforms</h2>
-            </div>
-            <Link href="/contact#contact" className="inner-section-link">Media partnerships</Link>
-          </div>
+          <SectionHeader
+            variant="inner"
+            label="Portfolio"
+            title="Our Publishing and Media Platforms"
+            linkHref="/contact#contact"
+            linkLabel="Media partnerships"
+          />
           <div className="services-grid">
             {DOCUMENT_BRANDS.map((b) => (
               <article key={b.title} className="service-card">

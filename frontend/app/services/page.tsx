@@ -3,6 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import SectionHeader from '../../components/SectionHeader';
 
 const DOCUMENT_SERVICES: { icon: string; title: string; description: string }[] = [
   {
@@ -149,17 +150,18 @@ export default function Page() {
       <section className="section section-cards">
         <div className="section-inner">
           <motion.div
-            className="inner-section-head"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-50px' }}
             transition={{ duration: 0.6 }}
           >
-            <div>
-              <span className="section-label">Capabilities</span>
-              <h2 className="section-title">Explore our integrated service offerings</h2>
-            </div>
-            <Link href="/contact#contact" className="inner-section-link">Book strategy call</Link>
+            <SectionHeader
+              variant="inner"
+              label="Capabilities"
+              title="Explore our integrated service offerings"
+              linkHref="/contact#contact"
+              linkLabel="Book strategy call"
+            />
           </motion.div>
           <motion.p
             className="section-subtitle centered all-services-intro"

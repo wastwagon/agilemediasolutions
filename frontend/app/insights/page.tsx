@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import SectionHeader from '../../components/SectionHeader';
 
 export default function Page() {
   return (
@@ -15,13 +16,13 @@ export default function Page() {
       </div>
       <section className="section section-insights" id="insights">
         <div className="section-inner animate-on-scroll">
-          <div className="inner-section-head">
-            <div>
-              <span className="section-label">Editorial Desk</span>
-              <h2 className="section-title">Insights &amp; Press Room</h2>
-            </div>
-            <Link href="/agile-press-group" className="inner-section-link">Visit press group</Link>
-          </div>
+          <SectionHeader
+            variant="inner"
+            label="Editorial Desk"
+            title={<>Insights &amp; Press Room</>}
+            linkHref="/agile-press-group"
+            linkLabel="Visit press group"
+          />
           <div className="insights-grid">
             <article className="insight-card animate-on-scroll">
               <h3>Insights</h3>

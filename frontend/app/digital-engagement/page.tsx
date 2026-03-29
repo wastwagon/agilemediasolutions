@@ -1,24 +1,32 @@
 import React from 'react';
+import Link from 'next/link';
+import SectionHeader from '../../components/SectionHeader';
 
 export default function Page() {
   return (
-    <main className="services-page-main">
-      
-    <div className="page-hero">
-      <div className="page-hero-inner">
-        <span className="page-hero-label">Digital engagement</span>
-        <h1 className="page-hero-title">Where Audiences Are Built, Messages Amplified, and Influence Engineered</h1>
-        <p className="page-hero-tagline">
-          At Agile Media Solutions, social media is not just a platform—it is a political tool, a public square, a brand amplifier, and an intelligence system. We help institutions, leaders, movements, and brands activate digital audiences with precision, creativity, and credibility.
-        </p>
-        <p className="page-hero-tagline" style={{ marginTop: 'var(--space-md)' }}>
-          Whether you&apos;re launching a campaign, shaping perception, engaging a community, or managing risk—we turn your objectives into algorithm-friendly, influence-driven digital executions.
-        </p>
+    <main className="services-page-main creative-public-page">
+      <div className="page-hero">
+        <div className="page-hero-inner">
+          <span className="page-hero-label">Digital engagement</span>
+          <h1 className="page-hero-title">Where Audiences Are Built, Messages Amplified, and Influence Engineered</h1>
+          <p className="page-hero-tagline">
+            At Agile Media Solutions, social media is not just a platform—it is a political tool, a public square, a brand amplifier, and an intelligence system. We help institutions, leaders, movements, and brands activate digital audiences with precision, creativity, and credibility.
+          </p>
+          <p className="page-hero-tagline" style={{ marginTop: 'var(--space-md)' }}>
+            Whether you&apos;re launching a campaign, shaping perception, engaging a community, or managing risk—we turn your objectives into algorithm-friendly, influence-driven digital executions.
+          </p>
+        </div>
       </div>
-    </div>
-    <section className="section section-digital" id="digital">
-      <div className="section-inner animate-on-scroll">
-        <h2 className="section-title digital-title">Our Digital Strategy Offerings</h2>
+      <section className="section section-digital" id="digital">
+        <div className="section-inner animate-on-scroll">
+          <SectionHeader
+            variant="inner"
+            label="Digital"
+            title="Our Digital Strategy Offerings"
+            linkHref="/contact#contact"
+            linkLabel="Request a session"
+            titleClassName="digital-title"
+          />
         <p className="digital-intro">
           From platform strategy and creative production to analytics and verification—we design digital infrastructure that matches your mandate and your audiences.
         </p>
@@ -106,20 +114,19 @@ export default function Page() {
             We treat digital space as infrastructure. Let Agile Media Solutions power your online influence with precision, agility, and clarity.
           </p>
           <div className="section-cta-center digital-cta-buttons">
-            <a href="/contact#contact" className="btn btn-primary">
+            <Link href="/contact#contact" className="btn btn-primary">
               Request a Social Media Strategy Session
-            </a>
-            <a href="/case-studies" className="btn btn-outline">
+            </Link>
+            <Link href="/case-studies" className="btn btn-outline">
               View Our Digital Case Studies
-            </a>
-            <a href="/studio" className="btn btn-outline">
+            </Link>
+            <Link href="/studio" className="btn btn-outline">
               Engage Our Studio
-            </a>
+            </Link>
           </div>
         </div>
       </div>
     </section>
-  
     </main>
   );
 }

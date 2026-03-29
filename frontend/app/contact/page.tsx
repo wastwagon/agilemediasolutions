@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import ContactForm from '../../components/ContactForm';
+import SectionHeader from '../../components/SectionHeader';
 
 export default function Page() {
   return (
@@ -20,13 +21,13 @@ export default function Page() {
 
       <section className="section section-contact" id="contact">
         <div className="section-inner">
-          <div className="inner-section-head">
-            <div>
-              <span className="section-label">Connections</span>
-              <h2 className="section-title">Get In Touch</h2>
-            </div>
-            <Link href="/services" className="inner-section-link">View services</Link>
-          </div>
+          <SectionHeader
+            variant="inner"
+            label="Connections"
+            title="Get In Touch"
+            linkHref="/services"
+            linkLabel="View services"
+          />
 
           <div className="insights-grid" style={{ marginBottom: 'var(--space-2xl)' }}>
             <article className="insight-card">
@@ -58,8 +59,12 @@ export default function Page() {
             </article>
           </div>
 
-          <span className="section-label">Quick Brief</span>
-          <h2 className="section-title">Send a message</h2>
+          <SectionHeader
+            variant="inner"
+            layout="stack"
+            label="Quick Brief"
+            title="Send a message"
+          />
           <p className="section-subtitle centered">Use the form for campaigns, partnerships, media enquiries, or general questions.</p>
           <ContactForm />
 
