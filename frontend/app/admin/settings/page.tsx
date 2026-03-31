@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const compactPrimaryBtnStyle: React.CSSProperties = { fontSize: '0.78rem', padding: '0.36rem 0.62rem', borderRadius: 9, lineHeight: 1.2 };
 
   const handleRunMigrations = async () => {
     if (!confirm('Run database setup? This creates any missing tables and adds default data. It will not delete existing rows.')) return;
@@ -36,7 +37,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div>
+    <div className="admin-page animate-on-scroll is-visible">
       <h2 style={{ fontSize: '2rem', fontWeight: 600, marginBottom: '2rem', fontFamily: 'Cormorant Garamond' }}>Settings</h2>
       
       <div style={{ background: '#fff', padding: '2rem', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
@@ -58,17 +59,16 @@ export default function SettingsPage() {
           </div>
         )}
 
-        <button 
+        <button
+          className="btn btn-primary"
           onClick={handleRunMigrations} 
           disabled={loading}
           style={{ 
-            background: '#111827', 
-            color: '#fff', 
-            padding: '0.75rem 1.5rem', 
-            borderRadius: '6px', 
-            border: 'none', 
+            ...compactPrimaryBtnStyle,
+            background: '#111827',
+            color: '#fff',
+            border: 'none',
             cursor: loading ? 'not-allowed' : 'pointer',
-            fontWeight: 600,
             opacity: loading ? 0.7 : 1,
             transition: 'opacity 0.2s'
           }}

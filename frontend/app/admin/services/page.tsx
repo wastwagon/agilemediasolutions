@@ -1,49 +1,44 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import Image from 'next/image';
 import AdminImageUpload from '../../../components/AdminImageUpload';
 import MediaLibraryPicker from '../../../components/MediaLibraryPicker';
+import { AdminEditorCard, AdminFormActions } from '@/components/admin/AdminFormUi';
+import { AdminErrorBanner, AdminLoadingState, AdminPageHeader } from '@/components/admin/AdminPageUi';
+import { adminActionBtnStyle, adminThStyle } from '@/lib/adminTableStyles';
+import { useAdminCrudResource } from '@/hooks/useAdminCrudResource';
+import type { Service, ServicePayload } from '@/types/adminEntities';
 
 export default function AdminServices() {
-  const [services, setServices] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [editingService, setEditingService] = useState<any>(null);
+  const looksLikeImageUrl = (value?: string | null) => {
+    if (!value) return false;
+    const v = value.trim().toLowerCase();
+    return v.startsWith('/uploads/') || v.startsWith('http://') || v.startsWith('https://') || v.startsWith('data:image/');
+  };
+
+  const [editingService, setEditingService] = useState<Service | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const {
+    items: services,
+    loading,
+    error,
+    deleteItem,
+    saveItem,
+  } = useAdminCrudResource<Service, ServicePayload>('/api/services', {
+    loadError: 'Could not load services.',
+    connectError: 'Could not connect to the server.',
+    deleteError: 'Could not delete this service.',
+    saveError: 'Could not save changes.',
+  });
 
   // Form states
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [icon, setIcon] = useState('');
   const [orderIndex, setOrderIndex] = useState('');
-  const thStyle: React.CSSProperties = { position: 'sticky', top: 0, zIndex: 1, padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', background: 'var(--color-bg-alt)' };
-  const actionBtnStyle: React.CSSProperties = { background: 'var(--color-bg-alt)', border: '1px solid var(--color-border)', borderRadius: 8, cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700, padding: '0.4rem 0.62rem', marginLeft: '0.55rem' };
 
-  const fetchData = async () => {
-    setLoading(true);
-    const token = localStorage.getItem('admin_token');
-    try {
-      const res = await fetch('/api/services', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setServices(data);
-      } else {
-        setError('Could not load services.');
-      }
-    } catch (err) {
-      setError('Could not connect to the server.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const handleEditClick = (service: any) => {
+  const handleEditClick = (service: Service) => {
     setEditingService(service);
     setIsAdding(true);
     setTitle(service.title);
@@ -68,73 +63,38 @@ export default function AdminServices() {
 
   const handleDelete = async (id: number) => {
     if (!confirm('Are you sure you want to delete this service?')) return;
-    const token = localStorage.getItem('admin_token');
-    try {
-      const res = await fetch(`/api/services/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        fetchData();
-      } else {
-        alert('Could not delete this service.');
-      }
-    } catch (err) {
-      alert('Something went wrong while deleting.');
-    }
+    const err = await deleteItem(id);
+    if (err) alert(err);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const data = {
+    const data: ServicePayload = {
       title, description, icon, order_index: parseInt(orderIndex || '0')
     };
 
-    const token = localStorage.getItem('admin_token');
-    const url = editingService ? `/api/services/${editingService.id}` : '/api/services';
-    const method = editingService ? 'PUT' : 'POST';
-
-    try {
-      const res = await fetch(url, {
-        method,
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
-      if (res.ok) {
-        handleCancel();
-        fetchData();
-      } else {
-        alert('Could not save changes.');
-      }
-    } catch (err) {
-      alert('Something went wrong while saving.');
+    const err = await saveItem(data, editingService?.id);
+    if (err) {
+      alert(err);
+      return;
     }
+    handleCancel();
   };
 
-  if (loading && services.length === 0) return <div className="admin-loading" style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Loading…</div>;
+  if (loading && services.length === 0) return <AdminLoadingState />;
 
   return (
     <div className="admin-page animate-on-scroll is-visible">
-      <div className="admin-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
-        <div>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.5rem', marginBottom: '0.5rem', color: 'var(--color-dark-blue)' }}>Services</h1>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '1.1rem' }}>Edit the services listed on your site.</p>
-        </div>
-        {!isAdding && (
-          <button onClick={handleCreateClick} className="btn btn-primary">
-            Add service
-          </button>
-        )}
-      </div>
+      <AdminPageHeader
+        title="Services"
+        subtitle="Edit the services listed on your site."
+        addLabel="Add service"
+        isAdding={isAdding}
+        onAdd={handleCreateClick}
+      />
 
       {isAdding && (
-        <div style={{ background: '#fff', padding: '2.5rem', borderRadius: '16px', border: '1px solid var(--color-border)', marginBottom: '2.5rem', boxShadow: 'var(--shadow-sm)' }}>
-          <h3 style={{ marginBottom: '2rem', fontFamily: 'var(--font-display)', fontSize: '1.5rem', color: 'var(--color-dark-blue)' }}>
-            {editingService ? 'Edit service' : 'New service'}
-          </h3>
+        <AdminEditorCard title={editingService ? 'Edit service' : 'New service'}>
           <form onSubmit={handleSubmit}>
             <div className={`form-group ${title ? 'has-value' : ''}`} style={{ marginBottom: '1.5rem' }}>
               <input type="text" id="title" required value={title} onChange={(e) => setTitle(e.target.value)} />
@@ -167,25 +127,25 @@ export default function AdminServices() {
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-              <button type="button" onClick={handleCancel} className="btn btn-outline" style={{ border: 'none' }}>Cancel</button>
-              <button type="submit" className="btn btn-primary">{editingService ? 'Save changes' : 'Add service'}</button>
-            </div>
+            <AdminFormActions
+              onCancel={handleCancel}
+              submitLabel={editingService ? 'Save changes' : 'Add service'}
+            />
           </form>
-        </div>
+        </AdminEditorCard>
       )}
 
-      {error && <div style={{ padding: '1rem', background: '#FEF2F2', color: '#B91C1C', borderRadius: '8px', marginBottom: '2rem' }}>{error}</div>}
+      <AdminErrorBanner message={error} />
 
       {!isAdding && (
         <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid var(--color-border)', overflowX: 'auto', boxShadow: 'var(--shadow-sm)', maxHeight: '70vh' }}>
           <table style={{ width: '100%', minWidth: '800px', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead style={{ background: 'var(--color-bg-alt)', borderBottom: '1px solid var(--color-border)' }}>
               <tr>
-                <th style={{ ...thStyle, width: '80px', textAlign: 'center' }}>Order</th>
-                <th style={thStyle}>Service</th>
-                <th style={thStyle}>Icon</th>
-                <th style={{ ...thStyle, textAlign: 'right' }}>Actions</th>
+                <th style={{ ...adminThStyle, width: '80px', textAlign: 'center' }}>Order</th>
+                <th style={adminThStyle}>Service</th>
+                <th style={adminThStyle}>Icon</th>
+                <th style={{ ...adminThStyle, textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -201,19 +161,47 @@ export default function AdminServices() {
                       <div style={{ fontWeight: 600, color: 'var(--color-dark-blue)', marginBottom: '4px', fontSize: '1.1rem' }}>{s.title}</div>
                       {s.description && <div style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)', maxWidth: '400px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.description}</div>}
                     </td>
-                    <td style={{ padding: '1.5rem 1.2rem', verticalAlign: 'middle', textTransform: 'capitalize', color: 'var(--color-primary)', fontWeight: 500 }}>
-                      {s.icon || '-'}
+                    <td style={{ padding: '1.5rem 1.2rem', verticalAlign: 'middle', color: 'var(--color-primary)', fontWeight: 500 }}>
+                      {looksLikeImageUrl(s.icon) ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem' }}>
+                          <div
+                            style={{
+                              width: '44px',
+                              height: '44px',
+                              borderRadius: '10px',
+                              background: 'var(--color-bg-alt)',
+                              border: '1px solid var(--color-border)',
+                              overflow: 'hidden',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                          >
+                            <Image
+                              src={s.icon as string}
+                              alt={`${s.title} icon`}
+                              width={44}
+                              height={44}
+                              unoptimized
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                          </div>
+                          <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Featured image</span>
+                        </div>
+                      ) : (
+                        <span style={{ textTransform: 'capitalize' }}>{s.icon || '-'}</span>
+                      )}
                     </td>
                     <td style={{ padding: '1.5rem 1.2rem', verticalAlign: 'middle', textAlign: 'right' }}>
                       <button 
                         onClick={() => handleEditClick(s)}
-                        style={{ ...actionBtnStyle, color: 'var(--color-primary)' }}
+                        style={{ ...adminActionBtnStyle, color: 'var(--color-primary)' }}
                       >
                         Edit
                       </button>
                       <button 
                         onClick={() => handleDelete(s.id)}
-                        style={{ ...actionBtnStyle, color: '#B91C1C', borderColor: 'rgba(185,28,28,0.25)', background: 'rgba(185,28,28,0.04)' }}
+                        style={{ ...adminActionBtnStyle, color: '#B91C1C', borderColor: 'rgba(185,28,28,0.25)', background: 'rgba(185,28,28,0.04)' }}
                       >
                         Delete
                       </button>

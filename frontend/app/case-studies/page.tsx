@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import SectionHeader from '../../components/SectionHeader';
+import { useSiteSectionContent } from '@/lib/siteSectionCms';
 
 interface CaseStudy {
   id: number;
@@ -74,6 +75,22 @@ const SELECTED_HIGHLIGHTS = [
 
 export default function Page() {
   const [studies, setStudies] = useState<CaseStudy[]>([]);
+  const caseStudiesCopy = useSiteSectionContent('case-studies.page', {
+    heroLabel: 'Case studies & portfolio',
+    heroTitle: 'Strategic Impact. Creative Execution. Measurable Results.',
+    heroIntro:
+      'Agile Media Solutions has delivered high-level communications for clients across sectors, regions, and mandates-from institutional reform campaigns to global investor engagements, from cultural showcases to public trust-building initiatives.',
+    heroSubIntro:
+      'Our portfolio reflects our ability to listen deeply, think strategically, and execute with precision-regardless of scale or complexity.',
+    showcaseLabel: 'Scope',
+    showcaseTitle: 'What We Showcase',
+    highlightsLabel: 'Featured Campaigns',
+    highlightsTitle: 'Selected Highlights',
+    highlightsSubtitle: 'Representative programmes from our strategic communications work.',
+    finalSubtitle: 'Let us help you tell your next success story-with strategy, creativity, and clarity of purpose.',
+    ctaPrimary: 'Start a Project',
+    ctaSecondary: 'Book a Discovery Call',
+  });
 
   useEffect(() => {
     const fetchStudies = async () => {
@@ -93,13 +110,13 @@ export default function Page() {
     <main className="services-page-main creative-public-page">
       <div className="page-hero">
         <div className="page-hero-inner">
-          <span className="page-hero-label">Case studies & portfolio</span>
-          <h1 className="page-hero-title">Strategic Impact. Creative Execution. Measurable Results.</h1>
+          <span className="page-hero-label">{caseStudiesCopy.heroLabel}</span>
+          <h1 className="page-hero-title">{caseStudiesCopy.heroTitle}</h1>
           <p className="page-hero-tagline">
-            Agile Media Solutions has delivered high-level communications for clients across sectors, regions, and mandates—from institutional reform campaigns to global investor engagements, from cultural showcases to public trust-building initiatives.
+            {caseStudiesCopy.heroIntro}
           </p>
           <p className="page-hero-tagline" style={{ marginTop: 'var(--space-md)' }}>
-            Our portfolio reflects our ability to listen deeply, think strategically, and execute with precision—regardless of scale or complexity.
+            {caseStudiesCopy.heroSubIntro}
           </p>
         </div>
       </div>
@@ -108,8 +125,8 @@ export default function Page() {
         <div className="section-inner">
           <SectionHeader
             variant="inner"
-            label="Scope"
-            title="What We Showcase"
+            label={caseStudiesCopy.showcaseLabel}
+            title={caseStudiesCopy.showcaseTitle}
             linkHref="/contact#contact"
             linkLabel="Discuss your brief"
           />
@@ -126,12 +143,12 @@ export default function Page() {
 
           <SectionHeader
             variant="inner"
-            label="Featured Campaigns"
-            title="Selected Highlights"
+            label={caseStudiesCopy.highlightsLabel}
+            title={caseStudiesCopy.highlightsTitle}
             linkHref="/contact#contact"
             linkLabel="Start a project"
           />
-          <p className="section-subtitle centered">Representative programmes from our strategic communications work.</p>
+          <p className="section-subtitle centered">{caseStudiesCopy.highlightsSubtitle}</p>
 
           <div className="services-grid">
             {studies.length > 0
@@ -183,14 +200,14 @@ export default function Page() {
           </div>
 
           <p className="section-subtitle centered" style={{ marginTop: 'var(--space-xl)' }}>
-            Let us help you tell your next success story—with strategy, creativity, and clarity of purpose.
+            {caseStudiesCopy.finalSubtitle}
           </p>
           <div className="section-cta-center services-page-cta">
             <Link href="/contact#contact" className="btn btn-primary">
-              Start a Project
+              {caseStudiesCopy.ctaPrimary}
             </Link>
             <Link href="/contact#contact" className="btn btn-outline">
-              Book a Discovery Call
+              {caseStudiesCopy.ctaSecondary}
             </Link>
           </div>
         </div>

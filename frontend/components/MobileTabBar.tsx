@@ -17,14 +17,16 @@ export default function MobileTabBar() {
   const pathname = usePathname();
 
   return (
-    <nav className="mobile-tab-bar">
+    <nav className="mobile-tab-bar" aria-label="Primary mobile navigation">
       {tabItems.map((item) => {
         const basePath = item.href.split('#')[0];
+        const isActive = pathname === basePath;
         return (
         <Link 
           key={item.label} 
           href={item.href} 
-          className={`tab-item ${pathname === basePath ? 'active' : ''}`}
+          className={`tab-item ${isActive ? 'active' : ''}`}
+          aria-current={isActive ? 'page' : undefined}
         >
           <div className="tab-icon">{item.icon}</div>
           <span className="tab-label">{item.label}</span>

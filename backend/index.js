@@ -21,7 +21,17 @@ const PORT = process.env.PORT || 4000;
 const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
 const DATABASE_URL = process.env.DATABASE_URL;
 const REDIS_URL = process.env.REDIS_URL;
-const JWT_SECRET = process.env.JWT_SECRET || 'agile_media_secret_123';
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+const DEFAULT_DEV_JWT_SECRET = 'agile_media_secret_123';
+const JWT_SECRET = (process.env.JWT_SECRET || '').trim() || DEFAULT_DEV_JWT_SECRET;
+const SHOULD_SEED_DEFAULT_ADMIN =
+  process.env.SEED_DEFAULT_ADMIN === 'true' ||
+  (!IS_PRODUCTION && process.env.SEED_DEFAULT_ADMIN !== 'false');
+
+if (IS_PRODUCTION && JWT_SECRET === DEFAULT_DEV_JWT_SECRET) {
+  console.error('Fatal: JWT_SECRET must be explicitly set in production.');
+  process.exit(1);
+}
 
 const parsedCorsOrigins =
   CORS_ORIGIN === '*'
@@ -51,7 +61,27 @@ const storage = multer.diskStorage({
     cb(null, uniqueSuffix + ext);
   }
 });
-const upload = multer({ storage: storage });
+const MAX_UPLOAD_SIZE_BYTES = parseInt(process.env.MAX_UPLOAD_SIZE_BYTES || '10485760', 10); // 10MB default
+const ALLOWED_UPLOAD_MIME_TYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+  'image/svg+xml',
+]);
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: Number.isFinite(MAX_UPLOAD_SIZE_BYTES) && MAX_UPLOAD_SIZE_BYTES > 0 ? MAX_UPLOAD_SIZE_BYTES : 10485760,
+  },
+  fileFilter: (req, file, cb) => {
+    if (ALLOWED_UPLOAD_MIME_TYPES.has(file.mimetype)) {
+      cb(null, true);
+      return;
+    }
+    cb(new Error('Unsupported file type. Please upload JPG, PNG, WEBP, GIF, or SVG.'));
+  },
+});
 
 const ensureCoreSchema = async () => {
   if (!pgPool) return;
@@ -83,13 +113,15 @@ const ensureCoreSchema = async () => {
   await pgPool.query(`ALTER TABLE pages ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW();`);
   await pgPool.query(`UPDATE pages SET status = 'published' WHERE status IS NULL;`);
 
-  // Ensure default admin account exists (password: admin123)
-  await pgPool.query(
-    `INSERT INTO admin_users (username, password_hash, email)
-     VALUES ('admin', $1, 'admin@agilemediasolution.com')
-     ON CONFLICT (username) DO NOTHING`,
-    ['$2b$10$jCdH1GjZcCXWiuLhU9tKMOZ58RhcPofWLSSfXdgDY3LMgm5xV.oei']
-  );
+  if (SHOULD_SEED_DEFAULT_ADMIN) {
+    // Local-development bootstrap only. Disable in production by default.
+    await pgPool.query(
+      `INSERT INTO admin_users (username, password_hash, email)
+       VALUES ('admin', $1, 'admin@agilemediasolution.com')
+       ON CONFLICT (username) DO NOTHING`,
+      ['$2b$10$jCdH1GjZcCXWiuLhU9tKMOZ58RhcPofWLSSfXdgDY3LMgm5xV.oei']
+    );
+  }
 };
 
 const ensureMediaAssetsTable = async () => {
@@ -104,6 +136,17 @@ const ensureMediaAssetsTable = async () => {
       size_bytes BIGINT,
       alt_text TEXT,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+};
+
+const ensureSiteSectionsTable = async () => {
+  if (!pgPool) return;
+  await pgPool.query(`
+    CREATE TABLE IF NOT EXISTS site_sections (
+      section_key TEXT PRIMARY KEY,
+      content_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
   `);
 };
@@ -132,10 +175,13 @@ const ensureAppSchemaAndSeed = async () => {
       id SERIAL PRIMARY KEY,
       name TEXT NOT NULL,
       description TEXT,
+      audience TEXT,
+      format TEXT,
       image_url TEXT,
       website_url TEXT,
       order_index INTEGER DEFAULT 0,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 
     CREATE TABLE IF NOT EXISTS services (
@@ -144,17 +190,23 @@ const ensureAppSchemaAndSeed = async () => {
       description TEXT,
       icon TEXT,
       order_index INTEGER DEFAULT 0,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 
     CREATE TABLE IF NOT EXISTS events (
       id SERIAL PRIMARY KEY,
       title TEXT NOT NULL,
       description TEXT,
+      tagline TEXT,
+      body TEXT,
+      features TEXT,
+      audience TEXT,
       image_url TEXT,
       link_url TEXT,
       order_index INTEGER DEFAULT 0,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 
     CREATE TABLE IF NOT EXISTS case_studies (
@@ -165,7 +217,8 @@ const ensureAppSchemaAndSeed = async () => {
       image_url TEXT,
       content_json JSONB DEFAULT '{}',
       order_index INTEGER DEFAULT 0,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 
     CREATE TABLE IF NOT EXISTS sectors (
@@ -174,10 +227,23 @@ const ensureAppSchemaAndSeed = async () => {
       description TEXT,
       icon TEXT,
       order_index INTEGER DEFAULT 0,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
   `);
+  await pgPool.query(`ALTER TABLE brands ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();`);
+  await pgPool.query(`ALTER TABLE brands ADD COLUMN IF NOT EXISTS audience TEXT;`);
+  await pgPool.query(`ALTER TABLE brands ADD COLUMN IF NOT EXISTS format TEXT;`);
+  await pgPool.query(`ALTER TABLE services ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();`);
+  await pgPool.query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();`);
+  await pgPool.query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS tagline TEXT;`);
+  await pgPool.query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS body TEXT;`);
+  await pgPool.query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS features TEXT;`);
+  await pgPool.query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS audience TEXT;`);
+  await pgPool.query(`ALTER TABLE case_studies ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();`);
+  await pgPool.query(`ALTER TABLE sectors ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();`);
   await ensureMediaAssetsTable();
+  await ensureSiteSectionsTable();
   await seedAgileContent(pgPool);
 };
 
@@ -291,30 +357,40 @@ app.post('/api/auth/login', async (req, res) => {
 // --- CMS Content Endpoints ---
 
 // Upload image
-app.post('/api/upload', authenticateToken, upload.single('image'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: 'No file uploaded' });
-  }
-  // Construct the URL path the frontend will use to fetch the image
-  const fileUrl = `/uploads/${req.file.filename}`;
-  // Persist to media library if DB is available
-  if (!pgPool) {
-    return res.status(201).json({ url: fileUrl });
-  }
+app.post('/api/upload', authenticateToken, (req, res) => {
+  upload.single('image')(req, res, (err) => {
+    if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({
+        error: `File too large. Maximum allowed size is ${Math.floor(MAX_UPLOAD_SIZE_BYTES / (1024 * 1024))}MB.`,
+      });
+    }
+    if (err) {
+      return res.status(400).json({ error: err.message || 'Invalid upload request.' });
+    }
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+    // Construct the URL path the frontend will use to fetch the image
+    const fileUrl = `/uploads/${req.file.filename}`;
+    // Persist to media library if DB is available
+    if (!pgPool) {
+      return res.status(201).json({ url: fileUrl });
+    }
 
-  ensureMediaAssetsTable()
-    .then(() => pgPool.query(
-    `INSERT INTO media_assets (url, filename, original_name, mime_type, size_bytes)
-     VALUES ($1, $2, $3, $4, $5)
-     ON CONFLICT (url) DO UPDATE SET
-       original_name = EXCLUDED.original_name,
-       mime_type = EXCLUDED.mime_type,
-       size_bytes = EXCLUDED.size_bytes
-     RETURNING *`,
-    [fileUrl, req.file.filename, req.file.originalname, req.file.mimetype, req.file.size]
-  ))
-    .then((result) => res.status(201).json({ url: fileUrl, asset: result.rows[0] }))
-    .catch(() => res.status(201).json({ url: fileUrl }));
+    ensureMediaAssetsTable()
+      .then(() => pgPool.query(
+      `INSERT INTO media_assets (url, filename, original_name, mime_type, size_bytes)
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (url) DO UPDATE SET
+         original_name = EXCLUDED.original_name,
+         mime_type = EXCLUDED.mime_type,
+         size_bytes = EXCLUDED.size_bytes
+       RETURNING *`,
+      [fileUrl, req.file.filename, req.file.originalname, req.file.mimetype, req.file.size]
+    ))
+      .then((result) => res.status(201).json({ url: fileUrl, asset: result.rows[0] }))
+      .catch(() => res.status(201).json({ url: fileUrl }));
+  });
 });
 
 // Media library
@@ -376,6 +452,57 @@ app.put('/api/media/:id', authenticateToken, async (req, res) => {
   }
 });
 
+// Site sections (copy/content CMS for static-marketing sections)
+app.get('/api/site-sections', authenticateToken, async (req, res) => {
+  if (!pgPool) return res.status(500).json({ error: 'Database not available' });
+  try {
+    await ensureSiteSectionsTable();
+    const result = await pgPool.query('SELECT section_key, content_json, updated_at FROM site_sections ORDER BY section_key ASC');
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/site-sections/:key', authenticateToken, async (req, res) => {
+  if (!pgPool) return res.status(500).json({ error: 'Database not available' });
+  const key = (req.params.key || '').trim().toLowerCase();
+  const contentJson = req.body?.content_json;
+  if (!key) return res.status(400).json({ error: 'Missing section key' });
+  if (!contentJson || typeof contentJson !== 'object' || Array.isArray(contentJson)) {
+    return res.status(400).json({ error: 'content_json must be an object' });
+  }
+  try {
+    await ensureSiteSectionsTable();
+    const result = await pgPool.query(
+      `INSERT INTO site_sections (section_key, content_json, updated_at)
+       VALUES ($1, $2::jsonb, NOW())
+       ON CONFLICT (section_key)
+       DO UPDATE SET content_json = EXCLUDED.content_json, updated_at = NOW()
+       RETURNING section_key, content_json, updated_at`,
+      [key, JSON.stringify(contentJson)]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/public/site-sections', async (req, res) => {
+  if (!pgPool) return res.status(500).json({ error: 'Database not available' });
+  try {
+    await ensureSiteSectionsTable();
+    const result = await pgPool.query('SELECT section_key, content_json FROM site_sections');
+    const map = {};
+    for (const row of result.rows) {
+      map[row.section_key] = row.content_json || {};
+    }
+    res.json(map);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Newsletter
 app.post('/api/newsletter', async (req, res) => {
   const { email } = req.body;
@@ -399,11 +526,11 @@ app.get('/api/brands', async (req, res) => {
 });
 
 app.post('/api/brands', authenticateToken, async (req, res) => {
-  const { name, description, image_url, website_url, order_index } = req.body;
+  const { name, description, audience, format, image_url, website_url, order_index } = req.body;
   try {
     const result = await pgPool.query(
-      'INSERT INTO brands (name, description, image_url, website_url, order_index) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [name, description, image_url, website_url, order_index || 0]
+      'INSERT INTO brands (name, description, audience, format, image_url, website_url, order_index) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+      [name, description, audience || null, format || null, image_url, website_url, order_index || 0]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -435,12 +562,24 @@ app.delete('/api/sectors/:id', authenticateToken, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.put('/api/brands/:id', authenticateToken, async (req, res) => {
-  const { name, description, image_url, website_url, order_index } = req.body;
+app.put('/api/sectors/:id', authenticateToken, async (req, res) => {
+  const { name, description, icon, order_index } = req.body;
   try {
     const result = await pgPool.query(
-      'UPDATE brands SET name = $1, description = $2, image_url = $3, website_url = $4, order_index = $5, updated_at = NOW() WHERE id = $6 RETURNING *',
-      [name, description, image_url, website_url, order_index, req.params.id]
+      'UPDATE sectors SET name = $1, description = $2, icon = $3, order_index = $4, updated_at = NOW() WHERE id = $5 RETURNING *',
+      [name, description, icon, order_index, req.params.id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Sector not found' });
+    res.json(result.rows[0]);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.put('/api/brands/:id', authenticateToken, async (req, res) => {
+  const { name, description, audience, format, image_url, website_url, order_index } = req.body;
+  try {
+    const result = await pgPool.query(
+      'UPDATE brands SET name = $1, description = $2, audience = $3, format = $4, image_url = $5, website_url = $6, order_index = $7, updated_at = NOW() WHERE id = $8 RETURNING *',
+      [name, description, audience || null, format || null, image_url, website_url, order_index, req.params.id]
     );
     if (result.rows.length === 0) return res.status(404).json({ error: 'Brand not found' });
     res.json(result.rows[0]);
@@ -503,22 +642,22 @@ app.get('/api/events', async (req, res) => {
 });
 
 app.post('/api/events', authenticateToken, async (req, res) => {
-  const { title, description, image_url, link_url, order_index } = req.body;
+  const { title, description, tagline, body, features, audience, image_url, link_url, order_index } = req.body;
   try {
     const result = await pgPool.query(
-      'INSERT INTO events (title, description, image_url, link_url, order_index) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [title, description, image_url, link_url, order_index || 0]
+      'INSERT INTO events (title, description, tagline, body, features, audience, image_url, link_url, order_index) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
+      [title, description, tagline || null, body || null, features || null, audience || null, image_url, link_url, order_index || 0]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.put('/api/events/:id', authenticateToken, async (req, res) => {
-  const { title, description, image_url, link_url, order_index } = req.body;
+  const { title, description, tagline, body, features, audience, image_url, link_url, order_index } = req.body;
   try {
     const result = await pgPool.query(
-      'UPDATE events SET title = $1, description = $2, image_url = $3, link_url = $4, order_index = $5 WHERE id = $6 RETURNING *',
-      [title, description, image_url, link_url, order_index, req.params.id]
+      'UPDATE events SET title = $1, description = $2, tagline = $3, body = $4, features = $5, audience = $6, image_url = $7, link_url = $8, order_index = $9, updated_at = NOW() WHERE id = $10 RETURNING *',
+      [title, description, tagline || null, body || null, features || null, audience || null, image_url, link_url, order_index, req.params.id]
     );
     if (result.rows.length === 0) return res.status(404).json({ error: 'Event not found' });
     res.json(result.rows[0]);
@@ -556,7 +695,7 @@ app.put('/api/case-studies/:id', authenticateToken, async (req, res) => {
   const { title, client_name, description, image_url, content_json, order_index } = req.body;
   try {
     const result = await pgPool.query(
-      'UPDATE case_studies SET title = $1, client_name = $2, description = $3, image_url = $4, content_json = $5, order_index = $6 WHERE id = $7 RETURNING *',
+      'UPDATE case_studies SET title = $1, client_name = $2, description = $3, image_url = $4, content_json = $5, order_index = $6, updated_at = NOW() WHERE id = $7 RETURNING *',
       [title, client_name, description, image_url, content_json, order_index, req.params.id]
     );
     if (result.rows.length === 0) return res.status(404).json({ error: 'Case study not found' });

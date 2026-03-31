@@ -42,7 +42,9 @@ export default function AdminPages() {
   const [heroSlides, setHeroSlides] = useState<HeroSlide[]>([]);
   const [selectedMediaUrl, setSelectedMediaUrl] = useState('');
   const thStyle: React.CSSProperties = { position: 'sticky', top: 0, zIndex: 1, padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', background: 'var(--color-bg-alt)' };
-  const actionBtnStyle: React.CSSProperties = { background: 'var(--color-bg-alt)', border: '1px solid var(--color-border)', borderRadius: 8, cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700, padding: '0.4rem 0.62rem', marginLeft: '0.55rem' };
+  const actionBtnStyle: React.CSSProperties = { background: 'var(--color-bg-alt)', border: '1px solid var(--color-border)', borderRadius: 7, cursor: 'pointer', fontSize: '0.76rem', fontWeight: 700, lineHeight: 1.2, padding: '0.3rem 0.5rem', marginLeft: '0.45rem' };
+  const compactOutlineBtnStyle: React.CSSProperties = { border: 'none', fontSize: '0.74rem', padding: '0.3rem 0.48rem', borderRadius: 8, lineHeight: 1.2 };
+  const compactPrimaryBtnStyle: React.CSSProperties = { fontSize: '0.78rem', padding: '0.36rem 0.62rem', borderRadius: 9, lineHeight: 1.2 };
 
   const isHome = useMemo(() => slug === 'home', [slug]);
 
@@ -221,7 +223,7 @@ export default function AdminPages() {
           <p style={{ color: 'var(--color-text-muted)', fontSize: '1.1rem' }}>Friendly page builder with blocks, image uploads, and hero slide management.</p>
         </div>
         {!isAdding && (
-          <button onClick={handleCreateClick} className="btn btn-primary">
+          <button onClick={handleCreateClick} className="btn btn-primary" style={compactPrimaryBtnStyle}>
             Add page
           </button>
         )}
@@ -278,7 +280,7 @@ export default function AdminPages() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn btn-outline"
-                  style={{ border: 'none', textDecoration: 'none', opacity: status === 'published' ? 1 : 0.55, pointerEvents: status === 'published' ? 'auto' : 'none' }}
+                  style={{ ...compactOutlineBtnStyle, textDecoration: 'none', opacity: status === 'published' ? 1 : 0.55, pointerEvents: status === 'published' ? 'auto' : 'none' }}
                   title={status === 'published' ? 'Open public page' : 'Only published pages are public'}
                 >
                   Preview page
@@ -318,13 +320,13 @@ export default function AdminPages() {
                   <div style={{ color: 'var(--color-text-muted)', fontSize: '0.95rem' }}>Add sections below. No JSON required.</div>
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  <button type="button" className="btn btn-outline" style={{ border: 'none' }} onClick={() => setBlocks((prev) => [...prev, { id: uid(), type: 'text', heading: '', body: '' }])}>
+                  <button type="button" className="btn btn-outline" style={compactOutlineBtnStyle} onClick={() => setBlocks((prev) => [...prev, { id: uid(), type: 'text', heading: '', body: '' }])}>
                     + Text
                   </button>
-                  <button type="button" className="btn btn-outline" style={{ border: 'none' }} onClick={() => setBlocks((prev) => [...prev, { id: uid(), type: 'image', url: '', alt: '', caption: '' }])}>
+                  <button type="button" className="btn btn-outline" style={compactOutlineBtnStyle} onClick={() => setBlocks((prev) => [...prev, { id: uid(), type: 'image', url: '', alt: '', caption: '' }])}>
                     + Image
                   </button>
-                  <button type="button" className="btn btn-outline" style={{ border: 'none' }} onClick={() => setBlocks((prev) => [...prev, { id: uid(), type: 'cta', label: '', href: '', variant: 'primary' }])}>
+                  <button type="button" className="btn btn-outline" style={compactOutlineBtnStyle} onClick={() => setBlocks((prev) => [...prev, { id: uid(), type: 'cta', label: '', href: '', variant: 'primary' }])}>
                     + Button
                   </button>
                 </div>
@@ -345,7 +347,7 @@ export default function AdminPages() {
                             <button
                               type="button"
                               className="btn btn-outline"
-                              style={{ border: 'none' }}
+                              style={compactOutlineBtnStyle}
                               onClick={() => idx > 0 && setHeroSlides((prev) => {
                                 const next = [...prev];
                                 [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
@@ -357,7 +359,7 @@ export default function AdminPages() {
                             <button
                               type="button"
                               className="btn btn-outline"
-                              style={{ border: 'none' }}
+                              style={compactOutlineBtnStyle}
                               onClick={() => idx < heroSlides.length - 1 && setHeroSlides((prev) => {
                                 const next = [...prev];
                                 [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
@@ -366,7 +368,7 @@ export default function AdminPages() {
                             >
                               ↓
                             </button>
-                            <button type="button" className="btn btn-outline" style={{ border: 'none', color: '#B91C1C' }} onClick={() => setHeroSlides((prev) => prev.filter((x) => x.id !== s.id))}>
+                            <button type="button" className="btn btn-outline" style={{ ...compactOutlineBtnStyle, color: '#B91C1C' }} onClick={() => setHeroSlides((prev) => prev.filter((x) => x.id !== s.id))}>
                               Delete
                             </button>
                           </div>
@@ -399,7 +401,7 @@ export default function AdminPages() {
                     ))}
                   </div>
                   <div style={{ marginTop: '0.75rem' }}>
-                    <button type="button" className="btn btn-outline" style={{ border: 'none' }} onClick={() => setHeroSlides((prev) => [...prev, { id: uid(), title: '', subtitle: '' }])}>
+                    <button type="button" className="btn btn-outline" style={compactOutlineBtnStyle} onClick={() => setHeroSlides((prev) => [...prev, { id: uid(), title: '', subtitle: '' }])}>
                       + Add slide
                     </button>
                   </div>
@@ -431,17 +433,17 @@ export default function AdminPages() {
                           {b.type === 'text' ? 'Text' : b.type === 'image' ? 'Image' : 'Button'} block
                         </div>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
-                          <button type="button" className="btn btn-outline" style={{ border: 'none' }} onClick={() => idx > 0 && setBlocks((prev) => {
+                          <button type="button" className="btn btn-outline" style={compactOutlineBtnStyle} onClick={() => idx > 0 && setBlocks((prev) => {
                             const next = [...prev];
                             [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
                             return next;
                           })}>↑</button>
-                          <button type="button" className="btn btn-outline" style={{ border: 'none' }} onClick={() => idx < blocks.length - 1 && setBlocks((prev) => {
+                          <button type="button" className="btn btn-outline" style={compactOutlineBtnStyle} onClick={() => idx < blocks.length - 1 && setBlocks((prev) => {
                             const next = [...prev];
                             [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
                             return next;
                           })}>↓</button>
-                          <button type="button" className="btn btn-outline" style={{ border: 'none', color: '#B91C1C' }} onClick={() => setBlocks((prev) => prev.filter((x) => x.id !== b.id))}>
+                          <button type="button" className="btn btn-outline" style={{ ...compactOutlineBtnStyle, color: '#B91C1C' }} onClick={() => setBlocks((prev) => prev.filter((x) => x.id !== b.id))}>
                             Delete
                           </button>
                         </div>
@@ -618,10 +620,11 @@ export default function AdminPages() {
             </div>
 
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-              <button type="button" onClick={handleCancel} className="btn btn-outline" style={{ border: 'none' }}>Cancel</button>
+              <button type="button" onClick={handleCancel} className="btn btn-outline" style={compactOutlineBtnStyle}>Cancel</button>
               <button
                 type="submit"
                 className="btn btn-primary"
+                style={compactPrimaryBtnStyle}
                 disabled={hasInvalidAnchors}
                 title={hasInvalidAnchors ? 'Fix or clear invalid section anchors first' : undefined}
               >

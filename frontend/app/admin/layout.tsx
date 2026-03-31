@@ -34,11 +34,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: '/admin/dashboard', label: 'Dashboard' },
     { href: '/admin/brands', label: 'Brands' },
     { href: '/admin/services', label: 'Services' },
+    { href: '/admin/sectors', label: 'Sectors' },
     { href: '/admin/pages', label: 'Pages' },
     { href: '/admin/media', label: 'Media Library' },
     { href: '/admin/events', label: 'Events' },
     { href: '/admin/case-studies', label: 'Case Studies' },
     { href: '/admin/contacts', label: 'Contact form' },
+    { href: '/admin/site-content', label: 'Site Content' },
     { href: '/admin/settings', label: 'Settings' },
   ];
 
@@ -102,14 +104,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <button
             onClick={handleLogout}
             style={{
-              padding: '0.46rem 0.82rem',
+              padding: '0.34rem 0.62rem',
               borderRadius: '999px',
               color: '#B91C1C',
               background: '#FFFFFF',
               border: '1px solid rgba(185, 28, 28, 0.26)',
               cursor: 'pointer',
               fontWeight: 700,
-              fontSize: '0.86rem',
+              fontSize: '0.78rem',
+              lineHeight: 1.2,
             }}
           >
             Log out

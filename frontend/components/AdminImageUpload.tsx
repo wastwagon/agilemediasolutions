@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
+import { ADMIN_MAX_UPLOAD_BYTES, uploadAdminImage, validateAdminImageFile } from '@/lib/adminUpload';
 
 interface AdminImageUploadProps {
   currentUrl: string;
@@ -11,45 +12,36 @@ interface AdminImageUploadProps {
 export default function AdminImageUpload({ currentUrl, onUploadSuccess, label = "Upload image" }: AdminImageUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    if (!success) return;
+    const timer = window.setTimeout(() => setSuccess(''), 2800);
+    return () => window.clearTimeout(timer);
+  }, [success]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Optional validation
-    if (!file.type.startsWith('image/')) {
-       setError('Please select a valid image file');
-       return;
+    const validationError = validateAdminImageFile(file);
+    if (validationError) {
+      setError(validationError);
+      setSuccess('');
+      return;
     }
 
     setUploading(true);
     setError('');
-
-    const formData = new FormData();
-    formData.append('image', file);
-
-    const token = localStorage.getItem('admin_token');
+    setSuccess('');
 
     try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${token}`
-        },
-        body: formData
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        // Assume data.url is returned
-        onUploadSuccess(data.url);
-      } else {
-        const errData = await res.json();
-        setError(errData.error || 'Upload failed');
-      }
-    } catch (err) {
-      setError('Network error during upload');
+      const url = await uploadAdminImage(file);
+      onUploadSuccess(url);
+      setSuccess('Upload complete.');
+    } catch (err: any) {
+      setError(err?.message || 'Upload failed.');
     } finally {
       setUploading(false);
       // Reset input value to allow uploading the same file again if needed
@@ -80,9 +72,10 @@ export default function AdminImageUpload({ currentUrl, onUploadSuccess, label = 
         </div>
       </div>
       {uploading && <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: '#2563EB' }}>Uploading…</div>}
+      {success && <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: '#166534' }}>{success}</div>}
       {error && <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: '#DC2626' }}>{error}</div>}
       <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: '#6B7280' }}>
-         Choose a file, or paste an image URL in the field above.
+         Allowed: JPG, PNG, WEBP, GIF, SVG. Max size: {Math.floor(ADMIN_MAX_UPLOAD_BYTES / (1024 * 1024))}MB.
       </div>
     </div>
   );

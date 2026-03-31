@@ -1,6 +1,9 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { adminAuthHeaders, handleAdminSessionExpired, parseApiError } from '@/lib/adminApi';
+import { ADMIN_MAX_UPLOAD_BYTES, uploadAdminImage, validateAdminImageFile } from '@/lib/adminUpload';
+import { AdminNotice, type AdminNoticeTone } from '@/components/admin/AdminNotice';
 
 type MediaAsset = {
   id: number;
@@ -30,20 +33,22 @@ export default function AdminMediaPage() {
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState('');
   const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<{ tone: AdminNoticeTone; message: string } | null>(null);
   const [altDrafts, setAltDrafts] = useState<Record<number, string>>({});
   const fileRef = useRef<HTMLInputElement>(null);
-
-  const token = useMemo(() => (typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null), []);
+  const compactPrimaryBtnStyle: React.CSSProperties = { fontSize: '0.78rem', padding: '0.36rem 0.62rem', borderRadius: 9, lineHeight: 1.2 };
+  const compactOutlineBtnStyle: React.CSSProperties = { border: 'none', fontSize: '0.74rem', padding: '0.3rem 0.48rem', borderRadius: 8, lineHeight: 1.2 };
 
   const fetchAssets = async (query?: string) => {
-    setError(null);
+    setNotice(null);
     try {
       const qs = query?.trim() ? `?q=${encodeURIComponent(query.trim())}` : '';
       const res = await fetch(`/api/media${qs}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: adminAuthHeaders(),
       });
-      if (!res.ok) throw new Error('Could not load media.');
+      if (!res.ok) {
+        throw new Error(await parseApiError(res, 'Could not load media.', { onAuthError: handleAdminSessionExpired }));
+      }
       const data = await res.json();
       const items = Array.isArray(data) ? data : [];
       setAssets(items);
@@ -53,7 +58,7 @@ export default function AdminMediaPage() {
       });
       setAltDrafts(nextDrafts);
     } catch (e: any) {
-      setError(e?.message || 'Could not load media.');
+      setNotice({ tone: 'error', message: e?.message || 'Could not load media.' });
       setAssets([]);
     } finally {
       setLoading(false);
@@ -65,22 +70,29 @@ export default function AdminMediaPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (!notice) return;
+    if (notice.tone === 'error') return;
+    const timer = window.setTimeout(() => setNotice(null), 3600);
+    return () => window.clearTimeout(timer);
+  }, [notice]);
+
   const handleUpload = async (file: File) => {
     if (!file) return;
+    const validationError = validateAdminImageFile(file);
+    if (validationError) {
+      setNotice({ tone: 'error', message: validationError });
+      if (fileRef.current) fileRef.current.value = '';
+      return;
+    }
     setUploading(true);
-    setError(null);
+    setNotice(null);
     try {
-      const form = new FormData();
-      form.append('image', file);
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: form,
-      });
-      if (!res.ok) throw new Error('Upload failed.');
+      await uploadAdminImage(file);
       await fetchAssets(q);
+      setNotice({ tone: 'success', message: 'Image uploaded successfully.' });
     } catch (e: any) {
-      setError(e?.message || 'Upload failed.');
+      setNotice({ tone: 'error', message: e?.message || 'Upload failed.' });
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = '';
@@ -89,43 +101,49 @@ export default function AdminMediaPage() {
 
   const handleDelete = async (id: number) => {
     if (!confirm('Delete this asset? This removes it from the library and deletes the file.')) return;
-    setError(null);
+    setNotice(null);
     try {
       const res = await fetch(`/api/media/${id}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: adminAuthHeaders(),
       });
-      if (!res.ok) throw new Error('Delete failed.');
+      if (!res.ok) {
+        throw new Error(await parseApiError(res, 'Delete failed.', { onAuthError: handleAdminSessionExpired }));
+      }
       setAssets((prev) => prev.filter((a) => a.id !== id));
+      setNotice({ tone: 'success', message: 'Asset deleted.' });
     } catch (e: any) {
-      setError(e?.message || 'Delete failed.');
+      setNotice({ tone: 'error', message: e?.message || 'Delete failed.' });
     }
   };
 
   const copyUrl = async (url: string) => {
     try {
       await navigator.clipboard.writeText(url);
+      setNotice({ tone: 'info', message: 'Asset URL copied to clipboard.' });
     } catch {
-      // ignore
+      setNotice({ tone: 'error', message: 'Could not copy URL. Please copy manually.' });
     }
   };
 
   const saveAltText = async (id: number) => {
-    setError(null);
+    setNotice(null);
     try {
       const res = await fetch(`/api/media/${id}`, {
         method: 'PUT',
         headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
+          ...adminAuthHeaders(true),
         },
         body: JSON.stringify({ alt_text: altDrafts[id] || '' }),
       });
-      if (!res.ok) throw new Error('Could not save alt text.');
+      if (!res.ok) {
+        throw new Error(await parseApiError(res, 'Could not save alt text.', { onAuthError: handleAdminSessionExpired }));
+      }
       const updated = await res.json();
       setAssets((prev) => prev.map((a) => (a.id === id ? { ...a, alt_text: updated.alt_text } : a)));
+      setNotice({ tone: 'success', message: 'Alt text saved.' });
     } catch (e: any) {
-      setError(e?.message || 'Could not save alt text.');
+      setNotice({ tone: 'error', message: e?.message || 'Could not save alt text.' });
     }
   };
 
@@ -157,6 +175,7 @@ export default function AdminMediaPage() {
             />
             <button
               className="btn btn-outline"
+              style={compactOutlineBtnStyle}
               onClick={() => {
                 setLoading(true);
                 fetchAssets(q);
@@ -181,6 +200,8 @@ export default function AdminMediaPage() {
               className="btn btn-primary"
               onClick={() => fileRef.current?.click()}
               disabled={uploading}
+              style={compactPrimaryBtnStyle}
+              title={`Allowed: JPG, PNG, WEBP, GIF, SVG (max ${Math.floor(ADMIN_MAX_UPLOAD_BYTES / (1024 * 1024))}MB)`}
             >
               {uploading ? 'Uploading…' : 'Upload image'}
             </button>
@@ -188,11 +209,13 @@ export default function AdminMediaPage() {
         </div>
       </div>
 
-      {error && (
-        <div style={{ marginTop: '1rem', background: 'rgba(211, 47, 47, 0.08)', border: '1px solid rgba(211, 47, 47, 0.18)', padding: '0.85rem 1rem', borderRadius: 12, color: '#9A3412' }}>
-          {error}
-        </div>
-      )}
+      {notice ? (
+        <AdminNotice
+          tone={notice.tone}
+          message={notice.message}
+          onDismiss={() => setNotice(null)}
+        />
+      ) : null}
 
       <div style={{ marginTop: '1.25rem', background: 'rgba(255,255,255,0.65)', border: '1px solid rgba(229,231,235,0.75)', borderRadius: 16, padding: '1rem' }}>
         {loading ? (
@@ -200,7 +223,7 @@ export default function AdminMediaPage() {
         ) : assets.length === 0 ? (
           <p style={{ margin: 0, color: '#6B7280' }}>No media yet. Upload an image to get started.</p>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '0.9rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '0.9rem' }}>
             {assets.map((a) => (
               <div
                 key={a.id}
@@ -219,11 +242,26 @@ export default function AdminMediaPage() {
                   <img src={a.url} alt={a.alt_text || a.original_name || a.filename} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                 </div>
                 <div style={{ padding: '0.75rem 0.75rem 0.85rem', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div
+                    style={{
+                      fontSize: '0.82rem',
+                      fontWeight: 700,
+                      color: '#111827',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                      lineHeight: 1.25,
+                      minHeight: '2.05em',
+                    }}
+                    title={a.original_name || a.filename}
+                  >
                     {a.original_name || a.filename}
                   </div>
-                  <div style={{ fontSize: '0.8rem', color: '#6B7280', display: 'flex', justifyContent: 'space-between', gap: '0.5rem' }}>
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.mime_type || 'image'}</span>
+                  <div style={{ fontSize: '0.74rem', color: '#6B7280', display: 'flex', justifyContent: 'space-between', gap: '0.5rem' }}>
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={a.mime_type || 'image'}>
+                      {a.mime_type || 'image'}
+                    </span>
                     <span>{formatBytes(a.size_bytes)}</span>
                   </div>
                   <div style={{ marginTop: '0.3rem', display: 'flex', gap: '0.45rem' }}>
@@ -237,18 +275,37 @@ export default function AdminMediaPage() {
                         border: '1px solid #E5E7EB',
                         borderRadius: 8,
                         padding: '0.35rem 0.5rem',
-                        fontSize: '0.75rem',
+                        fontSize: '0.72rem',
                       }}
                     />
-                    <button className="btn btn-outline" onClick={() => saveAltText(a.id)} style={{ fontSize: '0.75rem', padding: '0.35rem 0.6rem' }}>
+                    <button
+                      className="btn btn-outline"
+                      onClick={() => saveAltText(a.id)}
+                      style={{ fontSize: '0.64rem', padding: '0.24rem 0.45rem', borderRadius: 8, minWidth: 44, lineHeight: 1.2 }}
+                    >
                       Save
                     </button>
                   </div>
                   <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.4rem' }}>
-                    <button className="btn btn-outline" onClick={() => copyUrl(a.url)} style={{ flex: 1 }}>
+                    <button
+                      className="btn btn-outline"
+                      onClick={() => copyUrl(a.url)}
+                      style={{ flex: 1, fontSize: '0.68rem', padding: '0.3rem 0.42rem', borderRadius: 9, lineHeight: 1.2 }}
+                    >
                       Copy URL
                     </button>
-                    <button className="btn btn-outline" onClick={() => handleDelete(a.id)} style={{ borderColor: 'rgba(239,68,68,0.35)', color: '#B91C1C' }}>
+                    <button
+                      className="btn btn-outline"
+                      onClick={() => handleDelete(a.id)}
+                      style={{
+                        borderColor: 'rgba(239,68,68,0.35)',
+                        color: '#B91C1C',
+                        fontSize: '0.68rem',
+                        padding: '0.3rem 0.42rem',
+                        borderRadius: 9,
+                        lineHeight: 1.2,
+                      }}
+                    >
                       Delete
                     </button>
                   </div>

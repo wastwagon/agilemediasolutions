@@ -30,6 +30,25 @@ docker-compose up -d --build
 ```
 Access the site at: `http://localhost:8085`
 
+### 3. Hot-Reload Development Mode (No Rebuild Needed)
+Use the dev override to mount source code into containers with file watching enabled:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d frontend backend
+```
+
+In this mode:
+- Frontend runs `next dev` with Fast Refresh.
+- Backend runs `node --watch index.js` for automatic restart on code changes.
+- Most code edits are reflected automatically without `--build`.
+
+To return to production-style containers, run:
+
+```bash
+docker compose -f docker-compose.yml down
+docker compose up -d --build
+```
+
 ## 🛠️ CMS Integration
 The platform includes built-in API support for:
 *   **Sectors CMS**: Manage institutional categories.

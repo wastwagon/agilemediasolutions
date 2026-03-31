@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 
-export function useScrollAnimations() {
+export function useScrollAnimations(deps: ReadonlyArray<unknown> = []) {
   useEffect(() => {
     const animated = document.querySelectorAll('.animate-on-scroll');
     const observerOptions = {
@@ -23,5 +23,5 @@ export function useScrollAnimations() {
     return () => {
         animated.forEach((el) => observer.unobserve(el));
     };
-  }, []);
+  }, deps);
 }

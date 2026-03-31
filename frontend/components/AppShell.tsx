@@ -22,7 +22,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <Preloader />
       <TopBar />
       <Header />
-      {children}
+      <div className="public-shell">{children}</div>
       <footer className="footer" id="footer">
         <div className="footer-impact-text">Agile Media</div>
         <div className="footer-top">

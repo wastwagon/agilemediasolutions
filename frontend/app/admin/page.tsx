@@ -11,6 +11,13 @@ export default function AdminLogin() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const compactPrimaryBtnStyle: React.CSSProperties = {
+    padding: '0.62rem 0.9rem',
+    borderRadius: '999px',
+    fontSize: '0.82rem',
+    lineHeight: 1.2,
+    fontWeight: 700,
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -185,22 +192,19 @@ export default function AdminLogin() {
               type="submit" 
               disabled={loading}
               style={{ 
+                ...compactPrimaryBtnStyle,
                 width: '100%', 
-                padding: '1.15rem', 
-                borderRadius: '50px', 
-                fontSize: '1rem',
-                fontWeight: 700,
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                gap: '10px',
+                gap: '0.5rem',
                 background: '#2C504A', // Brand Green
                 color: '#FFFFFF',
                 border: 'none',
                 cursor: 'pointer',
-                marginTop: '1rem',
+                marginTop: '0.85rem',
                 opacity: loading ? 0.7 : 1,
-                boxShadow: '0 10px 25px rgba(44, 80, 74, 0.25)',
+                boxShadow: '0 9px 18px rgba(44, 80, 74, 0.22)',
                 transition: 'transform 0.2s ease'
               }}
             >

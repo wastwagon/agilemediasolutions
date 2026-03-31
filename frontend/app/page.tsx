@@ -8,6 +8,7 @@ import SectionHeader from '../components/SectionHeader';
 import HomeFeaturedWork, { type HomeFeaturedStudy } from '../components/HomeFeaturedWork';
 import HomeInsightsPreview from '../components/HomeInsightsPreview';
 import { useScrollAnimations } from '../hooks/useScrollAnimations';
+import { useSiteSectionContent } from '@/lib/siteSectionCms';
 
 interface Brand {
   id: number;
@@ -22,6 +23,30 @@ interface Service {
   title: string;
   description: string;
   icon: string;
+}
+
+function normalizeServiceIconToken(icon?: string | null) {
+  if (!icon) return '';
+  const trimmed = icon.trim();
+  if (!trimmed) return '';
+  if (trimmed.startsWith('/uploads/') || trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:image/')) {
+    return '';
+  }
+  return trimmed
+    .toLowerCase()
+    .replace(/^service-img-/, '')
+    .replace(/[_\s]+/g, '-')
+    .replace(/[^a-z0-9-]/g, '');
+}
+
+function resolveServiceImage(icon?: string | null) {
+  if (!icon) return { imageUrl: '', imageClass: 'service-img-strategic' };
+  const trimmed = icon.trim();
+  if (trimmed.startsWith('/uploads/') || trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:image/')) {
+    return { imageUrl: trimmed, imageClass: '' };
+  }
+  const normalized = normalizeServiceIconToken(trimmed);
+  return { imageUrl: '', imageClass: normalized ? `service-img-${normalized}` : 'service-img-strategic' };
 }
 
 interface EventData {
@@ -40,7 +65,15 @@ export default function Page() {
   const [activeServiceIdx, setActiveServiceIdx] = useState<number | null>(0);
   const [loading, setLoading] = useState(true);
 
-  useScrollAnimations();
+  useScrollAnimations([loading, brands.length, services.length, events.length, caseStudiesHome.length]);
+  const homeEventsCopy = useSiteSectionContent('home.events', {
+    label: 'Flagship Convenings',
+    title: 'Signature Events',
+    subtitle: 'Curated Platforms That Bring Visionaries, Innovators, and Institutions Together.',
+    linkLabel: 'See all events',
+    ctaPrimary: 'See Event Calendar',
+    ctaSecondary: 'Partner With Us',
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -66,29 +99,6 @@ export default function Page() {
     };
     fetchData();
   }, []);
-
-  useEffect(() => {
-    if (loading) return;
-
-    const animated = document.querySelectorAll('.animate-on-scroll');
-    const observerOptions = {
-        root: null,
-        rootMargin: '0px 0px -80px 0px',
-        threshold: 0.1
-    };
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('is-visible');
-            }
-        });
-    }, observerOptions);
-
-    animated.forEach((el) => observer.observe(el));
-    return () => {
-        animated.forEach((el) => observer.unobserve(el));
-    };
-  }, [loading, brands, services, events, caseStudiesHome]);
 
   const fallbackHomeServices: Service[] = [
     {
@@ -222,7 +232,7 @@ export default function Page() {
           <div className="services-template-panel">
             {homeServices.map((s, idx) => {
               const isActive = idx === activeServiceIdx;
-              const imageClass = s.icon ? `service-img-${s.icon}` : 'service-img-strategic';
+              const image = resolveServiceImage(s.icon);
               return (
                 <article key={`${s.id}-${s.title}`} className={`service-template-row ${isActive ? 'is-active' : ''}`}>
                   <button
@@ -245,7 +255,20 @@ export default function Page() {
                       </ul>
                       <Link href="/services" className="link-arrow-text">Learn more →</Link>
                     </div>
-                    <div className={`service-template-image card-image-placeholder ${imageClass}`} aria-hidden="true"></div>
+                    <div
+                      className={`service-template-image card-image-placeholder ${image.imageUrl ? 'has-image' : image.imageClass}`}
+                      style={
+                        image.imageUrl
+                          ? {
+                              backgroundImage: `url(${image.imageUrl})`,
+                              backgroundSize: 'cover',
+                              backgroundPosition: 'center',
+                              backgroundRepeat: 'no-repeat',
+                            }
+                          : undefined
+                      }
+                      aria-hidden="true"
+                    ></div>
                   </div>
                 </article>
               );
@@ -310,22 +333,25 @@ export default function Page() {
         <div className="section-inner animate-on-scroll">
           <SectionHeader
             variant="home"
-            label="Flagship Convenings"
-            title="Signature Events"
+            label={homeEventsCopy.label}
+            title={homeEventsCopy.title}
             linkHref="/signature-events"
-            linkLabel="See all events"
+            linkLabel={homeEventsCopy.linkLabel}
           />
           <p className="section-subtitle centered">
-            Curated Platforms That Bring Visionaries, Innovators, and Institutions Together.
+            {homeEventsCopy.subtitle}
           </p>
           <div className="cards-grid cards-events">
             {events.length > 0 ? (
               events.slice(0, 3).map((e) => (
                 <article key={e.id} className="card card-event animate-on-scroll">
                   <div 
-                    className="card-image-placeholder" 
+                    className={`card-image-placeholder ${e.image_url ? 'has-image' : ''}`}
                     style={{ 
                       backgroundImage: e.image_url ? `url(${e.image_url})` : undefined,
+                      backgroundSize: e.image_url ? 'cover' : undefined,
+                      backgroundPosition: e.image_url ? 'center' : undefined,
+                      backgroundRepeat: e.image_url ? 'no-repeat' : undefined,
                       backgroundColor: !e.image_url ? '#e5e7eb' : undefined 
                     }}
                   ></div>
@@ -354,8 +380,8 @@ export default function Page() {
             )}
           </div>
           <div className="section-cta-center">
-            <Link href="/signature-events" className="btn btn-outline">See Event Calendar</Link>
-            <Link href="/partnerships" className="link-arrow">Partner With Us <span aria-hidden="true">→</span></Link>
+            <Link href="/signature-events" className="btn btn-outline">{homeEventsCopy.ctaPrimary}</Link>
+            <Link href="/partnerships" className="link-arrow">{homeEventsCopy.ctaSecondary} <span aria-hidden="true">→</span></Link>
           </div>
         </div>
       </section>

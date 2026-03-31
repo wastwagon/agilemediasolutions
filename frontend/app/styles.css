@@ -917,6 +917,9 @@ main {
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23b0b0b0'%3E%3Cpath d='M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z'/%3E%3C/svg%3E") center/40% no-repeat;
   opacity: 0.6;
 }
+.card-image-placeholder.has-image::after {
+  display: none;
+}
 .card-brand .card-image-placeholder { aspect-ratio: 4/3; }
 .card-service .card-image-placeholder { aspect-ratio: 4/3; }
 
@@ -1214,6 +1217,9 @@ main {
   inset: 0;
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23b0b0b0'%3E%3Cpath d='M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z'/%3E%3C/svg%3E") center/40% no-repeat;
   opacity: 0.6;
+}
+.service-card-image.has-image::after {
+  display: none;
 }
 .service-card-image img {
   width: 100%;
@@ -2945,11 +2951,65 @@ main {
   transform: translateY(8px);
 }
 
+.cards-events .card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.cards-events .card-image-placeholder {
+  aspect-ratio: auto;
+  height: 170px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.cards-events .card p {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.creative-public-page .service-card {
+  height: 100%;
+}
+
+.creative-public-page .service-card-image {
+  aspect-ratio: auto;
+  height: 190px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.creative-public-page .service-card-body {
+  display: grid;
+  gap: 0.65rem;
+  align-content: start;
+}
+
+.creative-public-page .service-card-desc {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 @media (max-width: 900px) {
   .creative-home .cards-services .card,
   .creative-home .cards-events .card,
   .creative-home .cards-brands .card {
     transform: none !important;
+  }
+
+  .cards-events .card-image-placeholder {
+    height: 160px;
+  }
+
+  .creative-public-page .service-card-image {
+    height: 180px;
   }
 }
 .form-row-split {

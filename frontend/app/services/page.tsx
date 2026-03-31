@@ -1,9 +1,18 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import SectionHeader from '../../components/SectionHeader';
+import { useSiteSectionContent } from '@/lib/siteSectionCms';
+
+type ServiceItem = {
+  id: number;
+  icon?: string | null;
+  title: string;
+  description?: string | null;
+  order_index?: number | null;
+};
 
 const DOCUMENT_SERVICES: { icon: string; title: string; description: string }[] = [
   {
@@ -98,7 +107,70 @@ const DOCUMENT_SERVICES: { icon: string; title: string; description: string }[] 
   },
 ];
 
+function normalizeServiceIconToken(icon?: string | null) {
+  if (!icon) return '';
+  const trimmed = icon.trim();
+  if (!trimmed) return '';
+  if (trimmed.startsWith('/uploads/') || trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:image/')) {
+    return '';
+  }
+  return trimmed
+    .toLowerCase()
+    .replace(/^service-img-/, '')
+    .replace(/[_\s]+/g, '-')
+    .replace(/[^a-z0-9-]/g, '');
+}
+
+function resolveServiceImage(icon?: string | null) {
+  if (!icon) return { imageUrl: '', imageClass: 'service-img-strategic' };
+  const trimmed = icon.trim();
+  if (trimmed.startsWith('/uploads/') || trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:image/')) {
+    return { imageUrl: trimmed, imageClass: '' };
+  }
+  const normalized = normalizeServiceIconToken(trimmed);
+  return { imageUrl: '', imageClass: normalized ? `service-img-${normalized}` : 'service-img-strategic' };
+}
+
 export default function Page() {
+  const [services, setServices] = useState<ServiceItem[]>([]);
+
+  useEffect(() => {
+    const loadServices = async () => {
+      try {
+        const res = await fetch('/api/services');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!Array.isArray(data)) return;
+        setServices(data as ServiceItem[]);
+      } catch {
+        // Keep static fallback content if API is unavailable.
+      }
+    };
+    loadServices();
+  }, []);
+
+  const renderedServices: ServiceItem[] =
+    services.length > 0
+      ? services
+      : DOCUMENT_SERVICES.map((s, idx) => ({
+          id: -(idx + 1),
+          title: s.title,
+          description: s.description,
+          icon: s.icon,
+          order_index: idx,
+        }));
+  const servicesCopy = useSiteSectionContent('services.page', {
+    heroLabel: 'Services',
+    heroTitle: 'Comprehensive Communications Solutions. Strategically Designed. Precisely Delivered.',
+    heroIntro:
+      'Agile Media Solutions offers a full suite of communications, media, and public relations services designed for governments, businesses, institutions, and mission-driven organizations. Our work blends strategic thinking, creative execution, and sectoral intelligence-ensuring our clients communicate with clarity, confidence, and purpose.',
+    heroSubIntro: '',
+    sectionLabel: 'Capabilities',
+    sectionTitle: 'Explore our integrated service offerings',
+    sectionSubtitle:
+      "Need help choosing the right mix? We'll assess your goals and recommend a package that delivers real-world outcomes.",
+  });
+
   const heroContainer = {
     hidden: { opacity: 0 },
     show: {
@@ -131,19 +203,26 @@ export default function Page() {
         <motion.div className="page-hero-inner" variants={heroContainer} initial="hidden" animate="show">
           <div style={{ overflow: 'hidden', paddingBottom: '4px' }}>
             <motion.span variants={heroItem} className="page-hero-label" style={{ display: 'inline-block' }}>
-              Services
+              {servicesCopy.heroLabel}
             </motion.span>
           </div>
           <div style={{ overflow: 'hidden', paddingBottom: '8px' }}>
             <motion.h1 variants={heroItem} className="page-hero-title">
-              Comprehensive Communications Solutions. Strategically Designed. Precisely Delivered.
+              {servicesCopy.heroTitle}
             </motion.h1>
           </div>
           <div style={{ overflow: 'hidden' }}>
             <motion.p variants={heroItem} className="page-hero-tagline">
-              Agile Media Solutions offers a full suite of communications, media, and public relations services designed for governments, businesses, institutions, and mission-driven organizations. Our work blends strategic thinking, creative execution, and sectoral intelligence—ensuring our clients communicate with clarity, confidence, and purpose.
+              {servicesCopy.heroIntro}
             </motion.p>
           </div>
+          {servicesCopy.heroSubIntro ? (
+            <div style={{ overflow: 'hidden' }}>
+              <motion.p variants={heroItem} className="page-hero-tagline" style={{ marginTop: 'var(--space-md)' }}>
+                {servicesCopy.heroSubIntro}
+              </motion.p>
+            </div>
+          ) : null}
         </motion.div>
       </div>
 
@@ -157,8 +236,8 @@ export default function Page() {
           >
             <SectionHeader
               variant="inner"
-              label="Capabilities"
-              title="Explore our integrated service offerings"
+              label={servicesCopy.sectionLabel}
+              title={servicesCopy.sectionTitle}
               linkHref="/contact#contact"
               linkLabel="Book strategy call"
             />
@@ -170,7 +249,7 @@ export default function Page() {
             viewport={{ once: true, margin: '-50px' }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            Need help choosing the right mix? We&apos;ll assess your goals and recommend a package that delivers real-world outcomes.
+            {servicesCopy.sectionSubtitle}
           </motion.p>
           <motion.div
             className="services-grid"
@@ -179,15 +258,29 @@ export default function Page() {
             whileInView="show"
             viewport={{ once: true, margin: '-100px' }}
           >
-            {DOCUMENT_SERVICES.map((s) => (
-              <motion.article key={s.title} className="service-card magnetic" variants={cardItem}>
-                <div className={`service-card-image service-img-${s.icon}`}></div>
+            {renderedServices.map((s) => {
+              const image = resolveServiceImage(s.icon);
+              return (
+              <motion.article key={`service-${s.id}-${s.title}`} className="service-card magnetic" variants={cardItem}>
+                <div
+                  className={`service-card-image ${image.imageUrl ? 'has-image' : image.imageClass}`}
+                  style={
+                    image.imageUrl
+                      ? {
+                          backgroundImage: `url(${image.imageUrl})`,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center',
+                          backgroundRepeat: 'no-repeat',
+                        }
+                      : undefined
+                  }
+                ></div>
                 <div className="service-card-body">
                   <h3 className="service-card-title">{s.title}</h3>
-                  <p className="service-card-desc">{s.description}</p>
+                  <p className="service-card-desc">{s.description || 'Comprehensive communications support tailored to your mission and audience.'}</p>
                 </div>
               </motion.article>
-            ))}
+            )})}
           </motion.div>
 
           <motion.div

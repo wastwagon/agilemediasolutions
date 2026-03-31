@@ -1,55 +1,48 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import Image from 'next/image';
 import AdminImageUpload from '../../../components/AdminImageUpload';
 import AdminUrlLink from '../../../components/AdminUrlLink';
 import MediaLibraryPicker from '../../../components/MediaLibraryPicker';
+import { AdminEditorCard, AdminFormActions } from '@/components/admin/AdminFormUi';
+import { AdminErrorBanner, AdminLoadingState, AdminPageHeader } from '@/components/admin/AdminPageUi';
+import { adminActionBtnStyle, adminThStyle } from '@/lib/adminTableStyles';
+import { useAdminCrudResource } from '@/hooks/useAdminCrudResource';
+import type { Brand, BrandPayload } from '@/types/adminEntities';
 
 export default function AdminBrands() {
-  const [brands, setBrands] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [editingBrand, setEditingBrand] = useState<any>(null);
+  const [editingBrand, setEditingBrand] = useState<Brand | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const {
+    items: brands,
+    loading,
+    error,
+    deleteItem,
+    saveItem,
+  } = useAdminCrudResource<Brand, BrandPayload>('/api/brands', {
+    loadError: 'Could not load brands.',
+    connectError: 'Could not connect to the server.',
+    deleteError: 'Could not delete this brand.',
+    saveError: 'Could not save changes.',
+  });
 
   // Form states
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [audience, setAudience] = useState('');
+  const [format, setFormat] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [websiteUrl, setWebsiteUrl] = useState('');
   const [orderIndex, setOrderIndex] = useState('');
-  const thStyle: React.CSSProperties = { position: 'sticky', top: 0, zIndex: 1, padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', background: 'var(--color-bg-alt)' };
-  const actionBtnStyle: React.CSSProperties = { background: 'var(--color-bg-alt)', border: '1px solid var(--color-border)', borderRadius: 8, cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700, padding: '0.4rem 0.62rem', marginLeft: '0.55rem' };
 
-  const fetchData = async () => {
-    setLoading(true);
-    const token = localStorage.getItem('admin_token');
-    try {
-      const res = await fetch('/api/brands', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setBrands(data);
-      } else {
-        setError('Could not load brands.');
-      }
-    } catch (err) {
-      setError('Could not connect to the server.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const handleEditClick = (brand: any) => {
+  const handleEditClick = (brand: Brand) => {
     setEditingBrand(brand);
     setIsAdding(true);
     setName(brand.name);
     setDescription(brand.description || '');
+    setAudience(brand.audience || '');
+    setFormat(brand.format || '');
     setImageUrl(brand.image_url || '');
     setWebsiteUrl(brand.website_url || '');
     setOrderIndex(brand.order_index?.toString() || '0');
@@ -60,6 +53,8 @@ export default function AdminBrands() {
     setIsAdding(true);
     setName('');
     setDescription('');
+    setAudience('');
+    setFormat('');
     setImageUrl('');
     setWebsiteUrl('');
     setOrderIndex('0');
@@ -72,73 +67,44 @@ export default function AdminBrands() {
 
   const handleDelete = async (id: number) => {
     if (!confirm('Are you sure you want to delete this brand?')) return;
-    const token = localStorage.getItem('admin_token');
-    try {
-      const res = await fetch(`/api/brands/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        fetchData();
-      } else {
-        alert('Could not delete this brand.');
-      }
-    } catch (err) {
-      alert('Something went wrong while deleting.');
-    }
+    const err = await deleteItem(id);
+    if (err) alert(err);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const data = {
-      name, description, image_url: imageUrl, website_url: websiteUrl, order_index: parseInt(orderIndex || '0')
+    const data: BrandPayload = {
+      name,
+      description,
+      audience,
+      format,
+      image_url: imageUrl,
+      website_url: websiteUrl,
+      order_index: parseInt(orderIndex || '0')
     };
 
-    const token = localStorage.getItem('admin_token');
-    const url = editingBrand ? `/api/brands/${editingBrand.id}` : '/api/brands';
-    const method = editingBrand ? 'PUT' : 'POST';
-
-    try {
-      const res = await fetch(url, {
-        method,
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
-      if (res.ok) {
-        handleCancel();
-        fetchData();
-      } else {
-        alert('Could not save changes.');
-      }
-    } catch (err) {
-      alert('Something went wrong while saving.');
+    const err = await saveItem(data, editingBrand?.id);
+    if (err) {
+      alert(err);
+      return;
     }
+    handleCancel();
   };
 
-  if (loading && brands.length === 0) return <div className="admin-loading" style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Loading…</div>;
+  if (loading && brands.length === 0) return <AdminLoadingState />;
 
   return (
     <div className="admin-page animate-on-scroll is-visible">
-      <div className="admin-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
-        <div>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.5rem', marginBottom: '0.5rem', color: 'var(--color-dark-blue)' }}>Brands</h1>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '1.1rem' }}>Edit the brands shown on your site.</p>
-        </div>
-        {!isAdding && (
-          <button onClick={handleCreateClick} className="btn btn-primary">
-            Add brand
-          </button>
-        )}
-      </div>
+      <AdminPageHeader
+        title="Brands"
+        subtitle="Edit the brands shown on your site."
+        addLabel="Add brand"
+        isAdding={isAdding}
+        onAdd={handleCreateClick}
+      />
 
       {isAdding && (
-        <div style={{ background: '#fff', padding: '2.5rem', borderRadius: '16px', border: '1px solid var(--color-border)', marginBottom: '2.5rem', boxShadow: 'var(--shadow-sm)' }}>
-          <h3 style={{ marginBottom: '2rem', fontFamily: 'var(--font-display)', fontSize: '1.5rem', color: 'var(--color-dark-blue)' }}>
-            {editingBrand ? 'Edit brand' : 'New brand'}
-          </h3>
+        <AdminEditorCard title={editingBrand ? 'Edit brand' : 'New brand'}>
           <form onSubmit={handleSubmit}>
             <div className="form-row-split" style={{ marginBottom: '1.5rem' }}>
               <div className={`form-group ${name ? 'has-value' : ''}`}>
@@ -156,6 +122,18 @@ export default function AdminBrands() {
             <div className={`form-group form-group-textarea ${description ? 'has-value' : ''}`} style={{ marginBottom: '1.5rem' }}>
               <textarea id="description" rows={3} value={description} onChange={(e) => setDescription(e.target.value)}></textarea>
               <label htmlFor="description">Description (optional)</label>
+              <div className="form-border"></div>
+            </div>
+
+            <div className={`form-group ${audience ? 'has-value' : ''}`} style={{ marginBottom: '1.2rem' }}>
+              <input type="text" id="audience" value={audience} onChange={(e) => setAudience(e.target.value)} />
+              <label htmlFor="audience">Audience (optional)</label>
+              <div className="form-border"></div>
+            </div>
+
+            <div className={`form-group ${format ? 'has-value' : ''}`} style={{ marginBottom: '1.5rem' }}>
+              <input type="text" id="format" value={format} onChange={(e) => setFormat(e.target.value)} />
+              <label htmlFor="format">Format (optional)</label>
               <div className="form-border"></div>
             </div>
 
@@ -178,25 +156,25 @@ export default function AdminBrands() {
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-              <button type="button" onClick={handleCancel} className="btn btn-outline" style={{ border: 'none' }}>Cancel</button>
-              <button type="submit" className="btn btn-primary">{editingBrand ? 'Save changes' : 'Add brand'}</button>
-            </div>
+            <AdminFormActions
+              onCancel={handleCancel}
+              submitLabel={editingBrand ? 'Save changes' : 'Add brand'}
+            />
           </form>
-        </div>
+        </AdminEditorCard>
       )}
 
-      {error && <div style={{ padding: '1rem', background: '#FEF2F2', color: '#B91C1C', borderRadius: '8px', marginBottom: '2rem' }}>{error}</div>}
+      <AdminErrorBanner message={error} />
 
       {!isAdding && (
         <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid var(--color-border)', overflowX: 'auto', boxShadow: 'var(--shadow-sm)', maxHeight: '70vh' }}>
           <table style={{ width: '100%', minWidth: '800px', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead style={{ background: 'var(--color-bg-alt)', borderBottom: '1px solid var(--color-border)' }}>
               <tr>
-                <th style={{ ...thStyle, width: '80px', textAlign: 'center' }}>Order</th>
-                <th style={thStyle}>Logo</th>
-                <th style={thStyle}>Brand</th>
-                <th style={{ ...thStyle, textAlign: 'right' }}>Actions</th>
+                <th style={{ ...adminThStyle, width: '80px', textAlign: 'center' }}>Order</th>
+                <th style={adminThStyle}>Logo</th>
+                <th style={adminThStyle}>Brand</th>
+                <th style={{ ...adminThStyle, textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -210,12 +188,30 @@ export default function AdminBrands() {
                     </td>
                     <td style={{ padding: '1.5rem 1.2rem', verticalAlign: 'middle' }}>
                       <div style={{ width: '60px', height: '60px', background: 'var(--color-bg-alt)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: '0.5rem' }}>
-                        {b.image_url ? <img src={b.image_url} alt={b.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} /> : <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>No Logo</span>}
+                        {b.image_url ? (
+                          <Image
+                            src={b.image_url}
+                            alt={b.name}
+                            width={48}
+                            height={48}
+                            unoptimized
+                            style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                          />
+                        ) : (
+                          <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>No Logo</span>
+                        )}
                       </div>
                     </td>
                     <td style={{ padding: '1.5rem 1.2rem', verticalAlign: 'middle' }}>
                       <div style={{ fontWeight: 600, color: 'var(--color-dark-blue)', marginBottom: '4px', fontSize: '1.1rem' }}>{b.name}</div>
                       {b.description && <div style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)', marginBottom: '8px', maxWidth: '400px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{b.description}</div>}
+                      {(b.audience || b.format) && (
+                        <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginBottom: '6px' }}>
+                          {b.audience ? `Audience: ${b.audience}` : ''}
+                          {b.audience && b.format ? ' | ' : ''}
+                          {b.format ? `Format: ${b.format}` : ''}
+                        </div>
+                      )}
                       {b.website_url && (
                         <AdminUrlLink href={b.website_url}>Open website</AdminUrlLink>
                       )}
@@ -223,13 +219,13 @@ export default function AdminBrands() {
                     <td style={{ padding: '1.5rem 1.2rem', verticalAlign: 'middle', textAlign: 'right' }}>
                       <button 
                         onClick={() => handleEditClick(b)}
-                        style={{ ...actionBtnStyle, color: 'var(--color-primary)' }}
+                        style={{ ...adminActionBtnStyle, color: 'var(--color-primary)' }}
                       >
                         Edit
                       </button>
                       <button 
                         onClick={() => handleDelete(b.id)}
-                        style={{ ...actionBtnStyle, color: '#B91C1C', borderColor: 'rgba(185,28,28,0.25)', background: 'rgba(185,28,28,0.04)' }}
+                        style={{ ...adminActionBtnStyle, color: '#B91C1C', borderColor: 'rgba(185,28,28,0.25)', background: 'rgba(185,28,28,0.04)' }}
                       >
                         Delete
                       </button>

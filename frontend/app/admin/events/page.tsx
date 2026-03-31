@@ -1,55 +1,52 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import Image from 'next/image';
 import AdminImageUpload from '../../../components/AdminImageUpload';
 import AdminUrlLink from '../../../components/AdminUrlLink';
 import MediaLibraryPicker from '../../../components/MediaLibraryPicker';
+import { AdminEditorCard, AdminFormActions } from '@/components/admin/AdminFormUi';
+import { AdminErrorBanner, AdminLoadingState, AdminPageHeader } from '@/components/admin/AdminPageUi';
+import { adminActionBtnStyle, adminThStyle } from '@/lib/adminTableStyles';
+import { useAdminCrudResource } from '@/hooks/useAdminCrudResource';
+import type { EventItem, EventPayload } from '@/types/adminEntities';
 
 export default function AdminEvents() {
-  const [events, setEvents] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [editingEvent, setEditingEvent] = useState<any>(null);
+  const [editingEvent, setEditingEvent] = useState<EventItem | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const {
+    items: events,
+    loading,
+    error,
+    deleteItem,
+    saveItem,
+  } = useAdminCrudResource<EventItem, EventPayload>('/api/events', {
+    loadError: 'Could not load events.',
+    connectError: 'Could not connect to the server.',
+    deleteError: 'Could not delete this event.',
+    saveError: 'Could not save changes.',
+  });
 
   // Form states
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [tagline, setTagline] = useState('');
+  const [body, setBody] = useState('');
+  const [features, setFeatures] = useState('');
+  const [audience, setAudience] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [linkUrl, setLinkUrl] = useState('');
   const [orderIndex, setOrderIndex] = useState('');
-  const thStyle: React.CSSProperties = { position: 'sticky', top: 0, zIndex: 1, padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', background: 'var(--color-bg-alt)' };
-  const actionBtnStyle: React.CSSProperties = { background: 'var(--color-bg-alt)', border: '1px solid var(--color-border)', borderRadius: 8, cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700, padding: '0.4rem 0.62rem', marginLeft: '0.55rem' };
 
-  const fetchData = async () => {
-    setLoading(true);
-    const token = localStorage.getItem('admin_token');
-    try {
-      const res = await fetch('/api/events', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setEvents(data);
-      } else {
-        setError('Could not load events.');
-      }
-    } catch (err) {
-      setError('Could not connect to the server.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const handleEditClick = (ev: any) => {
+  const handleEditClick = (ev: EventItem) => {
     setEditingEvent(ev);
     setIsAdding(true);
     setTitle(ev.title);
     setDescription(ev.description || '');
+    setTagline(ev.tagline || '');
+    setBody(ev.body || '');
+    setFeatures(ev.features || '');
+    setAudience(ev.audience || '');
     setImageUrl(ev.image_url || '');
     setLinkUrl(ev.link_url || '');
     setOrderIndex(ev.order_index?.toString() || '0');
@@ -60,6 +57,10 @@ export default function AdminEvents() {
     setIsAdding(true);
     setTitle('');
     setDescription('');
+    setTagline('');
+    setBody('');
+    setFeatures('');
+    setAudience('');
     setImageUrl('');
     setLinkUrl('');
     setOrderIndex('0');
@@ -72,73 +73,46 @@ export default function AdminEvents() {
 
   const handleDelete = async (id: number) => {
     if (!confirm('Are you sure you want to delete this event?')) return;
-    const token = localStorage.getItem('admin_token');
-    try {
-      const res = await fetch(`/api/events/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        fetchData();
-      } else {
-        alert('Could not delete this event.');
-      }
-    } catch (err) {
-      alert('Something went wrong while deleting.');
-    }
+    const err = await deleteItem(id);
+    if (err) alert(err);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const data = {
-      title, description, image_url: imageUrl, link_url: linkUrl, order_index: parseInt(orderIndex || '0')
+    const data: EventPayload = {
+      title,
+      description,
+      tagline,
+      body,
+      features,
+      audience,
+      image_url: imageUrl,
+      link_url: linkUrl,
+      order_index: parseInt(orderIndex || '0')
     };
 
-    const token = localStorage.getItem('admin_token');
-    const url = editingEvent ? `/api/events/${editingEvent.id}` : '/api/events';
-    const method = editingEvent ? 'PUT' : 'POST';
-
-    try {
-      const res = await fetch(url, {
-        method,
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
-      if (res.ok) {
-        handleCancel();
-        fetchData();
-      } else {
-        alert('Could not save changes.');
-      }
-    } catch (err) {
-      alert('Something went wrong while saving.');
+    const err = await saveItem(data, editingEvent?.id);
+    if (err) {
+      alert(err);
+      return;
     }
+    handleCancel();
   };
 
-  if (loading && events.length === 0) return <div className="admin-loading" style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Loading…</div>;
+  if (loading && events.length === 0) return <AdminLoadingState />;
 
   return (
     <div className="admin-page animate-on-scroll is-visible">
-      <div className="admin-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
-        <div>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.5rem', marginBottom: '0.5rem', color: 'var(--color-dark-blue)' }}>Events</h1>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '1.1rem' }}>Edit events shown on the Signature Events page.</p>
-        </div>
-        {!isAdding && (
-          <button onClick={handleCreateClick} className="btn btn-primary">
-            Add event
-          </button>
-        )}
-      </div>
+      <AdminPageHeader
+        title="Events"
+        subtitle="Edit events shown on the Signature Events page."
+        addLabel="Add event"
+        isAdding={isAdding}
+        onAdd={handleCreateClick}
+      />
 
       {isAdding && (
-        <div style={{ background: '#fff', padding: '2.5rem', borderRadius: '16px', border: '1px solid var(--color-border)', marginBottom: '2.5rem', boxShadow: 'var(--shadow-sm)' }}>
-          <h3 style={{ marginBottom: '2rem', fontFamily: 'var(--font-display)', fontSize: '1.5rem', color: 'var(--color-dark-blue)' }}>
-            {editingEvent ? 'Edit event' : 'New event'}
-          </h3>
+        <AdminEditorCard title={editingEvent ? 'Edit event' : 'New event'}>
           <form onSubmit={handleSubmit}>
             <div className="form-row-split" style={{ marginBottom: '1.5rem' }}>
               <div className={`form-group ${title ? 'has-value' : ''}`}>
@@ -153,9 +127,33 @@ export default function AdminEvents() {
               </div>
             </div>
 
-            <div className={`form-group form-group-textarea ${description ? 'has-value' : ''}`} style={{ marginBottom: '1.5rem' }}>
-              <textarea id="description" rows={3} value={description} onChange={(e) => setDescription(e.target.value)}></textarea>
-              <label htmlFor="description">Description (optional)</label>
+            <div className={`form-group form-group-textarea ${description ? 'has-value' : ''}`} style={{ marginBottom: '1.2rem' }}>
+              <textarea id="description" rows={2} value={description} onChange={(e) => setDescription(e.target.value)}></textarea>
+              <label htmlFor="description">Homepage Summary (optional)</label>
+              <div className="form-border"></div>
+            </div>
+
+            <div className={`form-group ${tagline ? 'has-value' : ''}`} style={{ marginBottom: '1.2rem' }}>
+              <input type="text" id="tagline" value={tagline} onChange={(e) => setTagline(e.target.value)} />
+              <label htmlFor="tagline">Tagline (Signature events page)</label>
+              <div className="form-border"></div>
+            </div>
+
+            <div className={`form-group form-group-textarea ${body ? 'has-value' : ''}`} style={{ marginBottom: '1.2rem' }}>
+              <textarea id="body" rows={3} value={body} onChange={(e) => setBody(e.target.value)}></textarea>
+              <label htmlFor="body">Body (Signature events page)</label>
+              <div className="form-border"></div>
+            </div>
+
+            <div className={`form-group ${features ? 'has-value' : ''}`} style={{ marginBottom: '1.2rem' }}>
+              <input type="text" id="features" value={features} onChange={(e) => setFeatures(e.target.value)} />
+              <label htmlFor="features">Features (optional)</label>
+              <div className="form-border"></div>
+            </div>
+
+            <div className={`form-group ${audience ? 'has-value' : ''}`} style={{ marginBottom: '1.5rem' }}>
+              <input type="text" id="audience" value={audience} onChange={(e) => setAudience(e.target.value)} />
+              <label htmlFor="audience">Audience (optional)</label>
               <div className="form-border"></div>
             </div>
 
@@ -178,25 +176,25 @@ export default function AdminEvents() {
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-              <button type="button" onClick={handleCancel} className="btn btn-outline" style={{ border: 'none' }}>Cancel</button>
-              <button type="submit" className="btn btn-primary">{editingEvent ? 'Save changes' : 'Add event'}</button>
-            </div>
+            <AdminFormActions
+              onCancel={handleCancel}
+              submitLabel={editingEvent ? 'Save changes' : 'Add event'}
+            />
           </form>
-        </div>
+        </AdminEditorCard>
       )}
 
-      {error && <div style={{ padding: '1rem', background: '#FEF2F2', color: '#B91C1C', borderRadius: '8px', marginBottom: '2rem' }}>{error}</div>}
+      <AdminErrorBanner message={error} />
 
       {!isAdding && (
         <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid var(--color-border)', overflowX: 'auto', boxShadow: 'var(--shadow-sm)', maxHeight: '70vh' }}>
           <table style={{ width: '100%', minWidth: '800px', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead style={{ background: 'var(--color-bg-alt)', borderBottom: '1px solid var(--color-border)' }}>
               <tr>
-                <th style={{ ...thStyle, width: '80px', textAlign: 'center' }}>Order</th>
-                <th style={thStyle}>Image</th>
-                <th style={thStyle}>Event</th>
-                <th style={{ ...thStyle, textAlign: 'right' }}>Actions</th>
+                <th style={{ ...adminThStyle, width: '80px', textAlign: 'center' }}>Order</th>
+                <th style={adminThStyle}>Image</th>
+                <th style={adminThStyle}>Event</th>
+                <th style={{ ...adminThStyle, textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -210,24 +208,39 @@ export default function AdminEvents() {
                     </td>
                     <td style={{ padding: '1.5rem 1.2rem', verticalAlign: 'middle' }}>
                       <div style={{ width: '120px', height: '60px', background: 'var(--color-bg-alt)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: '0.5rem' }}>
-                        {ev.image_url ? <img src={ev.image_url} alt={ev.title} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} /> : <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>No Image</span>}
+                        {ev.image_url ? (
+                          <Image
+                            src={ev.image_url}
+                            alt={ev.title}
+                            width={110}
+                            height={55}
+                            unoptimized
+                            style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                          />
+                        ) : (
+                          <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>No Image</span>
+                        )}
                       </div>
                     </td>
                     <td style={{ padding: '1.5rem 1.2rem', verticalAlign: 'middle' }}>
                       <div style={{ fontWeight: 600, color: 'var(--color-dark-blue)', marginBottom: '4px', fontSize: '1.1rem' }}>{ev.title}</div>
-                      {ev.description && <div style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)', marginBottom: '8px', maxWidth: '400px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ev.description}</div>}
+                      {(ev.tagline || ev.description) && (
+                        <div style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)', marginBottom: '8px', maxWidth: '460px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {ev.tagline || ev.description}
+                        </div>
+                      )}
                       {ev.link_url && <AdminUrlLink href={ev.link_url}>Open link</AdminUrlLink>}
                     </td>
                     <td style={{ padding: '1.5rem 1.2rem', verticalAlign: 'middle', textAlign: 'right' }}>
                       <button 
                         onClick={() => handleEditClick(ev)}
-                        style={{ ...actionBtnStyle, color: 'var(--color-primary)' }}
+                        style={{ ...adminActionBtnStyle, color: 'var(--color-primary)' }}
                       >
                         Edit
                       </button>
                       <button 
                         onClick={() => handleDelete(ev.id)}
-                        style={{ ...actionBtnStyle, color: '#B91C1C', borderColor: 'rgba(185,28,28,0.25)', background: 'rgba(185,28,28,0.04)' }}
+                        style={{ ...adminActionBtnStyle, color: '#B91C1C', borderColor: 'rgba(185,28,28,0.25)', background: 'rgba(185,28,28,0.04)' }}
                       >
                         Delete
                       </button>

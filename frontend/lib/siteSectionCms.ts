@@ -1,0 +1,395 @@
+'use client';
+
+import { useEffect, useMemo, useState } from 'react';
+
+export type SiteSectionField = {
+  id: string;
+  label: string;
+  multiline?: boolean;
+};
+
+export type SiteSectionDefinition = {
+  key: string;
+  title: string;
+  description: string;
+  fields: SiteSectionField[];
+};
+
+export const SITE_SECTION_DEFINITIONS: SiteSectionDefinition[] = [
+  {
+    key: 'home.events',
+    title: 'Homepage Events Block',
+    description: 'Edit the homepage events intro and button labels.',
+    fields: [
+      { id: 'label', label: 'Section label' },
+      { id: 'title', label: 'Section title' },
+      { id: 'subtitle', label: 'Section subtitle', multiline: true },
+      { id: 'linkLabel', label: 'Top-right link label' },
+      { id: 'ctaPrimary', label: 'CTA primary label' },
+      { id: 'ctaSecondary', label: 'CTA secondary label' },
+    ],
+  },
+  {
+    key: 'services.page',
+    title: 'Services Page',
+    description: 'Edit hero and intro copy on the Services page.',
+    fields: [
+      { id: 'heroLabel', label: 'Hero label' },
+      { id: 'heroTitle', label: 'Hero title', multiline: true },
+      { id: 'heroIntro', label: 'Hero intro', multiline: true },
+      { id: 'heroSubIntro', label: 'Hero sub-intro', multiline: true },
+      { id: 'sectionLabel', label: 'Section label' },
+      { id: 'sectionTitle', label: 'Section title' },
+      { id: 'sectionSubtitle', label: 'Section subtitle', multiline: true },
+    ],
+  },
+  {
+    key: 'brands.page',
+    title: 'Brands Page',
+    description: 'Edit hero, section, and call-to-action copy on the Brands page.',
+    fields: [
+      { id: 'heroLabel', label: 'Hero label' },
+      { id: 'heroTitle', label: 'Hero title', multiline: true },
+      { id: 'heroIntro', label: 'Hero intro', multiline: true },
+      { id: 'heroSubIntro', label: 'Hero sub-intro', multiline: true },
+      { id: 'sectionLabel', label: 'Section label' },
+      { id: 'sectionTitle', label: 'Section title' },
+      { id: 'sectionLinkLabel', label: 'Section link label' },
+      { id: 'outro', label: 'Outro paragraph', multiline: true },
+      { id: 'ctaPrimary', label: 'CTA primary label' },
+      { id: 'ctaSecondary', label: 'CTA secondary label' },
+      { id: 'ctaTertiary', label: 'CTA tertiary label' },
+    ],
+  },
+  {
+    key: 'signature-events.page',
+    title: 'Signature Events Page',
+    description: 'Edit hero, section titles, and action labels on the events page.',
+    fields: [
+      { id: 'heroLabel', label: 'Hero label' },
+      { id: 'heroTitle', label: 'Hero title', multiline: true },
+      { id: 'heroIntro', label: 'Hero intro', multiline: true },
+      { id: 'heroSubIntro', label: 'Hero sub-intro', multiline: true },
+      { id: 'sectionLabel', label: 'Section label' },
+      { id: 'sectionTitle', label: 'Section title' },
+      { id: 'sectionLinkLabel', label: 'Section link label' },
+      { id: 'ctaPrimary', label: 'CTA primary label' },
+      { id: 'ctaSecondary', label: 'CTA secondary label' },
+    ],
+  },
+  {
+    key: 'case-studies.page',
+    title: 'Case Studies Page',
+    description: 'Edit key headings and call-to-action labels for case studies.',
+    fields: [
+      { id: 'heroLabel', label: 'Hero label' },
+      { id: 'heroTitle', label: 'Hero title', multiline: true },
+      { id: 'heroIntro', label: 'Hero intro', multiline: true },
+      { id: 'heroSubIntro', label: 'Hero sub-intro', multiline: true },
+      { id: 'showcaseLabel', label: 'Showcase section label' },
+      { id: 'showcaseTitle', label: 'Showcase section title' },
+      { id: 'highlightsLabel', label: 'Highlights section label' },
+      { id: 'highlightsTitle', label: 'Highlights section title' },
+      { id: 'highlightsSubtitle', label: 'Highlights subtitle', multiline: true },
+      { id: 'finalSubtitle', label: 'Final subtitle', multiline: true },
+      { id: 'ctaPrimary', label: 'Final CTA primary label' },
+      { id: 'ctaSecondary', label: 'Final CTA secondary label' },
+    ],
+  },
+  {
+    key: 'about.page',
+    title: 'About Page',
+    description: 'Edit hero, identity, and presence copy on the About page.',
+    fields: [
+      { id: 'heroLabel', label: 'Hero label' },
+      { id: 'heroTitle', label: 'Hero title', multiline: true },
+      { id: 'heroTagline', label: 'Hero tagline', multiline: true },
+      { id: 'identityLabel', label: 'Identity label' },
+      { id: 'identityTitle', label: 'Identity title' },
+      { id: 'identityP1', label: 'Identity paragraph 1', multiline: true },
+      { id: 'identityP2', label: 'Identity paragraph 2', multiline: true },
+      { id: 'ctaPrimary', label: 'CTA primary label' },
+      { id: 'ctaSecondary', label: 'CTA secondary label' },
+      { id: 'presenceLabel', label: 'Presence label' },
+      { id: 'presenceTitle', label: 'Presence title' },
+      { id: 'presenceSubtitle', label: 'Presence subtitle', multiline: true },
+    ],
+  },
+  {
+    key: 'partnerships.page',
+    title: 'Partnerships Page',
+    description: 'Edit hero, section headings, cards, and CTA strip copy.',
+    fields: [
+      { id: 'heroLabel', label: 'Hero label' },
+      { id: 'heroTitle', label: 'Hero title', multiline: true },
+      { id: 'heroIntro', label: 'Hero intro', multiline: true },
+      { id: 'heroSubIntro', label: 'Hero sub-intro', multiline: true },
+      { id: 'sectionLabel', label: 'Section label' },
+      { id: 'sectionTitle', label: 'Section title' },
+      { id: 'sectionLinkLabel', label: 'Section link label' },
+      { id: 'typesHeading', label: 'Types heading' },
+      { id: 'typesCards', label: 'Types cards', multiline: true },
+      { id: 'partnerWithUsHeading', label: 'Partner-with-us heading' },
+      { id: 'partnerWithUsList', label: 'Partner-with-us list', multiline: true },
+      { id: 'valuesHeading', label: 'Values heading' },
+      { id: 'valuesList', label: 'Values list', multiline: true },
+      { id: 'ctaStripText', label: 'CTA strip text' },
+      { id: 'ctaPrimary', label: 'CTA primary label' },
+      { id: 'ctaSecondary', label: 'CTA secondary label' },
+      { id: 'ctaTertiary', label: 'CTA tertiary label' },
+    ],
+  },
+  {
+    key: 'contact.page',
+    title: 'Contact Page',
+    description: 'Edit hero, contact cards, and major CTA labels on the Contact page.',
+    fields: [
+      { id: 'heroLabel', label: 'Hero label' },
+      { id: 'heroTitle', label: 'Hero title', multiline: true },
+      { id: 'heroIntro', label: 'Hero intro', multiline: true },
+      { id: 'heroSubIntro', label: 'Hero sub-intro', multiline: true },
+      { id: 'connectionsLabel', label: 'Connections label' },
+      { id: 'connectionsTitle', label: 'Connections title' },
+      { id: 'connectionsLinkLabel', label: 'Connections link label' },
+      { id: 'quickBriefLabel', label: 'Quick brief label' },
+      { id: 'quickBriefTitle', label: 'Quick brief title' },
+      { id: 'quickBriefSubtitle', label: 'Quick brief subtitle', multiline: true },
+      { id: 'generalCardTitle', label: 'General inquiries card title' },
+      { id: 'generalEmail', label: 'General inquiries email' },
+      { id: 'generalHours', label: 'General inquiries hours' },
+      { id: 'generalHeadOffice', label: 'General inquiries head office' },
+      { id: 'generalLocations', label: 'General inquiries additional locations' },
+      { id: 'consultationCardTitle', label: 'Consultation card title' },
+      { id: 'consultationCardBody', label: 'Consultation card body', multiline: true },
+      { id: 'pressCardTitle', label: 'Press card title' },
+      { id: 'pressCardBody', label: 'Press card body', multiline: true },
+      { id: 'pressCardCta', label: 'Press card CTA label' },
+      { id: 'followTitle', label: 'Follow title' },
+      { id: 'followSubtitle', label: 'Follow subtitle', multiline: true },
+      { id: 'socialCta', label: 'Social CTA label' },
+      { id: 'finalSubtitle', label: 'Final subtitle', multiline: true },
+      { id: 'finalCta', label: 'Final CTA label' },
+    ],
+  },
+  {
+    key: 'careers.page',
+    title: 'Careers Page',
+    description: 'Edit hero, lists, opportunity cards, and CTA strip copy.',
+    fields: [
+      { id: 'heroLabel', label: 'Hero label' },
+      { id: 'heroTitle', label: 'Hero title', multiline: true },
+      { id: 'heroIntro', label: 'Hero intro', multiline: true },
+      { id: 'heroSubIntro', label: 'Hero sub-intro', multiline: true },
+      { id: 'whyHeading', label: 'Why work heading' },
+      { id: 'whyList', label: 'Why-work list', multiline: true },
+      { id: 'whoHeading', label: 'Who we are looking for heading' },
+      { id: 'whoIntro', label: 'Who-intro text', multiline: true },
+      { id: 'whoList', label: 'Who list', multiline: true },
+      { id: 'opportunitiesHeading', label: 'Opportunities heading' },
+      { id: 'opportunityCards', label: 'Opportunity cards', multiline: true },
+      { id: 'cultureHeading', label: 'Culture heading' },
+      { id: 'cultureList', label: 'Culture list', multiline: true },
+      { id: 'ctaStripText', label: 'CTA strip text' },
+      { id: 'ctaPrimary', label: 'CTA primary label' },
+      { id: 'ctaSecondary', label: 'CTA secondary label' },
+      { id: 'ctaTertiary', label: 'CTA tertiary label' },
+    ],
+  },
+  {
+    key: 'insights.page',
+    title: 'Insights Page',
+    description: 'Edit hero, insight cards, and final subscription copy.',
+    fields: [
+      { id: 'heroLabel', label: 'Hero label' },
+      { id: 'heroTitle', label: 'Hero title', multiline: true },
+      { id: 'heroTagline', label: 'Hero tagline', multiline: true },
+      { id: 'sectionLabel', label: 'Section label' },
+      { id: 'sectionTitle', label: 'Section title' },
+      { id: 'sectionLinkLabel', label: 'Section link label' },
+      { id: 'insightsHeading', label: 'Insights card heading' },
+      { id: 'insightsLead', label: 'Insights lead sentence' },
+      { id: 'insightsBody', label: 'Insights body text', multiline: true },
+      { id: 'insightsBullets', label: 'Insights bullets', multiline: true },
+      { id: 'insightsCtaPrimary', label: 'Insights CTA primary label' },
+      { id: 'insightsCtaSecondary', label: 'Insights CTA secondary label' },
+      { id: 'pressHeading', label: 'Press card heading' },
+      { id: 'pressLead', label: 'Press lead sentence' },
+      { id: 'pressBody', label: 'Press body text', multiline: true },
+      { id: 'pressBullets', label: 'Press bullets', multiline: true },
+      { id: 'pressCtaPrimary', label: 'Press CTA primary label' },
+      { id: 'pressCtaSecondary', label: 'Press CTA secondary label' },
+      { id: 'pressCtaTertiary', label: 'Press CTA tertiary label' },
+      { id: 'supportHeading', label: 'Support card heading' },
+      { id: 'supportBody', label: 'Support card body', multiline: true },
+      { id: 'supportCtaPrimary', label: 'Support CTA primary label' },
+      { id: 'supportCtaSecondary', label: 'Support CTA secondary label' },
+      { id: 'finalSubtitle', label: 'Final subtitle', multiline: true },
+      { id: 'finalCta', label: 'Final CTA label' },
+    ],
+  },
+  {
+    key: 'studio.page',
+    title: 'Studio Page',
+    description: 'Edit hero, offerings, highlights, and CTA labels on the Studio page.',
+    fields: [
+      { id: 'heroLabel', label: 'Hero label' },
+      { id: 'heroTitle', label: 'Hero title', multiline: true },
+      { id: 'heroIntro', label: 'Hero intro', multiline: true },
+      { id: 'heroSubIntro', label: 'Hero sub-intro', multiline: true },
+      { id: 'sectionLabel', label: 'Section label' },
+      { id: 'sectionTitle', label: 'Section title' },
+      { id: 'sectionLinkLabel', label: 'Section link label' },
+      { id: 'offeringCards', label: 'Offering cards', multiline: true },
+      { id: 'highlightsHeading', label: 'Highlights heading' },
+      { id: 'highlightsList', label: 'Highlights list', multiline: true },
+      { id: 'clientsHeading', label: 'Clients heading' },
+      { id: 'clientsSubtitle', label: 'Clients subtitle', multiline: true },
+      { id: 'ctaPrimary', label: 'CTA primary label' },
+      { id: 'ctaSecondary', label: 'CTA secondary label' },
+      { id: 'ctaTertiary', label: 'CTA tertiary label' },
+    ],
+  },
+  {
+    key: 'digital-engagement.page',
+    title: 'Digital Engagement Page',
+    description: 'Edit hero, offerings, list content, and CTA copy on Digital Engagement.',
+    fields: [
+      { id: 'heroLabel', label: 'Hero label' },
+      { id: 'heroTitle', label: 'Hero title', multiline: true },
+      { id: 'heroIntro', label: 'Hero intro', multiline: true },
+      { id: 'heroSubIntro', label: 'Hero sub-intro', multiline: true },
+      { id: 'sectionLabel', label: 'Section label' },
+      { id: 'sectionTitle', label: 'Section title' },
+      { id: 'sectionLinkLabel', label: 'Section link label' },
+      { id: 'sectionIntro', label: 'Section intro', multiline: true },
+      { id: 'offeringsHeading', label: 'Offerings heading' },
+      { id: 'offeringCards', label: 'Offering cards', multiline: true },
+      { id: 'influenceUseCasesLabel', label: 'Influence use-cases label' },
+      { id: 'influenceUseCasesList', label: 'Influence use-cases list', multiline: true },
+      { id: 'socialStudioList', label: 'Social studio list', multiline: true },
+      { id: 'crisisList', label: 'Crisis response list', multiline: true },
+      { id: 'trainingList', label: 'Training target list', multiline: true },
+      { id: 'analyticsList', label: 'Analytics metrics list', multiline: true },
+      { id: 'ctaHeading', label: 'CTA heading' },
+      { id: 'ctaText', label: 'CTA text', multiline: true },
+      { id: 'ctaPrimary', label: 'CTA primary label' },
+      { id: 'ctaSecondary', label: 'CTA secondary label' },
+      { id: 'ctaTertiary', label: 'CTA tertiary label' },
+    ],
+  },
+  {
+    key: 'agile-press-group.page',
+    title: 'Agile Press Group Page',
+    description: 'Edit hero, section content, lists, and final CTA labels.',
+    fields: [
+      { id: 'heroLabel', label: 'Hero label' },
+      { id: 'heroTitle', label: 'Hero title', multiline: true },
+      { id: 'heroIntro', label: 'Hero intro', multiline: true },
+      { id: 'heroSubIntro', label: 'Hero sub-intro', multiline: true },
+      { id: 'sectionLabel', label: 'Section label' },
+      { id: 'sectionTitle', label: 'Section title' },
+      { id: 'sectionLinkLabel', label: 'Section link label' },
+      { id: 'visionHeading', label: 'Editorial vision heading' },
+      { id: 'visionList', label: 'Editorial vision list', multiline: true },
+      { id: 'flagshipHeading', label: 'Flagship publications heading' },
+      { id: 'flagshipList', label: 'Flagship publications list', multiline: true },
+      { id: 'publishingServicesHeading', label: 'Publishing services heading' },
+      { id: 'publishingServicesIntro', label: 'Publishing services intro', multiline: true },
+      { id: 'publishingServicesIncludesLabel', label: 'Publishing includes label' },
+      { id: 'publishingServicesIncludesList', label: 'Publishing includes list', multiline: true },
+      { id: 'customPublishingHeading', label: 'Custom publishing heading' },
+      { id: 'customPublishingIntro', label: 'Custom publishing intro', multiline: true },
+      { id: 'customPublishingExamplesLabel', label: 'Custom publishing examples label' },
+      { id: 'customPublishingExamplesList', label: 'Custom publishing examples list', multiline: true },
+      { id: 'syndicationHeading', label: 'Syndication heading' },
+      { id: 'syndicationIntro', label: 'Syndication intro', multiline: true },
+      { id: 'syndicationCountries', label: 'Syndication countries line', multiline: true },
+      { id: 'signatureProductsHeading', label: 'Signature products heading' },
+      { id: 'signatureProductsList', label: 'Signature products list', multiline: true },
+      { id: 'signatureProductsOutro', label: 'Signature products outro', multiline: true },
+      { id: 'contributorHeading', label: 'Contributor heading' },
+      { id: 'contributorIntro', label: 'Contributor intro', multiline: true },
+      { id: 'contributorCtaPrimary', label: 'Contributor CTA primary label' },
+      { id: 'contributorCtaSecondary', label: 'Contributor CTA secondary label' },
+      { id: 'exchangeHeading', label: 'Content exchange heading' },
+      { id: 'exchangeIntro', label: 'Content exchange intro', multiline: true },
+      { id: 'exchangeCta', label: 'Content exchange CTA label' },
+      { id: 'trainingHeading', label: 'Training heading' },
+      { id: 'trainingIntro', label: 'Training intro', multiline: true },
+      { id: 'trainingOfferingsLabel', label: 'Training offerings label' },
+      { id: 'trainingOfferingsList', label: 'Training offerings list', multiline: true },
+      { id: 'finalHeading', label: 'Final heading' },
+      { id: 'finalText', label: 'Final text', multiline: true },
+      { id: 'ctaPrimary', label: 'CTA primary label' },
+      { id: 'ctaSecondary', label: 'CTA secondary label' },
+      { id: 'ctaTertiary', label: 'CTA tertiary label' },
+      { id: 'ctaQuaternary', label: 'CTA quaternary label' },
+    ],
+  },
+  {
+    key: 'sectors.page',
+    title: 'Sectors Page',
+    description: 'Edit hero, section intro, and CTA copy on the Sectors page.',
+    fields: [
+      { id: 'heroLabel', label: 'Hero label' },
+      { id: 'heroTitle', label: 'Hero title', multiline: true },
+      { id: 'heroTagline', label: 'Hero tagline', multiline: true },
+      { id: 'sectionLabel', label: 'Section label' },
+      { id: 'sectionTitle', label: 'Section title' },
+      { id: 'sectionLinkLabel', label: 'Section link label' },
+      { id: 'sectionIntro', label: 'Section intro', multiline: true },
+      { id: 'ctaPrimary', label: 'CTA primary label' },
+      { id: 'ctaSecondary', label: 'CTA secondary label' },
+    ],
+  },
+];
+
+type SiteSectionsMap = Record<string, Record<string, string>>;
+
+let publicSiteSectionsCache: SiteSectionsMap | null = null;
+let publicSiteSectionsInflight: Promise<SiteSectionsMap> | null = null;
+
+async function fetchPublicSiteSections(): Promise<SiteSectionsMap> {
+  if (publicSiteSectionsCache) return publicSiteSectionsCache;
+  if (publicSiteSectionsInflight) return publicSiteSectionsInflight;
+  publicSiteSectionsInflight = fetch('/api/public/site-sections')
+    .then((res) => (res.ok ? res.json() : {}))
+    .then((data) => {
+      const value = data && typeof data === 'object' ? (data as SiteSectionsMap) : {};
+      publicSiteSectionsCache = value;
+      return value;
+    })
+    .catch(() => ({} as SiteSectionsMap))
+    .finally(() => {
+      publicSiteSectionsInflight = null;
+    });
+  return publicSiteSectionsInflight;
+}
+
+export function useSiteSectionContent<T extends Record<string, string>>(
+  sectionKey: string,
+  defaults: T
+): T {
+  const [overrides, setOverrides] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    let mounted = true;
+    fetchPublicSiteSections().then((all) => {
+      if (!mounted) return;
+      const value = all?.[sectionKey];
+      setOverrides(value && typeof value === 'object' ? value : {});
+    });
+    return () => {
+      mounted = false;
+    };
+  }, [sectionKey]);
+
+  return useMemo(() => {
+    const next: Record<string, string> = { ...defaults };
+    Object.keys(defaults).forEach((k) => {
+      const v = overrides[k];
+      if (typeof v === 'string' && v.trim()) next[k] = v;
+    });
+    return next as T;
+  }, [defaults, overrides]);
+}

@@ -1,16 +1,64 @@
 import React from 'react';
 import Link from 'next/link';
 import SectionHeader from '../../components/SectionHeader';
+import { getSiteSectionContent } from '@/lib/siteSectionCmsServer';
 
-export default function Page() {
+export const metadata = {
+  title: 'Insights & Press Room',
+  description: 'Read insights, press updates, and media resources from Agile Media Solutions and the Agile Press Group.',
+};
+
+function parseLineList(value: string): string[] {
+  return value
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
+export default async function Page() {
+  const copy = await getSiteSectionContent('insights.page', {
+    heroLabel: 'Insights & press room',
+    heroTitle: 'Where Strategy Meets Story. And Headlines Meet Meaning.',
+    heroTagline:
+      'This is where Agile Media Solutions shares bold ideas, sector intelligence, creative insights, and media highlights. From original commentary to campaign coverage, this section brings together our perspective and presence in the media landscape.',
+    sectionLabel: 'Editorial Desk',
+    sectionTitle: 'Insights & Press Room',
+    sectionLinkLabel: 'Visit press group',
+    insightsHeading: 'Insights',
+    insightsLead: 'Our voice. Our vision.',
+    insightsBody:
+      'We believe communication is a tool for shaping society-not just sharing news. Through essays, articles, and guest features, we share insights on:',
+    insightsBullets:
+      'Strategic communications trends across Africa and globally\nNarrative power in trade, policy, and governance\nBrand storytelling in complex or high-trust sectors\nCampaign design, media innovation, and impact communications\nLeadership messaging and institutional credibility',
+    insightsCtaPrimary: 'Read Our Latest Insights',
+    insightsCtaSecondary: 'Submit a Guest Article',
+    pressHeading: 'Press Room',
+    pressLead: 'News, launches, and media coverage.',
+    pressBody: 'Stay up to date with Agile Media Solutions in the news and on the record.',
+    pressBullets:
+      'Announcements and client wins\nEvent media kits and summit briefings\nPress releases and thought leader mentions\nExecutive op-eds and campaign launches\nAwards, partnerships, and public recognitions',
+    pressCtaPrimary: 'Browse Press Releases',
+    pressCtaSecondary: 'Access Media Kits',
+    pressCtaTertiary: 'Download Executive Photos and Bios',
+    supportHeading: 'Media Circulation Support',
+    supportBody:
+      'Agile Media Solutions also facilitates press release writing, distribution, and media engagement on behalf of select clients through our Corporate Communications & Circulation Service.',
+    supportCtaPrimary: 'Learn More About Media Support',
+    supportCtaSecondary: 'Request Distribution Assistance',
+    finalSubtitle: 'Want to be the first to receive our insights?',
+    finalCta: 'Subscribe to the Agile Brief',
+  });
+  const insightsBullets = parseLineList(copy.insightsBullets);
+  const pressBullets = parseLineList(copy.pressBullets);
+
   return (
     <main className="services-page-main creative-public-page">
       <div className="page-hero">
         <div className="page-hero-inner">
-          <span className="page-hero-label">Insights &amp; press room</span>
-          <h1 className="page-hero-title">Where Strategy Meets Story. And Headlines Meet Meaning.</h1>
+          <span className="page-hero-label">{copy.heroLabel}</span>
+          <h1 className="page-hero-title">{copy.heroTitle}</h1>
           <p className="page-hero-tagline">
-            This is where Agile Media Solutions shares bold ideas, sector intelligence, creative insights, and media highlights. From original commentary to campaign coverage, this section brings together our perspective and presence in the media landscape.
+            {copy.heroTagline}
           </p>
         </div>
       </div>
@@ -18,80 +66,76 @@ export default function Page() {
         <div className="section-inner animate-on-scroll">
           <SectionHeader
             variant="inner"
-            label="Editorial Desk"
-            title={<>Insights &amp; Press Room</>}
+            label={copy.sectionLabel}
+            title={<>{copy.sectionTitle}</>}
             linkHref="/agile-press-group"
-            linkLabel="Visit press group"
+            linkLabel={copy.sectionLinkLabel}
           />
           <div className="insights-grid">
             <article className="insight-card animate-on-scroll">
-              <h3>Insights</h3>
+              <h3>{copy.insightsHeading}</h3>
               <p>
-                <strong>Our voice. Our vision.</strong>
+                <strong>{copy.insightsLead}</strong>
               </p>
-              <p>We believe communication is a tool for shaping society—not just sharing news. Through essays, articles, and guest features, we share insights on:</p>
+              <p>{copy.insightsBody}</p>
               <ul style={{ margin: '0.5rem 0 1rem', paddingLeft: '1.25rem' }}>
-                <li style={{ marginBottom: '0.35rem' }}>Strategic communications trends across Africa and globally</li>
-                <li style={{ marginBottom: '0.35rem' }}>Narrative power in trade, policy, and governance</li>
-                <li style={{ marginBottom: '0.35rem' }}>Brand storytelling in complex or high-trust sectors</li>
-                <li style={{ marginBottom: '0.35rem' }}>Campaign design, media innovation, and impact communications</li>
-                <li style={{ marginBottom: '0.35rem' }}>Leadership messaging and institutional credibility</li>
+                {insightsBullets.map((item) => (
+                  <li key={item} style={{ marginBottom: '0.35rem' }}>{item}</li>
+                ))}
               </ul>
               <div className="section-cta-center" style={{ flexWrap: 'wrap', justifyContent: 'flex-start' }}>
                 <Link href="/contact#contact" className="btn btn-outline">
-                  Read Our Latest Insights
+                  {copy.insightsCtaPrimary}
                 </Link>
                 <Link href="/contact#contact" className="btn btn-outline">
-                  Submit a Guest Article
+                  {copy.insightsCtaSecondary}
                 </Link>
               </div>
             </article>
             <article className="insight-card animate-on-scroll">
-              <h3>Press Room</h3>
+              <h3>{copy.pressHeading}</h3>
               <p>
-                <strong>News, launches, and media coverage.</strong>
+                <strong>{copy.pressLead}</strong>
               </p>
-              <p>Stay up to date with Agile Media Solutions in the news and on the record.</p>
+              <p>{copy.pressBody}</p>
               <ul style={{ margin: '0.5rem 0 1rem', paddingLeft: '1.25rem' }}>
-                <li style={{ marginBottom: '0.35rem' }}>Announcements and client wins</li>
-                <li style={{ marginBottom: '0.35rem' }}>Event media kits and summit briefings</li>
-                <li style={{ marginBottom: '0.35rem' }}>Press releases and thought leader mentions</li>
-                <li style={{ marginBottom: '0.35rem' }}>Executive op-eds and campaign launches</li>
-                <li style={{ marginBottom: '0.35rem' }}>Awards, partnerships, and public recognitions</li>
+                {pressBullets.map((item) => (
+                  <li key={item} style={{ marginBottom: '0.35rem' }}>{item}</li>
+                ))}
               </ul>
               <div className="section-cta-center" style={{ flexWrap: 'wrap', justifyContent: 'flex-start' }}>
                 <Link href="/contact#contact" className="btn btn-outline">
-                  Browse Press Releases
+                  {copy.pressCtaPrimary}
                 </Link>
                 <Link href="/contact#contact" className="btn btn-outline">
-                  Access Media Kits
+                  {copy.pressCtaSecondary}
                 </Link>
                 <Link href="/contact#contact" className="btn btn-outline">
-                  Download Executive Photos and Bios
+                  {copy.pressCtaTertiary}
                 </Link>
               </div>
             </article>
             <article className="insight-card animate-on-scroll">
-              <h3>Media Circulation Support</h3>
+              <h3>{copy.supportHeading}</h3>
               <p>
-                Agile Media Solutions also facilitates press release writing, distribution, and media engagement on behalf of select clients through our Corporate Communications &amp; Circulation Service.
+                {copy.supportBody}
               </p>
               <div className="section-cta-center" style={{ flexWrap: 'wrap', justifyContent: 'flex-start' }}>
                 <Link href="/services" className="btn btn-outline">
-                  Learn More About Media Support
+                  {copy.supportCtaPrimary}
                 </Link>
                 <Link href="/contact#contact" className="btn btn-outline">
-                  Request Distribution Assistance
+                  {copy.supportCtaSecondary}
                 </Link>
               </div>
             </article>
           </div>
           <p className="section-subtitle centered" style={{ marginTop: 'var(--space-xl)' }}>
-            Want to be the first to receive our insights?
+            {copy.finalSubtitle}
           </p>
           <div className="section-cta-center">
             <Link href="/#newsletter" className="btn btn-primary">
-              Subscribe to the Agile Brief
+              {copy.finalCta}
             </Link>
           </div>
         </div>

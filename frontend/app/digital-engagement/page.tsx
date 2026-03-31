@@ -1,19 +1,84 @@
 import React from 'react';
 import Link from 'next/link';
 import SectionHeader from '../../components/SectionHeader';
+import { getSiteSectionContent } from '@/lib/siteSectionCmsServer';
 
-export default function Page() {
+export const metadata = {
+  title: 'Digital Engagement & Social Media',
+  description: 'Activate digital audiences with Agile Media Solutions social media strategy, audience intelligence, crisis support, and analytics.',
+};
+
+function parseLineList(value: string): string[] {
+  return value
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
+function parseTitledCards(value: string): Array<{ title: string; desc: string }> {
+  return value
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const [title, ...rest] = line.split('::');
+      return { title: (title || '').trim(), desc: rest.join('::').trim() };
+    })
+    .filter((x) => x.title && x.desc);
+}
+
+export default async function Page() {
+  const copy = await getSiteSectionContent('digital-engagement.page', {
+    heroLabel: 'Digital engagement',
+    heroTitle: 'Where Audiences Are Built, Messages Amplified, and Influence Engineered',
+    heroIntro:
+      'At Agile Media Solutions, social media is not just a platform-it is a political tool, a public square, a brand amplifier, and an intelligence system. We help institutions, leaders, movements, and brands activate digital audiences with precision, creativity, and credibility.',
+    heroSubIntro:
+      "Whether you're launching a campaign, shaping perception, engaging a community, or managing risk-we turn your objectives into algorithm-friendly, influence-driven digital executions.",
+    sectionLabel: 'Digital',
+    sectionTitle: 'Our Digital Strategy Offerings',
+    sectionLinkLabel: 'Request a session',
+    sectionIntro:
+      'From platform strategy and creative production to analytics and verification-we design digital infrastructure that matches your mandate and your audiences.',
+    offeringsHeading: 'How we can help',
+    offeringCards:
+      "Platform Strategy & Management :: We build and manage institutional and executive presence across Twitter/X, Instagram, Facebook, LinkedIn, TikTok, YouTube, and emerging platforms. From posting plans to tone-of-voice development, we ensure your digital identity is compelling, credible, and consistent.\nDigital Influence Mapping & Audience Intelligence :: We map digital ecosystems-identifying who's leading conversations, where your audiences are clustered, and what topics drive traction. Our analysis covers influencers, competitors, hashtags, and stakeholder sentiment in real time.\nExecutive & Institutional Social Branding :: We help CEOs, ministers, and public institutions craft social profiles that build trust and visibility. This includes platform setup, strategic content calendars, verified identity support, and ghostwriting where required.\nAgile Social Studio & Visual Lab :: Our creative studio produces short-form, high-engagement content for digital platforms.\nPaid Media & Performance Boosting :: We design and execute targeted social media advertising campaigns across platforms-focused on follower growth, click-throughs, signups, or public sentiment.\nCrisis & Reputation Management :: We provide institutional support during digital crises, media attacks, or misinformation events.\nCommunity & Grassroots Mobilization :: We use platforms like WhatsApp Broadcast, Telegram Channels, and Facebook Groups to reach diaspora audiences, youth voters, creative communities, and hard-to-reach publics-especially during political, civic, or cultural mobilizations.\nSocial Media Training & Digital Capacity Building :: Through masterclasses, playbooks, and hands-on labs, we empower teams with practical social capability.\nAnalytics & Data-Driven Reporting :: Our monthly performance dashboards cover growth, engagement, reach, and strategic recommendations.\nPlatform Verification & Compliance :: We help institutions and leaders secure verified accounts, meet community standards, and build secure, compliant platform identities-across global and African social platforms.",
+    influenceUseCasesLabel: 'Use cases:',
+    influenceUseCasesList:
+      'Policy or electoral campaigns\nTrade diplomacy or investment outreach\nInstitutional positioning and reform engagement',
+    socialStudioList:
+      'Social videos, reels, and motion graphics\nInfographics and visual explainers\nCarousel storytelling and quote cards\nLivestream and podcast snippets\nCaptioning, subtitling, and rapid-turn content\nPlatform-specific asset formatting (e.g. LinkedIn vs. TikTok)',
+    crisisList:
+      'Message calibration and control\nReal-time monitoring and sentiment tracking\nInfluencer engagement and media briefings\nPost-crisis cleanup and public confidence rebuilding',
+    trainingList:
+      'Government communications teams\nNGO campaigners\nPolitical campaign operatives\nPublic figures and spokespersons\nPrivate sector PR teams',
+    analyticsList:
+      'Growth trends and engagement breakdown\nBest-performing content\nInfluencer amplification metrics\nGeographic reach and sentiment\nPlatform algorithm insights\nStrategic recommendations',
+    ctaHeading: "Let's Go Digital with Purpose",
+    ctaText:
+      'We treat digital space as infrastructure. Let Agile Media Solutions power your online influence with precision, agility, and clarity.',
+    ctaPrimary: 'Request a Social Media Strategy Session',
+    ctaSecondary: 'View Our Digital Case Studies',
+    ctaTertiary: 'Engage Our Studio',
+  });
+  const offeringCards = parseTitledCards(copy.offeringCards);
+  const influenceUseCases = parseLineList(copy.influenceUseCasesList);
+  const socialStudioList = parseLineList(copy.socialStudioList);
+  const crisisList = parseLineList(copy.crisisList);
+  const trainingList = parseLineList(copy.trainingList);
+  const analyticsList = parseLineList(copy.analyticsList);
+
   return (
     <main className="services-page-main creative-public-page">
       <div className="page-hero">
         <div className="page-hero-inner">
-          <span className="page-hero-label">Digital engagement</span>
-          <h1 className="page-hero-title">Where Audiences Are Built, Messages Amplified, and Influence Engineered</h1>
+          <span className="page-hero-label">{copy.heroLabel}</span>
+          <h1 className="page-hero-title">{copy.heroTitle}</h1>
           <p className="page-hero-tagline">
-            At Agile Media Solutions, social media is not just a platform—it is a political tool, a public square, a brand amplifier, and an intelligence system. We help institutions, leaders, movements, and brands activate digital audiences with precision, creativity, and credibility.
+            {copy.heroIntro}
           </p>
           <p className="page-hero-tagline" style={{ marginTop: 'var(--space-md)' }}>
-            Whether you&apos;re launching a campaign, shaping perception, engaging a community, or managing risk—we turn your objectives into algorithm-friendly, influence-driven digital executions.
+            {copy.heroSubIntro}
           </p>
         </div>
       </div>
@@ -21,107 +86,66 @@ export default function Page() {
         <div className="section-inner animate-on-scroll">
           <SectionHeader
             variant="inner"
-            label="Digital"
-            title="Our Digital Strategy Offerings"
+            label={copy.sectionLabel}
+            title={copy.sectionTitle}
             linkHref="/contact#contact"
-            linkLabel="Request a session"
+            linkLabel={copy.sectionLinkLabel}
             titleClassName="digital-title"
           />
         <p className="digital-intro">
-          From platform strategy and creative production to analytics and verification—we design digital infrastructure that matches your mandate and your audiences.
+          {copy.sectionIntro}
         </p>
-        <h3 className="digital-offerings-heading">How we can help</h3>
+        <h3 className="digital-offerings-heading">{copy.offeringsHeading}</h3>
         <div className="digital-offerings">
-          <div className="digital-offering">
-            <h4 className="digital-offering-title">Platform Strategy & Management</h4>
-            <p className="digital-offering-desc">We build and manage institutional and executive presence across Twitter/X, Instagram, Facebook, LinkedIn, TikTok, YouTube, and emerging platforms. From posting plans to tone-of-voice development, we ensure your digital identity is compelling, credible, and consistent.</p>
-          </div>
-          <div className="digital-offering">
-            <h4 className="digital-offering-title">Digital Influence Mapping & Audience Intelligence</h4>
-            <p className="digital-offering-desc">We map digital ecosystems—identifying who's leading conversations, where your audiences are clustered, and what topics drive traction. Our analysis covers influencers, competitors, hashtags, and stakeholder sentiment in real time.</p>
-            <p className="digital-list-label">Use cases:</p>
-            <ul className="digital-list">
-              <li>Policy or electoral campaigns</li>
-              <li>Trade diplomacy or investment outreach</li>
-              <li>Institutional positioning and reform engagement</li>
-            </ul>
-          </div>
-          <div className="digital-offering">
-            <h4 className="digital-offering-title">Executive & Institutional Social Branding</h4>
-            <p className="digital-offering-desc">We help CEOs, ministers, and public institutions craft social profiles that build trust and visibility. This includes platform setup, strategic content calendars, verified identity support, and ghostwriting where required.</p>
-          </div>
-          <div className="digital-offering">
-            <h4 className="digital-offering-title">Agile Social Studio & Visual Lab</h4>
-            <p className="digital-offering-desc">Our creative studio produces short-form, high-engagement content for digital platforms, including:</p>
-            <ul className="digital-list">
-              <li>Social videos, reels, and motion graphics</li>
-              <li>Infographics and visual explainers</li>
-              <li>Carousel storytelling and quote cards</li>
-              <li>Livestream and podcast snippets</li>
-              <li>Captioning, subtitling, and rapid-turn content</li>
-              <li>Platform-specific asset formatting (e.g. LinkedIn vs. TikTok)</li>
-            </ul>
-          </div>
-          <div className="digital-offering">
-            <h4 className="digital-offering-title">Paid Media & Performance Boosting</h4>
-            <p className="digital-offering-desc">We design and execute targeted social media advertising campaigns across platforms—focused on follower growth, click-throughs, signups, or public sentiment.</p>
-          </div>
-          <div className="digital-offering">
-            <h4 className="digital-offering-title">Crisis & Reputation Management</h4>
-            <p className="digital-offering-desc">We provide institutional support during digital crises, media attacks, or misinformation events. Our response includes:</p>
-            <ul className="digital-list">
-              <li>Message calibration and control</li>
-              <li>Real-time monitoring and sentiment tracking</li>
-              <li>Influencer engagement and media briefings</li>
-              <li>Post-crisis cleanup and public confidence rebuilding</li>
-            </ul>
-          </div>
-          <div className="digital-offering">
-            <h4 className="digital-offering-title">Community & Grassroots Mobilization</h4>
-            <p className="digital-offering-desc">We use platforms like WhatsApp Broadcast, Telegram Channels, and Facebook Groups to reach diaspora audiences, youth voters, creative communities, and hard-to-reach publics—especially during political, civic, or cultural mobilizations.</p>
-          </div>
-          <div className="digital-offering">
-            <h4 className="digital-offering-title">Social Media Training & Digital Capacity Building</h4>
-            <p className="digital-offering-desc">Through masterclasses, playbooks, and hands-on labs, we empower:</p>
-            <ul className="digital-list">
-              <li>Government communications teams</li>
-              <li>NGO campaigners</li>
-              <li>Political campaign operatives</li>
-              <li>Public figures and spokespersons</li>
-              <li>Private sector PR teams</li>
-            </ul>
-          </div>
-          <div className="digital-offering">
-            <h4 className="digital-offering-title">Analytics & Data-Driven Reporting</h4>
-            <p className="digital-offering-desc">Our monthly performance dashboards cover:</p>
-            <ul className="digital-list">
-              <li>Growth trends and engagement breakdown</li>
-              <li>Best-performing content</li>
-              <li>Influencer amplification metrics</li>
-              <li>Geographic reach and sentiment</li>
-              <li>Platform algorithm insights</li>
-              <li>Strategic recommendations</li>
-            </ul>
-          </div>
-          <div className="digital-offering">
-            <h4 className="digital-offering-title">Platform Verification & Compliance</h4>
-            <p className="digital-offering-desc">We help institutions and leaders secure verified accounts, meet community standards, and build secure, compliant platform identities—across global and African social platforms.</p>
-          </div>
+          {offeringCards.map((card, idx) => (
+            <div key={card.title} className="digital-offering">
+              <h4 className="digital-offering-title">{card.title}</h4>
+              <p className="digital-offering-desc">{card.desc}</p>
+              {idx === 1 && influenceUseCases.length > 0 ? (
+                <>
+                  <p className="digital-list-label">{copy.influenceUseCasesLabel}</p>
+                  <ul className="digital-list">
+                    {influenceUseCases.map((item) => <li key={item}>{item}</li>)}
+                  </ul>
+                </>
+              ) : null}
+              {idx === 3 && socialStudioList.length > 0 ? (
+                <ul className="digital-list">
+                  {socialStudioList.map((item) => <li key={item}>{item}</li>)}
+                </ul>
+              ) : null}
+              {idx === 5 && crisisList.length > 0 ? (
+                <ul className="digital-list">
+                  {crisisList.map((item) => <li key={item}>{item}</li>)}
+                </ul>
+              ) : null}
+              {idx === 7 && trainingList.length > 0 ? (
+                <ul className="digital-list">
+                  {trainingList.map((item) => <li key={item}>{item}</li>)}
+                </ul>
+              ) : null}
+              {idx === 8 && analyticsList.length > 0 ? (
+                <ul className="digital-list">
+                  {analyticsList.map((item) => <li key={item}>{item}</li>)}
+                </ul>
+              ) : null}
+            </div>
+          ))}
         </div>
         <div className="digital-cta-block">
-          <h3 className="digital-cta-heading">Let&apos;s Go Digital with Purpose</h3>
+          <h3 className="digital-cta-heading">{copy.ctaHeading}</h3>
           <p className="digital-cta-text">
-            We treat digital space as infrastructure. Let Agile Media Solutions power your online influence with precision, agility, and clarity.
+            {copy.ctaText}
           </p>
           <div className="section-cta-center digital-cta-buttons">
             <Link href="/contact#contact" className="btn btn-primary">
-              Request a Social Media Strategy Session
+              {copy.ctaPrimary}
             </Link>
             <Link href="/case-studies" className="btn btn-outline">
-              View Our Digital Case Studies
+              {copy.ctaSecondary}
             </Link>
             <Link href="/studio" className="btn btn-outline">
-              Engage Our Studio
+              {copy.ctaTertiary}
             </Link>
           </div>
         </div>

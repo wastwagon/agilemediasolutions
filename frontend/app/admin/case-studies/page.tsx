@@ -18,7 +18,9 @@ export default function AdminCaseStudies() {
   const [imageUrl, setImageUrl] = useState('');
   const [orderIndex, setOrderIndex] = useState('');
   const thStyle: React.CSSProperties = { position: 'sticky', top: 0, zIndex: 1, padding: '1.2rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', background: 'var(--color-bg-alt)' };
-  const actionBtnStyle: React.CSSProperties = { background: 'var(--color-bg-alt)', border: '1px solid var(--color-border)', borderRadius: 8, cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700, padding: '0.4rem 0.62rem', marginLeft: '0.55rem' };
+  const actionBtnStyle: React.CSSProperties = { background: 'var(--color-bg-alt)', border: '1px solid var(--color-border)', borderRadius: 7, cursor: 'pointer', fontSize: '0.76rem', fontWeight: 700, lineHeight: 1.2, padding: '0.3rem 0.5rem', marginLeft: '0.45rem' };
+  const compactOutlineBtnStyle: React.CSSProperties = { border: 'none', fontSize: '0.74rem', padding: '0.3rem 0.48rem', borderRadius: 8, lineHeight: 1.2 };
+  const compactPrimaryBtnStyle: React.CSSProperties = { fontSize: '0.78rem', padding: '0.36rem 0.62rem', borderRadius: 9, lineHeight: 1.2 };
 
   const fetchData = async () => {
     setLoading(true);
@@ -127,7 +129,7 @@ export default function AdminCaseStudies() {
           <p style={{ color: 'var(--color-text-muted)', fontSize: '1.1rem' }}>Edit case studies shown on your site.</p>
         </div>
         {!isAdding && (
-          <button onClick={handleCreateClick} className="btn btn-primary">
+          <button onClick={handleCreateClick} className="btn btn-primary" style={compactPrimaryBtnStyle}>
             Add case study
           </button>
         )}
@@ -178,8 +180,8 @@ export default function AdminCaseStudies() {
             </div>
 
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-              <button type="button" onClick={handleCancel} className="btn btn-outline" style={{ border: 'none' }}>Cancel</button>
-              <button type="submit" className="btn btn-primary">{editingCase ? 'Save changes' : 'Add case study'}</button>
+              <button type="button" onClick={handleCancel} className="btn btn-outline" style={compactOutlineBtnStyle}>Cancel</button>
+              <button type="submit" className="btn btn-primary" style={compactPrimaryBtnStyle}>{editingCase ? 'Save changes' : 'Add case study'}</button>
             </div>
           </form>
         </div>

@@ -1,8 +1,19 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import SectionHeader from '../../components/SectionHeader';
+import { useSiteSectionContent } from '@/lib/siteSectionCms';
+
+type BrandItem = {
+  id: number;
+  name: string;
+  description?: string | null;
+  audience?: string | null;
+  format?: string | null;
+  image_url?: string | null;
+  website_url?: string | null;
+};
 
 const DOCUMENT_BRANDS: { imgClass: string; title: string; body: string; audience?: string; format?: string }[] = [
   {
@@ -55,17 +66,79 @@ const DOCUMENT_BRANDS: { imgClass: string; title: string; body: string; audience
 ];
 
 export default function Page() {
+  const [brands, setBrands] = useState<BrandItem[]>([]);
+  const brandsCopy = useSiteSectionContent('brands.page', {
+    heroLabel: 'Our brands',
+    heroTitle: 'Media Properties That Inform, Inspire, and Influence',
+    heroIntro:
+      'Agile Media Solutions owns and operates a growing portfolio of high-impact media platforms that shape public discourse, elevate African voices, and spotlight key sectors across the continent. Each brand is purpose-built to serve a distinct audience-from policymakers and business leaders to creatives, investors, athletes, and travelers.',
+    heroSubIntro:
+      'Our media properties are not only content platforms-they are strategic instruments for visibility, engagement, and storytelling.',
+    sectionLabel: 'Portfolio',
+    sectionTitle: 'Our Publishing and Media Platforms',
+    sectionLinkLabel: 'Media partnerships',
+    outro:
+      "Together, these brands extend Agile Media Solutions' mission to power narratives, elevate stories, and create platforms that inform, connect, and lead.",
+    ctaPrimary: 'Advertise With Us',
+    ctaSecondary: 'Syndicate Our Content',
+    ctaTertiary: 'Become a Contributor',
+  });
+
+  useEffect(() => {
+    const loadBrands = async () => {
+      try {
+        const res = await fetch('/api/brands');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!Array.isArray(data)) return;
+        setBrands(data as BrandItem[]);
+      } catch {
+        // Keep static fallback copy when API is unavailable.
+      }
+    };
+    loadBrands();
+  }, []);
+
+  const renderedBrands =
+    brands.length > 0
+      ? brands
+      : DOCUMENT_BRANDS.map((b, idx) => ({
+          id: -(idx + 1),
+          name: b.title,
+          description: b.body,
+          audience: b.audience || null,
+          format: b.format || null,
+          image_url: null,
+          website_url: null,
+        }));
+
+  const fallbackImageClass = (name: string, idx: number) => {
+    const key = name.toLowerCase();
+    if (key.includes('sports') || key.includes('sportz')) return 'brand-img-sports';
+    if (key.includes('news') || key.includes('bulletin') || key.includes('hospitality')) return 'brand-img-news';
+    if (idx % 3 === 1) return 'brand-img-sports';
+    if (idx % 3 === 2) return 'brand-img-news';
+    return 'brand-img-leaders';
+  };
+
+  const normalizeWebsiteHref = (url?: string | null) => {
+    if (!url) return '';
+    const value = url.trim();
+    if (!value) return '';
+    return /^https?:\/\//i.test(value) ? value : `https://${value}`;
+  };
+
   return (
     <main className="services-page-main creative-public-page">
       <div className="page-hero">
         <div className="page-hero-inner">
-          <span className="page-hero-label">Our brands</span>
-          <h1 className="page-hero-title">Media Properties That Inform, Inspire, and Influence</h1>
+          <span className="page-hero-label">{brandsCopy.heroLabel}</span>
+          <h1 className="page-hero-title">{brandsCopy.heroTitle}</h1>
           <p className="page-hero-tagline">
-            Agile Media Solutions owns and operates a growing portfolio of high-impact media platforms that shape public discourse, elevate African voices, and spotlight key sectors across the continent. Each brand is purpose-built to serve a distinct audience—from policymakers and business leaders to creatives, investors, athletes, and travelers.
+            {brandsCopy.heroIntro}
           </p>
           <p className="page-hero-tagline" style={{ marginTop: 'var(--space-md)' }}>
-            Our media properties are not only content platforms—they are strategic instruments for visibility, engagement, and storytelling.
+            {brandsCopy.heroSubIntro}
           </p>
         </div>
       </div>
@@ -73,18 +146,32 @@ export default function Page() {
         <div className="section-inner">
           <SectionHeader
             variant="inner"
-            label="Portfolio"
-            title="Our Publishing and Media Platforms"
+            label={brandsCopy.sectionLabel}
+            title={brandsCopy.sectionTitle}
             linkHref="/contact#contact"
-            linkLabel="Media partnerships"
+            linkLabel={brandsCopy.sectionLinkLabel}
           />
           <div className="services-grid">
-            {DOCUMENT_BRANDS.map((b) => (
-              <article key={b.title} className="service-card">
-                <div className={`service-card-image ${b.imgClass}`}></div>
+            {renderedBrands.map((b, idx) => (
+              <article key={`brand-${b.id}-${b.name}`} className="service-card">
+                <div
+                  className={`service-card-image ${b.image_url ? 'has-image' : fallbackImageClass(b.name, idx)}`}
+                  style={
+                    b.image_url
+                      ? {
+                          backgroundImage: `url(${b.image_url})`,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center',
+                          backgroundRepeat: 'no-repeat',
+                        }
+                      : undefined
+                  }
+                ></div>
                 <div className="service-card-body">
-                  <h3 className="service-card-title">{b.title}</h3>
-                  <p className="service-card-desc">{b.body}</p>
+                  <h3 className="service-card-title">{b.name}</h3>
+                  <p className="service-card-desc">
+                    {b.description || 'A strategic media platform built to inform and influence key audiences.'}
+                  </p>
                   {b.audience && (
                     <p className="service-card-desc">
                       <strong>Audience:</strong> {b.audience}
@@ -95,22 +182,29 @@ export default function Page() {
                       <strong>Format:</strong> {b.format}
                     </p>
                   )}
+                  {normalizeWebsiteHref(b.website_url) && (
+                    <p className="service-card-desc">
+                      <Link href={normalizeWebsiteHref(b.website_url)} target="_blank" rel="noopener noreferrer" className="link-arrow-text">
+                        Visit brand →
+                      </Link>
+                    </p>
+                  )}
                 </div>
               </article>
             ))}
           </div>
           <p className="section-subtitle centered" style={{ marginTop: 'var(--space-xl)' }}>
-            Together, these brands extend Agile Media Solutions&apos; mission to power narratives, elevate stories, and create platforms that inform, connect, and lead.
+            {brandsCopy.outro}
           </p>
           <div className="section-cta-center services-page-cta">
             <Link href="/contact#contact" className="btn btn-primary">
-              Advertise With Us
+              {brandsCopy.ctaPrimary}
             </Link>
             <Link href="/contact#contact" className="btn btn-outline">
-              Syndicate Our Content
+              {brandsCopy.ctaSecondary}
             </Link>
             <Link href="/contact#contact" className="btn btn-outline">
-              Become a Contributor
+              {brandsCopy.ctaTertiary}
             </Link>
           </div>
         </div>
