@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { adminAuthHeaders, adminFetch } from '@/lib/adminApi';
 
 interface ContactMessage {
   id: number;
@@ -20,10 +21,9 @@ export default function AdminContacts() {
   const actionBtnStyle: React.CSSProperties = { background: 'var(--color-bg-alt)', border: '1px solid var(--color-border)', borderRadius: 7, cursor: 'pointer', fontSize: '0.76rem', fontWeight: 700, lineHeight: 1.2, padding: '0.3rem 0.5rem', marginLeft: '0.45rem' };
 
   const fetchContacts = async () => {
-    const token = localStorage.getItem('admin_token');
     try {
-      const res = await fetch('/api/admin/contacts', {
-        headers: { 'Authorization': `Bearer ${token}` }
+      const res = await adminFetch('/api/admin/contacts', {
+        headers: adminAuthHeaders(),
       });
       if (res.ok) {
         const data = await res.json();
@@ -43,13 +43,12 @@ export default function AdminContacts() {
   }, []);
 
   const handleStatusUpdate = async (id: number, currentStatus: string) => {
-    const token = localStorage.getItem('admin_token');
     const newStatus = currentStatus === 'new' ? 'resolved' : 'new';
     try {
-      const res = await fetch(`/api/admin/contacts/${id}/status`, {
+      const res = await adminFetch(`/api/admin/contacts/${id}/status`, {
         method: 'PUT',
         headers: { 
-          'Authorization': `Bearer ${token}`,
+          ...adminAuthHeaders(),
           'Content-Type': 'application/json' 
         },
         body: JSON.stringify({ status: newStatus })
@@ -64,11 +63,10 @@ export default function AdminContacts() {
 
   const handleDelete = async (id: number) => {
     if (!confirm('Are you sure you want to delete this message?')) return;
-    const token = localStorage.getItem('admin_token');
     try {
-      const res = await fetch(`/api/admin/contacts/${id}`, {
+      const res = await adminFetch(`/api/admin/contacts/${id}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: adminAuthHeaders(),
       });
       if (res.ok) {
         fetchContacts();

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { adminAuthHeaders, parseApiError } from '@/lib/adminApi';
+import { adminAuthHeaders, adminFetch, parseApiError } from '@/lib/adminApi';
 import { AdminErrorBanner, AdminLoadingState, AdminPageHeader } from '@/components/admin/AdminPageUi';
 import { AdminEditorCard } from '@/components/admin/AdminFormUi';
 import { SITE_SECTION_DEFINITIONS } from '@/lib/siteSectionCms';
@@ -163,7 +163,7 @@ export default function AdminSiteContentPage() {
       setLoading(true);
       setError('');
       try {
-        const res = await fetch('/api/site-sections', {
+        const res = await adminFetch('/api/site-sections', {
           headers: adminAuthHeaders(),
         });
         if (!res.ok) {
@@ -327,7 +327,7 @@ export default function AdminSiteContentPage() {
     setNotice('');
     try {
       const payload = formByKey[key] || {};
-      const res = await fetch(`/api/site-sections/${encodeURIComponent(key)}`, {
+      const res = await adminFetch(`/api/site-sections/${encodeURIComponent(key)}`, {
         method: 'PUT',
         headers: adminAuthHeaders(true),
         body: JSON.stringify({ content_json: payload }),
@@ -358,7 +358,7 @@ export default function AdminSiteContentPage() {
     for (const key of dirtyKeys) {
       try {
         const payload = formByKey[key] || {};
-        const res = await fetch(`/api/site-sections/${encodeURIComponent(key)}`, {
+        const res = await adminFetch(`/api/site-sections/${encodeURIComponent(key)}`, {
           method: 'PUT',
           headers: adminAuthHeaders(true),
           body: JSON.stringify({ content_json: payload }),

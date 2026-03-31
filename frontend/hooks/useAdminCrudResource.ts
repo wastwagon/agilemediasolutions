@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { adminAuthHeaders, parseApiError } from '@/lib/adminApi';
+import { adminAuthHeaders, adminFetch, parseApiError } from '@/lib/adminApi';
 
 type AdminCrudMessages = {
   loadError: string;
@@ -24,7 +24,7 @@ export function useAdminCrudResource<TItem, TPayload>(
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(resourcePath, {
+      const res = await adminFetch(resourcePath, {
         headers: adminAuthHeaders(),
       });
       if (res.ok) {
@@ -47,7 +47,7 @@ export function useAdminCrudResource<TItem, TPayload>(
   const deleteItem = useCallback(
     async (id: AdminResourceId): Promise<string | null> => {
       try {
-        const res = await fetch(`${resourcePath}/${id}`, {
+        const res = await adminFetch(`${resourcePath}/${id}`, {
           method: 'DELETE',
           headers: adminAuthHeaders(),
         });
@@ -68,7 +68,7 @@ export function useAdminCrudResource<TItem, TPayload>(
       const url = typeof id === 'undefined' ? resourcePath : `${resourcePath}/${id}`;
       const method = typeof id === 'undefined' ? 'POST' : 'PUT';
       try {
-        const res = await fetch(url, {
+        const res = await adminFetch(url, {
           method,
           headers: adminAuthHeaders(true),
           body: JSON.stringify(payload),

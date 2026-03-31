@@ -75,7 +75,7 @@ export default function AdminImageUpload({ currentUrl, onUploadSuccess, label = 
       {success && <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: '#166534' }}>{success}</div>}
       {error && <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: '#DC2626' }}>{error}</div>}
       <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: '#6B7280' }}>
-         Allowed: JPG, PNG, WEBP, GIF, SVG. Max size: {Math.floor(ADMIN_MAX_UPLOAD_BYTES / (1024 * 1024))}MB.
+        Allowed: JPG, PNG, WEBP, GIF. Max size: {Math.floor(ADMIN_MAX_UPLOAD_BYTES / (1024 * 1024))}MB.
       </div>
     </div>
   );

@@ -9,6 +9,7 @@ import {
   isBlockAnchorInputInvalid,
   preparePageBlockAnchorsForSave,
 } from '@/lib/blockSectionAnchor';
+import { adminAuthHeaders, adminFetch } from '@/lib/adminApi';
 
 type PageBlock =
   | { id: string; anchorId?: string; type: 'text'; heading?: string; body?: string }
@@ -55,10 +56,9 @@ export default function AdminPages() {
 
   const fetchData = async () => {
     setLoading(true);
-    const token = localStorage.getItem('admin_token');
     try {
-      const res = await fetch('/api/pages', {
-        headers: { 'Authorization': `Bearer ${token}` }
+      const res = await adminFetch('/api/pages', {
+        headers: adminAuthHeaders(),
       });
       if (res.ok) {
         const data = await res.json();
@@ -79,11 +79,10 @@ export default function AdminPages() {
 
   const handleDelete = async (id: number) => {
     if (!confirm('Are you sure you want to delete this page?')) return;
-    const token = localStorage.getItem('admin_token');
     try {
-      const res = await fetch(`/api/pages/${id}`, {
+      const res = await adminFetch(`/api/pages/${id}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: adminAuthHeaders(),
       });
       if (res.ok) {
         fetchData();
@@ -96,10 +95,9 @@ export default function AdminPages() {
   };
 
   const handleEdit = async (pageSlug: string) => {
-    const token = localStorage.getItem('admin_token');
     try {
-      const res = await fetch(`/api/pages/${pageSlug}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+      const res = await adminFetch(`/api/pages/${pageSlug}`, {
+        headers: adminAuthHeaders(),
       });
       if (res.ok) {
         const data = await res.json();
@@ -188,15 +186,14 @@ export default function AdminPages() {
       }
     };
 
-    const token = localStorage.getItem('admin_token');
     const url = editingPage ? `/api/pages/${editingPage.slug}` : '/api/pages';
     const method = editingPage ? 'PUT' : 'POST';
 
     try {
-      const res = await fetch(url, {
+      const res = await adminFetch(url, {
         method,
         headers: { 
-          'Authorization': `Bearer ${token}`,
+          ...adminAuthHeaders(),
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(data)

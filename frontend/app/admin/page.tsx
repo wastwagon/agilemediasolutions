@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
+import { adminFetch, consumeAdminAuthFlash } from '@/lib/adminApi';
 
 export default function AdminLogin() {
   const [username, setUsername] = useState('');
@@ -25,16 +26,14 @@ export default function AdminLogin() {
     setError('');
 
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await adminFetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
       });
 
       if (res.ok) {
-        const data = await res.json();
-        localStorage.setItem('admin_token', data.token);
-        localStorage.setItem('admin_user', data.username);
+        await res.json();
         setTimeout(() => router.push('/admin/dashboard'), 400);
       } else {
         const data = await res.json();
@@ -46,6 +45,13 @@ export default function AdminLogin() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const flash = consumeAdminAuthFlash();
+    if (flash) {
+      setError(flash);
+    }
+  }, []);
 
   const containerVariants = {
     hidden: { opacity: 0 },

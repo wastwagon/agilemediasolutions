@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { motion, animate } from 'framer-motion';
+import { adminAuthHeaders, adminFetch } from '@/lib/adminApi';
 
 function AnimatedCounter({ from = 0, to }: { from?: number, to: number }) {
   const nodeRef = useRef<HTMLSpanElement>(null);
@@ -30,14 +31,13 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const token = localStorage.getItem('admin_token');
       try {
         const [contactsRes, brandsRes, servicesRes, pagesRes, mediaRes] = await Promise.all([
-          fetch('/api/admin/contacts', { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch('/api/brands'),
-          fetch('/api/services'),
-          fetch('/api/pages', { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch('/api/media', { headers: { 'Authorization': `Bearer ${token}` } }),
+          adminFetch('/api/admin/contacts', { headers: adminAuthHeaders() }),
+          adminFetch('/api/brands'),
+          adminFetch('/api/services'),
+          adminFetch('/api/pages', { headers: adminAuthHeaders() }),
+          adminFetch('/api/media', { headers: adminAuthHeaders() }),
         ]);
         const contacts = contactsRes.ok ? await contactsRes.json() : [];
         const brands = brandsRes.ok ? await brandsRes.json() : [];

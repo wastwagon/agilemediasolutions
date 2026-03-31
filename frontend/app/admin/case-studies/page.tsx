@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import AdminImageUpload from '../../../components/AdminImageUpload';
 import MediaLibraryPicker from '../../../components/MediaLibraryPicker';
+import { adminAuthHeaders, adminFetch } from '@/lib/adminApi';
 
 export default function AdminCaseStudies() {
   const [caseStudies, setCaseStudies] = useState<any[]>([]);
@@ -24,10 +25,9 @@ export default function AdminCaseStudies() {
 
   const fetchData = async () => {
     setLoading(true);
-    const token = localStorage.getItem('admin_token');
     try {
-      const res = await fetch('/api/case-studies', {
-        headers: { 'Authorization': `Bearer ${token}` }
+      const res = await adminFetch('/api/case-studies', {
+        headers: adminAuthHeaders(),
       });
       if (res.ok) {
         const data = await res.json();
@@ -73,11 +73,10 @@ export default function AdminCaseStudies() {
 
   const handleDelete = async (id: number) => {
     if (!confirm('Are you sure you want to delete this case study?')) return;
-    const token = localStorage.getItem('admin_token');
     try {
-      const res = await fetch(`/api/case-studies/${id}`, {
+      const res = await adminFetch(`/api/case-studies/${id}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: adminAuthHeaders(),
       });
       if (res.ok) {
         fetchData();
@@ -95,15 +94,14 @@ export default function AdminCaseStudies() {
       title, client_name: clientName, description, image_url: imageUrl, order_index: parseInt(orderIndex || '0')
     };
 
-    const token = localStorage.getItem('admin_token');
     const url = editingCase ? `/api/case-studies/${editingCase.id}` : '/api/case-studies';
     const method = editingCase ? 'PUT' : 'POST';
 
     try {
-      const res = await fetch(url, {
+      const res = await adminFetch(url, {
         method,
         headers: { 
-          'Authorization': `Bearer ${token}`,
+          ...adminAuthHeaders(),
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(data)

@@ -1,4 +1,4 @@
-import { adminAuthHeaders, handleAdminSessionExpired, parseApiError } from '@/lib/adminApi';
+import { adminAuthHeaders, adminFetch, handleAdminSessionExpired, parseApiError } from '@/lib/adminApi';
 
 export const ADMIN_MAX_UPLOAD_BYTES = 10 * 1024 * 1024; // 10MB
 const ALLOWED_UPLOAD_MIME_TYPES = new Set([
@@ -6,12 +6,11 @@ const ALLOWED_UPLOAD_MIME_TYPES = new Set([
   'image/png',
   'image/webp',
   'image/gif',
-  'image/svg+xml',
 ]);
 
 export function validateAdminImageFile(file: File): string | null {
   if (!ALLOWED_UPLOAD_MIME_TYPES.has(file.type)) {
-    return 'Unsupported file type. Please upload JPG, PNG, WEBP, GIF, or SVG.';
+    return 'Unsupported file type. Please upload JPG, PNG, WEBP, or GIF.';
   }
   if (file.size > ADMIN_MAX_UPLOAD_BYTES) {
     return `File too large. Maximum allowed size is ${Math.floor(ADMIN_MAX_UPLOAD_BYTES / (1024 * 1024))}MB.`;
@@ -26,7 +25,7 @@ export async function uploadAdminImage(file: File): Promise<string> {
   const formData = new FormData();
   formData.append('image', file);
 
-  const res = await fetch('/api/upload', {
+  const res = await adminFetch('/api/upload', {
     method: 'POST',
     headers: adminAuthHeaders(),
     body: formData,

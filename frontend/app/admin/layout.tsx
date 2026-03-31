@@ -4,24 +4,86 @@ import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { adminAuthHeaders, adminFetch, adminLogout, clearAdminAuth } from '@/lib/adminApi';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [authorized, setAuthorized] = useState<boolean | null>(null);
+  const [adminUser, setAdminUser] = useState('');
+  const [sessionNotice, setSessionNotice] = useState('');
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    const token = localStorage.getItem('admin_token');
-    if (!token && pathname !== '/admin') {
-      router.push('/admin');
-    } else {
+    if (pathname === '/admin') {
       setAuthorized(true);
+      return;
     }
+
+    let cancelled = false;
+    const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+    const checkAuth = async () => {
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        try {
+          const res = await adminFetch('/api/auth/me', {
+            headers: adminAuthHeaders(),
+          });
+          if (cancelled) return;
+          if (res.ok) {
+            const data = await res.json();
+            setAdminUser(typeof data.user === 'string' ? data.user : '');
+            setAuthorized(true);
+            setSessionNotice('');
+            return;
+          }
+          if (res.status === 401 || res.status === 403) {
+            setSessionNotice('Session expired. Redirecting to sign in...');
+            break;
+          }
+          if (attempt < 2) {
+            setSessionNotice('Cannot verify session right now. Retrying...');
+            await wait((attempt + 1) * 700);
+            continue;
+          }
+          setSessionNotice('Cannot verify session. Redirecting to sign in...');
+          break;
+        } catch {
+          if (cancelled) return;
+          if (attempt < 2) {
+            setSessionNotice('Cannot verify session right now. Retrying...');
+            await wait((attempt + 1) * 700);
+            continue;
+          }
+          setSessionNotice('Cannot verify session. Redirecting to sign in...');
+          break;
+        }
+      }
+      if (!cancelled) {
+        clearAdminAuth();
+        setAuthorized(false);
+        setTimeout(() => router.push('/admin'), 550);
+      }
+    };
+
+    void checkAuth();
+    return () => {
+      cancelled = true;
+    };
   }, [pathname, router]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('admin_token');
-    localStorage.removeItem('admin_user');
+  useEffect(() => {
+    if (pathname === '/admin') return;
+    const onSessionExpired = () => {
+      setSessionNotice('Session expired. Redirecting to sign in...');
+    };
+    window.addEventListener('admin-session-expired', onSessionExpired);
+    return () => {
+      window.removeEventListener('admin-session-expired', onSessionExpired);
+    };
+  }, [pathname]);
+
+  const handleLogout = async () => {
+    await adminLogout();
+    clearAdminAuth();
     router.push('/admin');
   };
 
@@ -40,6 +102,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: '/admin/events', label: 'Events' },
     { href: '/admin/case-studies', label: 'Case Studies' },
     { href: '/admin/contacts', label: 'Contact form' },
+    { href: '/admin/audit-logs', label: 'Audit Logs' },
     { href: '/admin/site-content', label: 'Site Content' },
     { href: '/admin/settings', label: 'Settings' },
   ];
@@ -97,9 +160,26 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Main Content */}
       <main style={{ flex: 1, overflow: 'auto' }}>
+        {sessionNotice ? (
+          <div
+            role="status"
+            style={{
+              margin: '0.7rem 2rem 0',
+              background: '#FEF3C7',
+              color: '#92400E',
+              border: '1px solid #FCD34D',
+              borderRadius: 12,
+              padding: '0.6rem 0.85rem',
+              fontSize: '0.85rem',
+              fontWeight: 700,
+            }}
+          >
+            {sessionNotice}
+          </div>
+        ) : null}
         <header style={{ height: '68px', background: 'rgba(255,255,255,0.82)', backdropFilter: 'blur(8px)', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.6rem', padding: '0 2rem', position: 'sticky', top: 0, zIndex: 10 }}>
           <span style={{ fontSize: '0.9rem', color: '#4B5563', background: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '999px', padding: '0.42rem 0.8rem' }}>
-            Logged in as <strong style={{ color: '#111827' }}>{typeof window !== 'undefined' ? localStorage.getItem('admin_user') : ''}</strong>
+            Logged in as <strong style={{ color: '#111827' }}>{adminUser}</strong>
           </span>
           <button
             onClick={handleLogout}

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { adminAuthHeaders, adminFetch } from '@/lib/adminApi';
 
 export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
@@ -14,10 +15,10 @@ export default function SettingsPage() {
     setMessage(null);
 
     try {
-      const response = await fetch('/api/admin/run-migrations', {
+      const response = await adminFetch('/api/admin/run-migrations', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+          ...adminAuthHeaders(),
           'Content-Type': 'application/json'
         }
       });

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { adminAuthHeaders, handleAdminSessionExpired, parseApiError } from '@/lib/adminApi';
+import { adminAuthHeaders, adminFetch, handleAdminSessionExpired, parseApiError } from '@/lib/adminApi';
 
 type MediaAsset = {
   id: number;
@@ -28,7 +28,7 @@ export default function MediaLibraryPicker({
     setError('');
     try {
       const qs = q.trim() ? `?q=${encodeURIComponent(q.trim())}` : '';
-      const res = await fetch(`/api/media${qs}`, { headers: adminAuthHeaders() });
+      const res = await adminFetch(`/api/media${qs}`, { headers: adminAuthHeaders() });
       if (!res.ok) {
         throw new Error(await parseApiError(res, 'Could not load media library', { onAuthError: handleAdminSessionExpired }));
       }

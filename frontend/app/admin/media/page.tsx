@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { adminAuthHeaders, handleAdminSessionExpired, parseApiError } from '@/lib/adminApi';
+import { adminAuthHeaders, adminFetch, handleAdminSessionExpired, parseApiError } from '@/lib/adminApi';
 import { ADMIN_MAX_UPLOAD_BYTES, uploadAdminImage, validateAdminImageFile } from '@/lib/adminUpload';
 import { AdminNotice, type AdminNoticeTone } from '@/components/admin/AdminNotice';
 
@@ -43,7 +43,7 @@ export default function AdminMediaPage() {
     setNotice(null);
     try {
       const qs = query?.trim() ? `?q=${encodeURIComponent(query.trim())}` : '';
-      const res = await fetch(`/api/media${qs}`, {
+      const res = await adminFetch(`/api/media${qs}`, {
         headers: adminAuthHeaders(),
       });
       if (!res.ok) {
@@ -103,7 +103,7 @@ export default function AdminMediaPage() {
     if (!confirm('Delete this asset? This removes it from the library and deletes the file.')) return;
     setNotice(null);
     try {
-      const res = await fetch(`/api/media/${id}`, {
+      const res = await adminFetch(`/api/media/${id}`, {
         method: 'DELETE',
         headers: adminAuthHeaders(),
       });
@@ -129,7 +129,7 @@ export default function AdminMediaPage() {
   const saveAltText = async (id: number) => {
     setNotice(null);
     try {
-      const res = await fetch(`/api/media/${id}`, {
+      const res = await adminFetch(`/api/media/${id}`, {
         method: 'PUT',
         headers: {
           ...adminAuthHeaders(true),
@@ -201,7 +201,7 @@ export default function AdminMediaPage() {
               onClick={() => fileRef.current?.click()}
               disabled={uploading}
               style={compactPrimaryBtnStyle}
-              title={`Allowed: JPG, PNG, WEBP, GIF, SVG (max ${Math.floor(ADMIN_MAX_UPLOAD_BYTES / (1024 * 1024))}MB)`}
+              title={`Allowed: JPG, PNG, WEBP, GIF (max ${Math.floor(ADMIN_MAX_UPLOAD_BYTES / (1024 * 1024))}MB)`}
             >
               {uploading ? 'Uploading…' : 'Upload image'}
             </button>
