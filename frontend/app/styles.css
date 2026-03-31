@@ -2240,9 +2240,23 @@ main {
 .creative-home .service-template-title {
   margin: 0;
   color: rgba(248, 250, 252, 0.95);
-  font-size: clamp(1.3rem, 2vw, 2rem);
-  letter-spacing: -0.02em;
-  font-family: var(--font-body);
+  font-size: clamp(1.2rem, 1.9vw, 1.78rem);
+  line-height: 1.18;
+  letter-spacing: -0.018em;
+  font-family: var(--font-display, 'Cormorant Garamond', serif);
+  font-weight: 700;
+  text-wrap: balance;
+  transition: color 0.28s ease, letter-spacing 0.28s ease, text-shadow 0.28s ease;
+}
+
+.creative-home .service-template-trigger:hover .service-template-title {
+  color: rgba(240, 253, 250, 0.98);
+}
+
+.creative-home .service-template-row.is-active .service-template-title {
+  color: #f8fafc;
+  letter-spacing: -0.012em;
+  text-shadow: 0 8px 22px rgba(13, 148, 136, 0.2);
 }
 
 .creative-home .service-template-toggle {
