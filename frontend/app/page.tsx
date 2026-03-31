@@ -283,7 +283,7 @@ export default function Page() {
                           ? {
                               backgroundImage: `url(${image.imageUrl})`,
                               backgroundSize: 'cover',
-                              backgroundPosition: 'center',
+                              backgroundPosition: 'top center',
                               backgroundRepeat: 'no-repeat',
                             }
                           : undefined

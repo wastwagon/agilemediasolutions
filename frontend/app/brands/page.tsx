@@ -161,7 +161,7 @@ export default function Page() {
                       ? {
                           backgroundImage: `url(${b.image_url})`,
                           backgroundSize: 'cover',
-                          backgroundPosition: 'center',
+                          backgroundPosition: 'top center',
                           backgroundRepeat: 'no-repeat',
                         }
                       : undefined
