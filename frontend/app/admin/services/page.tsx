@@ -165,6 +165,7 @@ export default function AdminServices() {
             <thead style={{ background: 'var(--color-bg-alt)', borderBottom: '1px solid var(--color-border)' }}>
               <tr>
                 <th style={{ ...adminThStyle, width: '80px', textAlign: 'center' }}>Order</th>
+                <th style={adminThStyle}>Image</th>
                 <th style={adminThStyle}>Service</th>
                 <th style={adminThStyle}>Icon</th>
                 <th style={{ ...adminThStyle, textAlign: 'right' }}>Actions</th>
@@ -172,7 +173,7 @@ export default function AdminServices() {
             </thead>
             <tbody>
               {services.length === 0 ? (
-                <tr><td colSpan={4} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)', fontWeight: 600 }}>No services yet. Add one to get started.</td></tr>
+                <tr><td colSpan={5} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)', fontWeight: 600 }}>No services yet. Add one to get started.</td></tr>
               ) : (
                 services.map((s) => (
                   <tr key={s.id} style={{ borderBottom: '1px solid var(--color-border)', background: '#fff' }}>
@@ -180,36 +181,28 @@ export default function AdminServices() {
                       {s.order_index}
                     </td>
                     <td style={{ padding: '1.5rem 1.2rem', verticalAlign: 'middle' }}>
+                      <div style={{ width: '120px', height: '60px', background: 'var(--color-bg-alt)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: '0.5rem' }}>
+                        {looksLikeImageUrl(s.icon) ? (
+                          <Image
+                            src={s.icon as string}
+                            alt={s.title}
+                            width={110}
+                            height={55}
+                            unoptimized
+                            style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                          />
+                        ) : (
+                          <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>No image</span>
+                        )}
+                      </div>
+                    </td>
+                    <td style={{ padding: '1.5rem 1.2rem', verticalAlign: 'middle' }}>
                       <div style={{ fontWeight: 600, color: 'var(--color-dark-blue)', marginBottom: '4px', fontSize: '1.1rem' }}>{s.title}</div>
                       {s.description && <div style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)', maxWidth: '400px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.description}</div>}
                     </td>
                     <td style={{ padding: '1.5rem 1.2rem', verticalAlign: 'middle', color: 'var(--color-primary)', fontWeight: 500 }}>
                       {looksLikeImageUrl(s.icon) ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem' }}>
-                          <div
-                            style={{
-                              width: '44px',
-                              height: '44px',
-                              borderRadius: '10px',
-                              background: 'var(--color-bg-alt)',
-                              border: '1px solid var(--color-border)',
-                              overflow: 'hidden',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                            }}
-                          >
-                            <Image
-                              src={s.icon as string}
-                              alt={`${s.title} icon`}
-                              width={44}
-                              height={44}
-                              unoptimized
-                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                            />
-                          </div>
-                          <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Featured image</span>
-                        </div>
+                        <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Featured image</span>
                       ) : (
                         <span style={{ textTransform: 'capitalize' }}>{s.icon || '-'}</span>
                       )}
