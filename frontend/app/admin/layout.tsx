@@ -47,7 +47,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'linear-gradient(180deg, #F7F8FA 0%, #EEF2F7 100%)' }}>
       {/* Sidebar */}
-      <aside style={{ width: '272px', background: '#0F172A', color: '#fff', padding: '1.5rem 1rem', borderRight: '1px solid rgba(255,255,255,0.08)', position: 'sticky', top: 0, alignSelf: 'flex-start', height: '100vh' }}>
+      <aside style={{ width: '272px', background: '#0F172A', color: '#fff', padding: '1.5rem 1rem', borderRight: '1px solid rgba(255,255,255,0.08)', minHeight: '100vh' }}>
         <div style={{ marginBottom: '2.2rem', padding: '0 0.75rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '1rem' }}>
           <Image
             src="/images/agilemediasolutionslogo.png"
