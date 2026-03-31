@@ -11,6 +11,7 @@ type ServiceItem = {
   icon?: string | null;
   title: string;
   description?: string | null;
+  highlights?: string | null;
   order_index?: number | null;
 };
 
@@ -106,6 +107,27 @@ const DOCUMENT_SERVICES: { icon: string; title: string; description: string }[] 
       'Our in-house creative studio produces world-class visuals, video, photography, and multimedia content tailored to your audience and brand. Includes: Documentary production, brand videos, photography, post-production.',
   },
 ];
+
+function parseHighlightsFromIncludes(description?: string | null): string[] {
+  if (!description) return [];
+  const idx = description.indexOf('Includes:');
+  if (idx < 0) return [];
+  return description
+    .slice(idx + 'Includes:'.length)
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, 3);
+}
+
+function parseServiceHighlights(value?: string | null): string[] {
+  if (!value) return [];
+  return value
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(0, 3);
+}
 
 function normalizeServiceIconToken(icon?: string | null) {
   if (!icon) return '';
@@ -260,6 +282,8 @@ export default function Page() {
           >
             {renderedServices.map((s) => {
               const image = resolveServiceImage(s.icon);
+              const highlights = parseServiceHighlights(s.highlights);
+              const fallbackHighlights = highlights.length > 0 ? highlights : parseHighlightsFromIncludes(s.description);
               return (
               <motion.article key={`service-${s.id}-${s.title}`} className="service-card magnetic" variants={cardItem}>
                 <div
@@ -278,6 +302,13 @@ export default function Page() {
                 <div className="service-card-body">
                   <h3 className="service-card-title">{s.title}</h3>
                   <p className="service-card-desc">{s.description || 'Comprehensive communications support tailored to your mission and audience.'}</p>
+                  {fallbackHighlights.length > 0 ? (
+                    <ul className="service-card-bullets">
+                      {fallbackHighlights.map((item) => (
+                        <li key={`${s.id}-${item}`}>{item}</li>
+                      ))}
+                    </ul>
+                  ) : null}
                 </div>
               </motion.article>
             )})}

@@ -2560,6 +2560,18 @@ main {
   margin-top: 0.2rem;
 }
 
+.creative-public-page .service-card-bullets {
+  margin: 0.05rem 0 0;
+  padding-left: 1.05rem;
+  color: rgba(248, 250, 252, 0.78);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.creative-public-page .service-card-bullets li + li {
+  margin-top: 0.16rem;
+}
+
 .creative-public-page .section-cta-center .btn,
 .creative-public-page .digital-cta-buttons .btn,
 .creative-public-page .careers-cta-buttons .btn {

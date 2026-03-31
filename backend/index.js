@@ -188,6 +188,7 @@ const ensureAppSchemaAndSeed = async () => {
       id SERIAL PRIMARY KEY,
       title TEXT NOT NULL,
       description TEXT,
+      highlights TEXT,
       icon TEXT,
       order_index INTEGER DEFAULT 0,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -235,6 +236,7 @@ const ensureAppSchemaAndSeed = async () => {
   await pgPool.query(`ALTER TABLE brands ADD COLUMN IF NOT EXISTS audience TEXT;`);
   await pgPool.query(`ALTER TABLE brands ADD COLUMN IF NOT EXISTS format TEXT;`);
   await pgPool.query(`ALTER TABLE services ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();`);
+  await pgPool.query(`ALTER TABLE services ADD COLUMN IF NOT EXISTS highlights TEXT;`);
   await pgPool.query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();`);
   await pgPool.query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS tagline TEXT;`);
   await pgPool.query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS body TEXT;`);
@@ -603,22 +605,22 @@ app.get('/api/services', async (req, res) => {
 });
 
 app.post('/api/services', authenticateToken, async (req, res) => {
-  const { title, description, icon, order_index } = req.body;
+  const { title, description, highlights, icon, order_index } = req.body;
   try {
     const result = await pgPool.query(
-      'INSERT INTO services (title, description, icon, order_index) VALUES ($1, $2, $3, $4) RETURNING *',
-      [title, description, icon, order_index || 0]
+      'INSERT INTO services (title, description, highlights, icon, order_index) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [title, description, highlights || null, icon, order_index || 0]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.put('/api/services/:id', authenticateToken, async (req, res) => {
-  const { title, description, icon, order_index } = req.body;
+  const { title, description, highlights, icon, order_index } = req.body;
   try {
     const result = await pgPool.query(
-      'UPDATE services SET title = $1, description = $2, icon = $3, order_index = $4, updated_at = NOW() WHERE id = $5 RETURNING *',
-      [title, description, icon, order_index, req.params.id]
+      'UPDATE services SET title = $1, description = $2, highlights = $3, icon = $4, order_index = $5, updated_at = NOW() WHERE id = $6 RETURNING *',
+      [title, description, highlights || null, icon, order_index, req.params.id]
     );
     if (result.rows.length === 0) return res.status(404).json({ error: 'Service not found' });
     res.json(result.rows[0]);

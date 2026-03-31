@@ -35,6 +35,7 @@ export default function AdminServices() {
   // Form states
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [highlights, setHighlights] = useState('');
   const [icon, setIcon] = useState('');
   const [orderIndex, setOrderIndex] = useState('');
 
@@ -43,6 +44,7 @@ export default function AdminServices() {
     setIsAdding(true);
     setTitle(service.title);
     setDescription(service.description || '');
+    setHighlights(service.highlights || '');
     setIcon(service.icon || '');
     setOrderIndex(service.order_index?.toString() || '0');
   };
@@ -52,6 +54,7 @@ export default function AdminServices() {
     setIsAdding(true);
     setTitle('');
     setDescription('');
+    setHighlights('');
     setIcon('');
     setOrderIndex('0');
   };
@@ -70,7 +73,11 @@ export default function AdminServices() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const data: ServicePayload = {
-      title, description, icon, order_index: parseInt(orderIndex || '0')
+      title,
+      description,
+      highlights,
+      icon,
+      order_index: parseInt(orderIndex || '0'),
     };
 
     const err = await saveItem(data, editingService?.id);
@@ -106,6 +113,21 @@ export default function AdminServices() {
               <textarea id="description" rows={3} value={description} onChange={(e) => setDescription(e.target.value)}></textarea>
               <label htmlFor="description">Description</label>
               <div className="form-border"></div>
+            </div>
+
+            <div className={`form-group form-group-textarea ${highlights ? 'has-value' : ''}`} style={{ marginBottom: '1.5rem' }}>
+              <textarea
+                id="highlights"
+                rows={4}
+                value={highlights}
+                onChange={(e) => setHighlights(e.target.value)}
+                placeholder="One bullet point per line"
+              ></textarea>
+              <label htmlFor="highlights">Homepage bullet highlights</label>
+              <div className="form-border"></div>
+              <p style={{ margin: '0.5rem 0 0', fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+                Add one line per bullet (example: Strategy and planning).
+              </p>
             </div>
 
             <div className="form-row-split" style={{ marginBottom: '2.5rem' }}>

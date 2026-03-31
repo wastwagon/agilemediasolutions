@@ -23,6 +23,7 @@ export interface Service {
   id: number;
   title: string;
   description: string | null;
+  highlights: string | null;
   icon: string | null;
   order_index: number;
 }
@@ -30,6 +31,7 @@ export interface Service {
 export interface ServicePayload {
   title: string;
   description: string;
+  highlights: string;
   icon: string;
   order_index: number;
 }

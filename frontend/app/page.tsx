@@ -22,7 +22,23 @@ interface Service {
   id: number;
   title: string;
   description: string;
+  highlights?: string | null;
   icon: string;
+}
+
+const DEFAULT_SERVICE_HIGHLIGHTS = [
+  'Strategy and planning',
+  'Execution and media support',
+  'Monitoring and optimization',
+];
+
+function parseServiceHighlights(value?: string | null): string[] {
+  if (!value) return DEFAULT_SERVICE_HIGHLIGHTS;
+  const items = value
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean);
+  return items.length > 0 ? items : DEFAULT_SERVICE_HIGHLIGHTS;
 }
 
 function normalizeServiceIconToken(icon?: string | null) {
@@ -106,6 +122,7 @@ export default function Page() {
       title: 'Strategic Communications & Narrative Building',
       description:
         'We develop tailored messaging frameworks, storytelling strategies, and communication blueprints that align with your institutional goals and public identity.',
+      highlights: DEFAULT_SERVICE_HIGHLIGHTS.join('\n'),
       icon: 'strategic',
     },
     {
@@ -113,6 +130,7 @@ export default function Page() {
       title: 'Media Relations & Reputation Management',
       description:
         'We help you build and sustain public trust by managing perception, cultivating media relationships, and preparing for both visibility and scrutiny.',
+      highlights: DEFAULT_SERVICE_HIGHLIGHTS.join('\n'),
       icon: 'media-relations',
     },
     {
@@ -120,6 +138,7 @@ export default function Page() {
       title: 'Campaigns, Advocacy & Stakeholder Engagement',
       description:
         'We design high-impact campaigns that mobilize audiences, shift public opinion, and influence policy or behavior across sectors.',
+      highlights: DEFAULT_SERVICE_HIGHLIGHTS.join('\n'),
       icon: 'campaigns',
     },
     {
@@ -127,6 +146,7 @@ export default function Page() {
       title: 'Digital, Social & Multimedia Communications',
       description:
         'We deliver digital-first communications across platforms, combining strategy, design, and audience analytics for sustained engagement.',
+      highlights: DEFAULT_SERVICE_HIGHLIGHTS.join('\n'),
       icon: 'digital',
     },
   ];
@@ -233,6 +253,7 @@ export default function Page() {
             {homeServices.map((s, idx) => {
               const isActive = idx === activeServiceIdx;
               const image = resolveServiceImage(s.icon);
+              const highlights = parseServiceHighlights(s.highlights);
               return (
                 <article key={`${s.id}-${s.title}`} className={`service-template-row ${isActive ? 'is-active' : ''}`}>
                   <button
@@ -249,9 +270,9 @@ export default function Page() {
                     <div className="service-template-copy">
                       <p>{s.description}</p>
                       <ul>
-                        <li>Strategy and planning</li>
-                        <li>Execution and media support</li>
-                        <li>Monitoring and optimization</li>
+                        {highlights.map((item) => (
+                          <li key={`${s.id}-${item}`}>{item}</li>
+                        ))}
                       </ul>
                       <Link href="/services" className="link-arrow-text">Learn more →</Link>
                     </div>
