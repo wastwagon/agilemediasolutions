@@ -2030,8 +2030,18 @@ main {
 .creative-home .section-title,
 .creative-home .section h2 {
   color: #f8fafc;
-  font-size: clamp(2rem, 4vw, 3.5rem);
-  letter-spacing: -0.02em;
+  font-family: var(--font-display, 'Cormorant Garamond', serif);
+  font-size: clamp(1.55rem, 2.8vw, 2.45rem);
+  font-weight: 700;
+  line-height: 1.14;
+  letter-spacing: -0.014em;
+  text-wrap: balance;
+  background: linear-gradient(180deg, rgba(248, 250, 252, 0.98) 0%, rgba(226, 232, 240, 0.9) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 12px 34px rgba(6, 11, 20, 0.28);
+  transition: letter-spacing 0.28s ease, text-shadow 0.28s ease;
 }
 
 .creative-home .section-subtitle,
@@ -2054,6 +2064,11 @@ main {
 
 .creative-home .home-section-head .section-title {
   margin-bottom: 0;
+}
+
+.creative-home .home-section-head:hover .section-title {
+  letter-spacing: -0.01em;
+  text-shadow: 0 14px 38px rgba(8, 16, 28, 0.34);
 }
 
 .creative-home .section-label {
