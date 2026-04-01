@@ -78,18 +78,24 @@ export default async function Page() {
             <div className="careers-block careers-card">
               <h2 className="careers-heading">{copy.whyHeading}</h2>
               <ul className="careers-list">
-                {whyList.map((item) => (
-                  <li key={item}>{item}</li>
+                {whyList.map((item, idx) => (
+                  <li key={item}>
+                    <span className="careers-list-index">{String(idx + 1).padStart(2, '0')}</span>
+                    <span className="careers-list-text">{item}</span>
+                  </li>
                 ))}
               </ul>
             </div>
 
             <div className="careers-block careers-card">
               <h2 className="careers-heading">{copy.whoHeading}</h2>
-              <p className="section-text">{copy.whoIntro}</p>
+              <p className="section-text careers-intro-copy">{copy.whoIntro}</p>
               <ul className="careers-list">
-                {whoList.map((item) => (
-                  <li key={item}>{item}</li>
+                {whoList.map((item, idx) => (
+                  <li key={item}>
+                    <span className="careers-list-index">{String(idx + 1).padStart(2, '0')}</span>
+                    <span className="careers-list-text">{item}</span>
+                  </li>
                 ))}
               </ul>
             </div>
@@ -97,8 +103,9 @@ export default async function Page() {
             <div className="careers-block careers-opportunities">
               <h2 className="careers-heading">{copy.opportunitiesHeading}</h2>
               <ul className="careers-opportunities-grid">
-                {opportunityCards.map((card) => (
+                {opportunityCards.map((card, idx) => (
                   <li key={card.title} className="careers-opportunity-card">
+                    <span className="careers-opportunity-kicker">Track {String(idx + 1).padStart(2, '0')}</span>
                     <span className="careers-opportunity-title">{card.title}</span>
                     <span className="careers-opportunity-desc">{card.desc}</span>
                   </li>
@@ -109,8 +116,11 @@ export default async function Page() {
             <div className="careers-block careers-card careers-culture">
               <h2 className="careers-heading">{copy.cultureHeading}</h2>
               <ul className="careers-list">
-                {cultureList.map((item) => (
-                  <li key={item}>{item}</li>
+                {cultureList.map((item, idx) => (
+                  <li key={item}>
+                    <span className="careers-list-index">{String(idx + 1).padStart(2, '0')}</span>
+                    <span className="careers-list-text">{item}</span>
+                  </li>
                 ))}
               </ul>
             </div>

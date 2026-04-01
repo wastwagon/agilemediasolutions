@@ -381,3 +381,117 @@
   background: transparent;
   border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
+
+/* Premium layout refinement for careers main body. */
+.careers-page-main.creative-public-page .careers-content {
+  position: relative;
+}
+
+.careers-page-main.creative-public-page .careers-content::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(42rem 18rem at 8% 6%, rgba(153, 246, 228, 0.08), transparent 65%),
+    radial-gradient(40rem 20rem at 92% 92%, rgba(59, 130, 246, 0.08), transparent 68%);
+  pointer-events: none;
+}
+
+.careers-page-main.creative-public-page .careers-grid {
+  position: relative;
+  z-index: 1;
+  gap: clamp(1rem, 2.2vw, 1.4rem);
+}
+
+.careers-page-main.creative-public-page .careers-card,
+.careers-page-main.creative-public-page .careers-opportunities {
+  border-radius: 20px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 24px 42px -30px rgba(2, 6, 23, 0.72);
+}
+
+.careers-page-main.creative-public-page .careers-heading {
+  font-size: clamp(1.35rem, 2.2vw, 1.7rem);
+  margin-bottom: 1rem;
+  border-bottom: none;
+  display: block;
+  padding-bottom: 0;
+}
+
+.careers-page-main.creative-public-page .careers-heading::after {
+  content: '';
+  display: block;
+  width: 6rem;
+  height: 2px;
+  margin-top: 0.65rem;
+  background: linear-gradient(90deg, rgba(153, 246, 228, 0.95), rgba(153, 246, 228, 0.1));
+}
+
+.careers-page-main.creative-public-page .careers-intro-copy {
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+  color: rgba(226, 232, 240, 0.86);
+}
+
+.careers-page-main.creative-public-page .careers-list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.careers-page-main.creative-public-page .careers-list li {
+  margin-bottom: 0;
+  padding: 0.6rem 0.7rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: grid;
+  grid-template-columns: 2.3rem 1fr;
+  align-items: start;
+  gap: 0.5rem;
+  line-height: 1.52;
+}
+
+.careers-page-main.creative-public-page .careers-list li::before {
+  display: none;
+}
+
+.careers-page-main.creative-public-page .careers-list-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 1.3rem;
+  border-radius: 999px;
+  border: 1px solid rgba(153, 246, 228, 0.42);
+  color: rgba(153, 246, 228, 0.95);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  margin-top: 0.1rem;
+}
+
+.careers-page-main.creative-public-page .careers-list-text {
+  display: block;
+  color: rgba(248, 250, 252, 0.84);
+}
+
+.careers-page-main.creative-public-page .careers-opportunities-grid {
+  gap: 0.9rem;
+}
+
+.careers-page-main.creative-public-page .careers-opportunity-card {
+  border-radius: 14px;
+  padding: 1rem 1rem 0.95rem;
+}
+
+.careers-page-main.creative-public-page .careers-opportunity-kicker {
+  display: inline-flex;
+  width: fit-content;
+  font-size: 0.64rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: rgba(153, 246, 228, 0.9);
+  margin-bottom: 0.35rem;
+  font-weight: 700;
+}
