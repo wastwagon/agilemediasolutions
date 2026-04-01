@@ -3191,6 +3191,32 @@ main {
   display: none;
 }
 
+/* Brand logo cards use a wider rectangle for better logo fit. */
+.section-brands .card-brand .card-image-placeholder.brand-logo-image,
+.brands-grid .service-card-image.brand-logo-image {
+  aspect-ratio: 16 / 9;
+  height: auto;
+  min-height: 150px;
+}
+
+/* Keep homepage brand card CTA rows aligned to equal heights. */
+.section-brands .cards-brands .card-brand {
+  display: flex;
+  flex-direction: column;
+}
+
+.section-brands .cards-brands .card-brand p {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.section-brands .cards-brands .card-brand .link-arrow-text {
+  margin-top: auto;
+  min-height: 1.5rem;
+  align-items: center;
+}
+
 .creative-home .service-template-image {
   background-position: top center !important;
 }
