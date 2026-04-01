@@ -326,27 +326,58 @@
   }
 }
 
-/* Careers page readability override:
-   keep this page in a light-card theme even when wrapped in .creative-public-page */
+/* Careers page consistency pass: match inner-page dark theme. */
+.careers-page-main.creative-public-page .section-careers-page,
+.careers-page-main.creative-public-page .careers-content {
+  background: transparent;
+}
+
+.careers-page-main.creative-public-page .careers-hero {
+  background:
+    linear-gradient(125deg, rgba(8, 8, 10, 0.9), rgba(13, 33, 59, 0.55) 48%, rgba(17, 24, 39, 0.86)),
+    radial-gradient(40rem 22rem at 78% 16%, rgba(44, 80, 74, 0.26), transparent 72%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.careers-page-main.creative-public-page .careers-label {
+  color: #99f6e4;
+}
+
+.careers-page-main.creative-public-page .careers-title {
+  color: #f8fafc;
+  text-shadow: 0 10px 28px rgba(6, 11, 20, 0.22);
+}
+
+.careers-page-main.creative-public-page .careers-tagline,
+.careers-page-main.creative-public-page .careers-intro {
+  color: rgba(248, 250, 252, 0.86);
+}
+
 .careers-page-main.creative-public-page .careers-card,
-.careers-page-main.creative-public-page .careers-opportunities {
-  background: var(--color-bg);
-  border-color: var(--color-border);
+.careers-page-main.creative-public-page .careers-opportunities,
+.careers-page-main.creative-public-page .careers-opportunity-card {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 20px 36px -30px rgba(0, 0, 0, 0.62);
 }
 
 .careers-page-main.creative-public-page .careers-heading,
 .careers-page-main.creative-public-page .careers-opportunity-title {
-  color: var(--color-dark-blue);
+  color: #f8fafc;
+  border-bottom-color: rgba(153, 246, 228, 0.45);
 }
 
 .careers-page-main.creative-public-page .careers-list li,
 .careers-page-main.creative-public-page .careers-opportunity-desc,
-.careers-page-main.creative-public-page .careers-tagline,
-.careers-page-main.creative-public-page .careers-intro,
 .careers-page-main.creative-public-page .careers-block .section-text {
-  color: var(--color-text);
+  color: rgba(248, 250, 252, 0.8);
 }
 
 .careers-page-main.creative-public-page .careers-list li::before {
-  background: var(--color-electric-blue);
+  background: #99f6e4;
+}
+
+.careers-page-main.creative-public-page .careers-cta-strip {
+  background: transparent;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
