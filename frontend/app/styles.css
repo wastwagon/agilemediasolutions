@@ -3295,6 +3295,12 @@ main {
   height: 300px;
 }
 
+/* Case Studies page: show larger, centered image area. */
+.case-studies-page .service-card-image {
+  height: 300px;
+  background-position: center center !important;
+}
+
 @media (max-width: 900px) {
   .creative-home .cards-services .card,
   .creative-home .cards-events .card,
@@ -3315,6 +3321,10 @@ main {
   }
 
   .services-main-page .service-card-image {
+    height: 240px;
+  }
+
+  .case-studies-page .service-card-image {
     height: 240px;
   }
 }

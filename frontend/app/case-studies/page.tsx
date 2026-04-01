@@ -107,7 +107,7 @@ export default function Page() {
   }, []);
 
   return (
-    <main className="services-page-main creative-public-page">
+    <main className="services-page-main creative-public-page case-studies-page">
       <div className="page-hero">
         <div className="page-hero-inner">
           <span className="page-hero-label">{caseStudiesCopy.heroLabel}</span>
@@ -155,10 +155,13 @@ export default function Page() {
               ? studies.map((s) => (
                   <article key={s.id} className="service-card">
                     <div
-                      className="service-card-image"
+                      className={`service-card-image ${s.image_url ? 'has-image' : ''}`}
                       style={{
                         backgroundImage: s.image_url ? `url(${s.image_url})` : undefined,
-                        backgroundColor: !s.image_url ? '#e5e7eb' : undefined,
+                        backgroundSize: s.image_url ? 'contain' : undefined,
+                        backgroundPosition: s.image_url ? 'center center' : undefined,
+                        backgroundRepeat: s.image_url ? 'no-repeat' : undefined,
+                        backgroundColor: s.image_url ? '#111418' : '#e5e7eb',
                       }}
                     ></div>
                     <div className="service-card-body">
