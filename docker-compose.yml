@@ -34,8 +34,8 @@ services:
     environment:
       - PORT=${BACKEND_PORT:-4000}
       - NODE_ENV=production
-      - DATABASE_URL=postgres://${POSTGRES_USER:-agile_user}:${POSTGRES_PASSWORD:-agile_password}@postgres:5432/${POSTGRES_DB:-agile_db}
-      - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=${DATABASE_URL:-postgres://${POSTGRES_USER:-agile_user}:${POSTGRES_PASSWORD:-agile_password}@postgres:5432/${POSTGRES_DB:-agile_db}}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - CORS_ORIGIN=${CORS_ORIGIN:?Set CORS_ORIGIN to your public frontend URL}
       - JWT_SECRET=${JWT_SECRET:?Set JWT_SECRET to a long random secret}
     ports:
