@@ -151,18 +151,19 @@ export default function Page() {
             linkHref="/contact#contact"
             linkLabel={brandsCopy.sectionLinkLabel}
           />
-          <div className="services-grid">
+          <div className="services-grid brands-grid">
             {renderedBrands.map((b, idx) => (
               <article key={`brand-${b.id}-${b.name}`} className="service-card">
                 <div
-                  className={`service-card-image ${b.image_url ? 'has-image' : fallbackImageClass(b.name, idx)}`}
+                  className={`service-card-image ${b.image_url ? 'has-image brand-logo-image' : fallbackImageClass(b.name, idx)}`}
                   style={
                     b.image_url
                       ? {
                           backgroundImage: `url(${b.image_url})`,
-                          backgroundSize: 'cover',
-                          backgroundPosition: 'top center',
+                          backgroundSize: 'contain',
+                          backgroundPosition: 'center center',
                           backgroundRepeat: 'no-repeat',
+                          backgroundColor: '#f9f9f9',
                         }
                       : undefined
                   }

@@ -1051,13 +1051,13 @@ main {
 .card-image-placeholder.highlight-img-diaspora::after,
 .card-image-placeholder.highlight-img-hospitality::after { display: none; }
 
-/* Our media brands — only 3 cards on home; "All brands" links to /brands */
+/* Our media brands — show up to 4 cards on home; "All brands" links to /brands */
 .section-brands .cards-brands,
 #our-brands .cards-brands {
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
-.section-brands .cards-brands .card-brand:nth-child(n+4),
-#our-brands .cards-brands .card-brand:nth-child(n+4) {
+.section-brands .cards-brands .card-brand:nth-child(n+5),
+#our-brands .cards-brands .card-brand:nth-child(n+5) {
   display: none !important;
 }
 .section-brands .section-cta-center a::after,
@@ -1072,21 +1072,28 @@ main {
 @media (max-width: 768px) {
   .section-brands .cards-brands,
   #our-brands .cards-brands {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .section-brands .cards-brands .card-brand:nth-child(n+4),
-  #our-brands .cards-brands .card-brand:nth-child(n+4) {
+  .section-brands .cards-brands .card-brand:nth-child(n+5),
+  #our-brands .cards-brands .card-brand:nth-child(n+5) {
     display: none !important;
   }
 }
 @media (max-width: 480px) {
   .section-brands .cards-brands,
   #our-brands .cards-brands {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .section-brands .cards-brands .card-brand:nth-child(n+4),
-  #our-brands .cards-brands .card-brand:nth-child(n+4) {
+  .section-brands .cards-brands .card-brand:nth-child(n+5),
+  #our-brands .cards-brands .card-brand:nth-child(n+5) {
     display: none !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .section-brands .cards-brands,
+  #our-brands .cards-brands {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
@@ -3168,6 +3175,20 @@ main {
   height: var(--small-card-image-height);
   background-size: cover;
   background-position: top center !important;
+}
+
+/* Brand logos should be fully visible, not cropped. */
+.card-image-placeholder.brand-logo-image,
+.service-card-image.brand-logo-image {
+  background-size: contain !important;
+  background-position: center center !important;
+  background-repeat: no-repeat;
+  background-color: #f9f9f9;
+}
+
+.card-image-placeholder.brand-logo-image::after,
+.service-card-image.brand-logo-image::after {
+  display: none;
 }
 
 .creative-home .service-template-image {

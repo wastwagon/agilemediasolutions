@@ -318,7 +318,13 @@ export default function Page() {
             {brands.length > 0 ? (
               brands.map((b: Brand) => (
                 <article key={b.id} className="card card-brand animate-on-scroll">
-                  <div className="card-image-placeholder" style={{ backgroundImage: b.image_url ? `url(${b.image_url})` : undefined, backgroundColor: '#f9f9f9' }}></div>
+                  <div
+                    className={`card-image-placeholder ${b.image_url ? 'has-image brand-logo-image' : ''}`}
+                    style={{
+                      backgroundImage: b.image_url ? `url(${b.image_url})` : undefined,
+                      backgroundColor: '#f9f9f9',
+                    }}
+                  ></div>
                   <h3>{b.name}</h3>
                   <p>{b.description}<br /><Link href="/brands" className="link-arrow-text">Learn more →</Link></p>
                 </article>

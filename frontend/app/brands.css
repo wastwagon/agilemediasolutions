@@ -26,6 +26,23 @@
   flex-direction: column;
   transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
 }
+
+/* Dedicated brands page: mobile-first grid */
+.brands-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (min-width: 900px) {
+  .brands-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1200px) {
+  .brands-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
 .service-card:hover {
   transform: translateY(-6px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
@@ -77,14 +94,8 @@
   border-top: 1px solid #e0e0e0;
 }
 
-@media (max-width: 768px) {
-  .services-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
 @media (max-width: 480px) {
-  .services-grid {
-    grid-template-columns: 1fr;
+  .brands-grid {
     gap: 1rem;
   }
 }
