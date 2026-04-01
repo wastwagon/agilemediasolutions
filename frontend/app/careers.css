@@ -325,3 +325,28 @@
     max-width: none;
   }
 }
+
+/* Careers page readability override:
+   keep this page in a light-card theme even when wrapped in .creative-public-page */
+.careers-page-main.creative-public-page .careers-card,
+.careers-page-main.creative-public-page .careers-opportunities {
+  background: var(--color-bg);
+  border-color: var(--color-border);
+}
+
+.careers-page-main.creative-public-page .careers-heading,
+.careers-page-main.creative-public-page .careers-opportunity-title {
+  color: var(--color-dark-blue);
+}
+
+.careers-page-main.creative-public-page .careers-list li,
+.careers-page-main.creative-public-page .careers-opportunity-desc,
+.careers-page-main.creative-public-page .careers-tagline,
+.careers-page-main.creative-public-page .careers-intro,
+.careers-page-main.creative-public-page .careers-block .section-text {
+  color: var(--color-text);
+}
+
+.careers-page-main.creative-public-page .careers-list li::before {
+  background: var(--color-electric-blue);
+}

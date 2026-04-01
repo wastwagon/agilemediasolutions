@@ -3290,6 +3290,11 @@ main {
   background-color: #111418;
 }
 
+/* Main Services page: increase card image area height. */
+.services-main-page .service-card-image {
+  height: 300px;
+}
+
 @media (max-width: 900px) {
   .creative-home .cards-services .card,
   .creative-home .cards-events .card,
@@ -3307,6 +3312,10 @@ main {
 
   .signature-events-page .service-card-image {
     height: 220px;
+  }
+
+  .services-main-page .service-card-image {
+    height: 240px;
   }
 }
 .form-row-split {

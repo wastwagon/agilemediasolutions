@@ -220,7 +220,7 @@ export default function Page() {
   };
 
   return (
-    <main className="services-page-main creative-public-page">
+    <main className="services-page-main creative-public-page services-main-page">
       <div className="page-hero">
         <motion.div className="page-hero-inner" variants={heroContainer} initial="hidden" animate="show">
           <div style={{ overflow: 'hidden', paddingBottom: '4px' }}>
