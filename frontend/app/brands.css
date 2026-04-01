@@ -8,10 +8,10 @@
     padding-bottom: var(--space-3xl);
 }
 
-/* Grid — 3 cards per row, same as services */
-.services-grid {
+/* Base grid for this page only */
+.services-page-main .services-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1.5rem;
   margin-top: 2rem;
   padding: 0;
@@ -28,12 +28,12 @@
 }
 
 /* Dedicated brands page: mobile-first grid */
-.brands-grid {
+.services-page-main .services-grid.brands-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 @media (min-width: 1024px) {
-  .brands-grid {
+  .services-page-main .services-grid.brands-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
@@ -89,7 +89,7 @@
 }
 
 @media (max-width: 480px) {
-  .brands-grid {
+  .services-page-main .services-grid.brands-grid {
     gap: 1rem;
   }
 }
