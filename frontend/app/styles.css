@@ -3230,9 +3230,10 @@ main {
 .cards-events .card-image-placeholder {
   aspect-ratio: auto;
   height: var(--small-card-image-height);
-  background-size: cover;
-  background-position: top center;
+  background-size: contain !important;
+  background-position: center center !important;
   background-repeat: no-repeat;
+  background-color: #111418;
 }
 
 .cards-events .card p {
@@ -3280,6 +3281,15 @@ main {
   height: 100%;
 }
 
+/* Signature Events page: taller image area with full-image visibility. */
+.signature-events-page .service-card-image {
+  height: 280px;
+  background-size: contain !important;
+  background-position: center center !important;
+  background-repeat: no-repeat;
+  background-color: #111418;
+}
+
 @media (max-width: 900px) {
   .creative-home .cards-services .card,
   .creative-home .cards-events .card,
@@ -3293,6 +3303,10 @@ main {
 
   .creative-public-page .service-card-image {
     height: var(--small-card-image-height-mobile);
+  }
+
+  .signature-events-page .service-card-image {
+    height: 220px;
   }
 }
 .form-row-split {

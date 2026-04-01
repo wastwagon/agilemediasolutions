@@ -129,7 +129,7 @@ export default function Page() {
         }));
 
   return (
-    <main className="services-page-main creative-public-page">
+    <main className="services-page-main creative-public-page signature-events-page">
       <div className="page-hero">
         <div className="page-hero-inner">
           <span className="page-hero-label">{eventsCopy.heroLabel}</span>
@@ -175,9 +175,10 @@ export default function Page() {
                     e.image_url
                       ? {
                           backgroundImage: `url(${e.image_url})`,
-                          backgroundSize: 'cover',
-                          backgroundPosition: 'top center',
+                          backgroundSize: 'contain',
+                          backgroundPosition: 'center center',
                           backgroundRepeat: 'no-repeat',
+                          backgroundColor: '#111418',
                         }
                       : undefined
                   }
