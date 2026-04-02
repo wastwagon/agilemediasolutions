@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import { AdminEditorCard, AdminFormActions } from '@/components/admin/AdminFormUi';
 import { AdminErrorBanner, AdminLoadingState, AdminPageHeader } from '@/components/admin/AdminPageUi';
+import AdminImageUpload from '@/components/AdminImageUpload';
+import MediaLibraryPicker from '@/components/MediaLibraryPicker';
 import { adminActionBtnStyle, adminThStyle } from '@/lib/adminTableStyles';
 import { useAdminCrudResource } from '@/hooks/useAdminCrudResource';
 import type { Sector, SectorPayload } from '@/types/adminEntities';
@@ -26,6 +28,7 @@ export default function AdminSectors() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [icon, setIcon] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
   const [orderIndex, setOrderIndex] = useState('');
 
   const handleEditClick = (sector: Sector) => {
@@ -34,6 +37,7 @@ export default function AdminSectors() {
     setName(sector.name);
     setDescription(sector.description || '');
     setIcon(sector.icon || '');
+    setImageUrl(sector.image_url || '');
     setOrderIndex(sector.order_index?.toString() || '0');
   };
 
@@ -43,6 +47,7 @@ export default function AdminSectors() {
     setName('');
     setDescription('');
     setIcon('');
+    setImageUrl('');
     setOrderIndex('0');
   };
 
@@ -63,6 +68,7 @@ export default function AdminSectors() {
       name,
       description,
       icon,
+      image_url: imageUrl,
       order_index: parseInt(orderIndex || '0', 10),
     };
     const err = await saveItem(payload, editingSector?.id);
@@ -79,7 +85,7 @@ export default function AdminSectors() {
     <div className="admin-page animate-on-scroll is-visible">
       <AdminPageHeader
         title="Sectors"
-        subtitle="Manage sectors shown on the public sectors page."
+        subtitle="Manage sectors on /sectors. Card images appear on the public grid; leave empty to use rotating placeholders."
         addLabel="Add sector"
         isAdding={isAdding}
         onAdd={handleCreateClick}
@@ -100,10 +106,18 @@ export default function AdminSectors() {
               <div className="form-border"></div>
             </div>
 
+            <div className={`form-group ${imageUrl ? 'has-value' : ''}`} style={{ marginBottom: '1.2rem' }}>
+              <input type="text" id="imageUrl" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
+              <label htmlFor="imageUrl">Card image URL (optional)</label>
+              <div className="form-border"></div>
+              <AdminImageUpload currentUrl={imageUrl} onUploadSuccess={(url) => setImageUrl(url)} label="Upload image" />
+              <MediaLibraryPicker onSelect={(url) => setImageUrl(url)} buttonLabel="Choose from library" />
+            </div>
+
             <div className="form-row-split" style={{ marginBottom: '1.8rem' }}>
               <div className={`form-group ${icon ? 'has-value' : ''}`}>
                 <input type="text" id="icon" value={icon} onChange={(e) => setIcon(e.target.value)} />
-                <label htmlFor="icon">Icon token (optional)</label>
+                <label htmlFor="icon">Icon token (optional, legacy)</label>
                 <div className="form-border"></div>
               </div>
               <div className={`form-group ${orderIndex ? 'has-value' : ''}`}>
@@ -129,6 +143,7 @@ export default function AdminSectors() {
             <thead style={{ background: 'var(--color-bg-alt)', borderBottom: '1px solid var(--color-border)' }}>
               <tr>
                 <th style={{ ...adminThStyle, width: '80px', textAlign: 'center' }}>Order</th>
+                <th style={{ ...adminThStyle, width: '100px' }}>Image</th>
                 <th style={adminThStyle}>Sector</th>
                 <th style={adminThStyle}>Icon</th>
                 <th style={{ ...adminThStyle, textAlign: 'right' }}>Actions</th>
@@ -136,12 +151,29 @@ export default function AdminSectors() {
             </thead>
             <tbody>
               {sectors.length === 0 ? (
-                <tr><td colSpan={4} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)', fontWeight: 600 }}>No sectors yet. Add one to get started.</td></tr>
+                <tr><td colSpan={5} style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)', fontWeight: 600 }}>No sectors yet. Add one to get started.</td></tr>
               ) : (
                 sectors.map((sector) => (
                   <tr key={sector.id} style={{ borderBottom: '1px solid var(--color-border)', background: '#fff' }}>
                     <td style={{ padding: '1.2rem', verticalAlign: 'middle', textAlign: 'center', color: 'var(--color-text-muted)', fontWeight: 600 }}>
                       {sector.order_index}
+                    </td>
+                    <td style={{ padding: '1.2rem', verticalAlign: 'middle' }}>
+                      {sector.image_url ? (
+                        <img
+                          src={sector.image_url}
+                          alt=""
+                          style={{
+                            width: '88px',
+                            height: '55px',
+                            objectFit: 'cover',
+                            borderRadius: '8px',
+                            background: 'var(--color-bg-alt)',
+                          }}
+                        />
+                      ) : (
+                        <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Placeholder</span>
+                      )}
                     </td>
                     <td style={{ padding: '1.2rem', verticalAlign: 'middle' }}>
                       <div style={{ fontWeight: 600, color: 'var(--color-dark-blue)', marginBottom: '4px', fontSize: '1rem' }}>{sector.name}</div>

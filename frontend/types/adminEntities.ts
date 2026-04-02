@@ -66,6 +66,7 @@ export interface Sector {
   name: string;
   description: string | null;
   icon: string | null;
+  image_url: string | null;
   order_index: number;
 }
 
@@ -73,6 +74,7 @@ export interface SectorPayload {
   name: string;
   description: string;
   icon: string;
+  image_url: string;
   order_index: number;
 }
 

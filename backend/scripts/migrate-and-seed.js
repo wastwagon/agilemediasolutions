@@ -104,6 +104,7 @@ async function run() {
         name TEXT NOT NULL,
         description TEXT,
         icon TEXT,
+        image_url TEXT,
         order_index INTEGER DEFAULT 0,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
@@ -169,6 +170,8 @@ async function run() {
     await pool.query(
       `ALTER TABLE insight_posts ADD COLUMN IF NOT EXISTS category_id INTEGER REFERENCES insight_categories(id) ON DELETE SET NULL;`
     );
+
+    await pool.query(`ALTER TABLE sectors ADD COLUMN IF NOT EXISTS image_url TEXT;`);
 
     await seedAgileContent(pool);
     console.log('Migrations and CMS seed completed successfully.');

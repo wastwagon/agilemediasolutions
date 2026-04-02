@@ -759,11 +759,12 @@ async function seedAgileContent(pool) {
 
   for (let i = 0; i < SEED_SECTORS.length; i++) {
     const s = SEED_SECTORS[i];
+    const imageUrl = `/images/sectors/sector-${String((i % 8) + 1).padStart(2, '0')}.svg`;
     await pool.query(
-      `INSERT INTO sectors (name, description, order_index)
-       SELECT $1, $2, $3
+      `INSERT INTO sectors (name, description, icon, image_url, order_index)
+       SELECT $1, $2, $3, $4, $5
        WHERE NOT EXISTS (SELECT 1 FROM sectors WHERE name = $1)`,
-      [s.name, s.description, i + 1]
+      [s.name, s.description, null, imageUrl, i + 1]
     );
   }
 

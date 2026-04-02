@@ -6,12 +6,30 @@ import SectionHeader from '../../components/SectionHeader';
 import { useSiteSectionContent } from '@/lib/siteSectionCms';
 
 type SectorItem = {
-  id: number;
+  id?: number;
   name: string;
   description: string;
   icon?: string | null;
+  image_url?: string | null;
   order_index?: number | null;
 };
+
+const SECTOR_PLACEHOLDER_IMAGES = [
+  '/images/sectors/sector-01.svg',
+  '/images/sectors/sector-02.svg',
+  '/images/sectors/sector-03.svg',
+  '/images/sectors/sector-04.svg',
+  '/images/sectors/sector-05.svg',
+  '/images/sectors/sector-06.svg',
+  '/images/sectors/sector-07.svg',
+  '/images/sectors/sector-08.svg',
+];
+
+function resolveSectorCardImage(sector: SectorItem, index: number): string {
+  const u = sector.image_url?.trim();
+  if (u) return u;
+  return SECTOR_PLACEHOLDER_IMAGES[index % SECTOR_PLACEHOLDER_IMAGES.length];
+}
 
 const DOCUMENT_SECTORS: { name: string; description: string }[] = [
   {
@@ -152,17 +170,23 @@ export default function Page() {
           </div>
 
           <div className="sectors-grid">
-            {renderedSectors.map((sector) => (
-              <article key={sector.name} className="sector-card">
-                <div className="sector-card-icon" style={{ marginBottom: 'var(--space-lg)', color: 'var(--color-electric-blue)' }}>
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-                    <path d="M2 17l10 5 10-5"></path>
-                    <path d="M2 12l10 5 10-5"></path>
-                  </svg>
+            {renderedSectors.map((sector, index) => (
+              <article
+                key={sector.id != null ? sector.id : sector.name}
+                className="sector-card"
+              >
+                <div className="sector-card-media">
+                  <img
+                    src={resolveSectorCardImage(sector, index)}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                  />
                 </div>
-                <h3 className="sector-card-title">{sector.name}</h3>
-                <p className="sector-card-desc">{sector.description}</p>
+                <div className="sector-card-body">
+                  <h3 className="sector-card-title">{sector.name}</h3>
+                  <p className="sector-card-desc">{sector.description}</p>
+                </div>
               </article>
             ))}
           </div>

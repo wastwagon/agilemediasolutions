@@ -613,6 +613,7 @@ const ensureAppSchemaAndSeed = async () => {
       name TEXT NOT NULL,
       description TEXT,
       icon TEXT,
+      image_url TEXT,
       order_index INTEGER DEFAULT 0,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -655,6 +656,7 @@ const ensureAppSchemaAndSeed = async () => {
   await pgPool.query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS audience TEXT;`);
   await pgPool.query(`ALTER TABLE case_studies ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();`);
   await pgPool.query(`ALTER TABLE sectors ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();`);
+  await pgPool.query(`ALTER TABLE sectors ADD COLUMN IF NOT EXISTS image_url TEXT;`);
   await pgPool.query(`ALTER TABLE insight_posts ADD COLUMN IF NOT EXISTS media_class TEXT;`);
   await pgPool.query(`ALTER TABLE insight_posts ADD COLUMN IF NOT EXISTS published BOOLEAN NOT NULL DEFAULT TRUE;`);
   await pgPool.query(
@@ -1019,15 +1021,16 @@ app.get('/api/sectors', async (req, res) => {
 });
 
 app.post('/api/sectors', authenticateToken, async (req, res) => {
-  const { name, description, icon, order_index } = req.body || {};
+  const { name, description, icon, image_url, order_index } = req.body || {};
   try {
     const safeName = parseRequiredText(name, 'name', 180);
     const safeDescription = parseOptionalText(description, 'description', 6000);
     const safeIcon = parseOptionalText(icon, 'icon', 2000);
+    const safeImageUrl = parseOptionalUrlLike(image_url, 'image_url');
     const safeOrderIndex = parseOrderIndex(order_index);
     const result = await pgPool.query(
-      'INSERT INTO sectors (name, description, icon, order_index) VALUES ($1, $2, $3, $4) RETURNING *',
-      [safeName, safeDescription, safeIcon, safeOrderIndex]
+      'INSERT INTO sectors (name, description, icon, image_url, order_index) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [safeName, safeDescription, safeIcon, safeImageUrl, safeOrderIndex]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -1044,15 +1047,16 @@ app.delete('/api/sectors/:id', authenticateToken, async (req, res) => {
 });
 
 app.put('/api/sectors/:id', authenticateToken, async (req, res) => {
-  const { name, description, icon, order_index } = req.body || {};
+  const { name, description, icon, image_url, order_index } = req.body || {};
   try {
     const safeName = parseRequiredText(name, 'name', 180);
     const safeDescription = parseOptionalText(description, 'description', 6000);
     const safeIcon = parseOptionalText(icon, 'icon', 2000);
+    const safeImageUrl = parseOptionalUrlLike(image_url, 'image_url');
     const safeOrderIndex = parseOrderIndex(order_index);
     const result = await pgPool.query(
-      'UPDATE sectors SET name = $1, description = $2, icon = $3, order_index = $4, updated_at = NOW() WHERE id = $5 RETURNING *',
-      [safeName, safeDescription, safeIcon, safeOrderIndex, req.params.id]
+      'UPDATE sectors SET name = $1, description = $2, icon = $3, image_url = $4, order_index = $5, updated_at = NOW() WHERE id = $6 RETURNING *',
+      [safeName, safeDescription, safeIcon, safeImageUrl, safeOrderIndex, req.params.id]
     );
     if (result.rows.length === 0) return res.status(404).json({ error: 'Sector not found' });
     res.json(result.rows[0]);
