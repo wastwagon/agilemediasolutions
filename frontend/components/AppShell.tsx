@@ -79,7 +79,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     linkedinUrl: 'https://linkedin.com',
   });
 
-  useScrollAnimations(isAdminRoute ? [] : [pathname]);
+  useScrollAnimations(!isAdminRoute, pathname ?? '');
 
   if (isAdminRoute) {
     return <>{children}</>;
