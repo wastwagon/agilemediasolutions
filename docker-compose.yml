@@ -34,7 +34,10 @@ services:
     environment:
       - PORT=${BACKEND_PORT:-4000}
       - NODE_ENV=production
-      - DATABASE_URL=${DATABASE_URL:?Set DATABASE_URL to your postgres connection string}
+      # If DATABASE_URL is unset, derive from the same POSTGRES_* as the postgres service (avoids password drift).
+      # Coolify: if you still see "password authentication failed", delete DATABASE_URL from the resource env so this default applies, or set it to match POSTGRES_PASSWORD exactly. External DB: set DATABASE_URL explicitly.
+      # Avoid raw @ : / ? # in POSTGRES_PASSWORD unless URL-encoded in DATABASE_URL.
+      - DATABASE_URL=${DATABASE_URL:-postgres://${POSTGRES_USER:-agile_user}:${POSTGRES_PASSWORD:-agile_password}@postgres:5432/${POSTGRES_DB:-agile_db}}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - CORS_ORIGIN=${CORS_ORIGIN:?Set CORS_ORIGIN to your public frontend URL}
       - JWT_SECRET=${JWT_SECRET:?Set JWT_SECRET to a long random secret}
