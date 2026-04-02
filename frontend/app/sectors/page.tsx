@@ -31,7 +31,7 @@ function resolveSectorCardImage(sector: SectorItem, index: number): string {
   return SECTOR_PLACEHOLDER_IMAGES[index % SECTOR_PLACEHOLDER_IMAGES.length];
 }
 
-const DOCUMENT_SECTORS: { name: string; description: string }[] = [
+const DOCUMENT_SECTORS: SectorItem[] = [
   {
     name: 'Government & Public Institutions',
     description:
