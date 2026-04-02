@@ -96,6 +96,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: '/admin/dashboard', label: 'Dashboard' },
     { href: '/admin/brands', label: 'Brands' },
     { href: '/admin/services', label: 'Services' },
+    { href: '/admin/insights', label: 'Insights' },
     { href: '/admin/sectors', label: 'Sectors' },
     { href: '/admin/pages', label: 'Pages' },
     { href: '/admin/media', label: 'Media Library' },

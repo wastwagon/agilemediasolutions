@@ -1,44 +1,97 @@
-import Link from 'next/link';
-import React from 'react';
+'use client';
 
-const PREVIEW_ITEMS = [
-  {
-    href: '/insights',
-    meta: 'Press briefing · Q1 2026',
-    title: 'What we learned convening trade and policy leaders',
-    excerpt:
-      'Key takeaways from summit-side conversations on intra-African trade narratives, institutional trust, and how briefings travel across capitals.',
-    mediaClass: 'home-insights-media-briefing',
-  },
-  {
-    href: '/insights',
-    meta: 'Thought leadership',
-    title: 'Governance stories that earn attention—and keep it',
-    excerpt:
-      'Why clarity, cadence, and evidence still outperform noise in high-stakes sectors, and how we structure editorial for long-term credibility.',
-    mediaClass: 'home-insights-media-editorial',
-  },
-  {
-    href: '/agile-press-group',
-    meta: 'Agile Press Group',
-    title: 'Syndication that extends your reach across African media',
-    excerpt:
-      'How our publishing desk pairs original reporting with licensed circulation so campaigns, institutions, and brands show up where audiences already read.',
-    mediaClass: 'home-insights-media-syndication',
-  },
-] as const;
+import Link from 'next/link';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  INSIGHTS_FEATURED_DEFAULTS,
+  getInsightFeaturedReadCta,
+  normalizeMediaClass,
+  parseInsightFeatured,
+} from '@/lib/insightsFeatured';
+import { useSiteSectionContent } from '@/lib/siteSectionCms';
+
+type InsightListRow = {
+  id: number;
+  slug: string;
+  title: string;
+  meta: string | null;
+  excerpt: string | null;
+  image_url: string | null;
+  media_class: string | null;
+  order_index: number;
+  category: { id: number; name: string; slug: string } | null;
+};
+
+type PreviewCard = {
+  slug: string;
+  meta: string;
+  title: string;
+  excerpt: string;
+  imageUrl: string;
+  mediaClass: string;
+};
 
 export default function HomeInsightsPreview() {
+  const [apiPosts, setApiPosts] = useState<InsightListRow[] | null>(null);
+  const featured = useSiteSectionContent('insights.featured', INSIGHTS_FEATURED_DEFAULTS);
+  const readCta = useMemo(() => getInsightFeaturedReadCta(featured), [featured]);
+
+  useEffect(() => {
+    fetch('/api/public/insight-posts')
+      .then((r) => (r.ok ? r.json() : []))
+      .then((rows) => setApiPosts(Array.isArray(rows) ? rows : []))
+      .catch(() => setApiPosts([]));
+  }, []);
+
+  const cards: PreviewCard[] = useMemo(() => {
+    if (apiPosts !== null && apiPosts.length > 0) {
+      return apiPosts.slice(0, 3).map((p) => {
+        const kicker = [p.category?.name, p.meta].filter(Boolean).join(' · ');
+        return {
+          slug: p.slug,
+          meta: kicker,
+          title: p.title,
+          excerpt: p.excerpt || '',
+          imageUrl: p.image_url?.trim() || '',
+          mediaClass: normalizeMediaClass(p.media_class || ''),
+        };
+      });
+    }
+    return parseInsightFeatured(featured).map((c) => ({
+      slug: c.slug,
+      meta: c.meta,
+      title: c.title,
+      excerpt: c.excerpt,
+      imageUrl: c.imageUrl,
+      mediaClass: c.mediaClass,
+    }));
+  }, [apiPosts, featured]);
+
   return (
     <div className="home-insights-preview-grid">
-      {PREVIEW_ITEMS.map((item) => (
-        <Link key={item.title} href={item.href} className="home-insights-preview-card animate-on-scroll">
-          <div className={`home-insights-preview-media card-image-placeholder ${item.mediaClass}`} aria-hidden="true" />
+      {cards.map((item) => (
+        <Link
+          key={item.slug}
+          href={`/insights/${item.slug}`}
+          className="home-insights-preview-card animate-on-scroll"
+        >
+          {item.imageUrl ? (
+            <div
+              className="home-insights-preview-media home-insights-preview-media--image"
+              style={{ backgroundImage: `url(${item.imageUrl})` }}
+              aria-hidden="true"
+            />
+          ) : (
+            <div
+              className={`home-insights-preview-media card-image-placeholder ${item.mediaClass}`}
+              aria-hidden="true"
+            />
+          )}
           <div className="home-insights-preview-body">
             <span className="home-insights-preview-meta">{item.meta}</span>
             <h3 className="home-insights-preview-title">{item.title}</h3>
             <p className="home-insights-preview-excerpt">{item.excerpt}</p>
-            <span className="home-insights-preview-cta">Read more →</span>
+            <span className="home-insights-preview-cta">{readCta}</span>
           </div>
         </Link>
       ))}

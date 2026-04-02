@@ -26,28 +26,31 @@ function AnimatedCounter({ from = 0, to }: { from?: number, to: number }) {
 }
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState({ contacts: 0, brands: 0, services: 0, pages: 0, media: 0 });
+  const [stats, setStats] = useState({ contacts: 0, brands: 0, services: 0, insights: 0, pages: 0, media: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [contactsRes, brandsRes, servicesRes, pagesRes, mediaRes] = await Promise.all([
+        const [contactsRes, brandsRes, servicesRes, insightsRes, pagesRes, mediaRes] = await Promise.all([
           adminFetch('/api/admin/contacts', { headers: adminAuthHeaders() }),
           adminFetch('/api/brands'),
           adminFetch('/api/services'),
+          adminFetch('/api/insight-posts', { headers: adminAuthHeaders() }),
           adminFetch('/api/pages', { headers: adminAuthHeaders() }),
           adminFetch('/api/media', { headers: adminAuthHeaders() }),
         ]);
         const contacts = contactsRes.ok ? await contactsRes.json() : [];
         const brands = brandsRes.ok ? await brandsRes.json() : [];
         const services = servicesRes.ok ? await servicesRes.json() : [];
+        const insights = insightsRes.ok ? await insightsRes.json() : [];
         const pages = pagesRes.ok ? await pagesRes.json() : [];
         const media = mediaRes.ok ? await mediaRes.json() : [];
         setStats({
           contacts: Array.isArray(contacts) ? contacts.length : 0,
           brands: Array.isArray(brands) ? brands.length : 0,
           services: Array.isArray(services) ? services.length : 0,
+          insights: Array.isArray(insights) ? insights.length : 0,
           pages: Array.isArray(pages) ? pages.length : 0,
           media: Array.isArray(media) ? media.length : 0,
         });
@@ -87,6 +90,7 @@ export default function AdminDashboard() {
     { key: 'contacts', label: 'Contact messages', value: stats.contacts, href: '/admin/contacts', cta: 'View messages', accent: '#D76A49', tint: 'rgba(215, 106, 73, 0.13)', icon: '✉' },
     { key: 'brands', label: 'Brands', value: stats.brands, href: '/admin/brands', cta: 'Manage brands', accent: '#4F8F87', tint: 'rgba(79, 143, 135, 0.13)', icon: '◈' },
     { key: 'services', label: 'Services', value: stats.services, href: '/admin/services', cta: 'Manage services', accent: '#0D213B', tint: 'rgba(13, 33, 59, 0.08)', icon: '✦' },
+    { key: 'insights', label: 'Insights & blog', value: stats.insights, href: '/admin/insights', cta: 'Manage posts', accent: '#115e59', tint: 'rgba(17, 94, 89, 0.12)', icon: '✎' },
     { key: 'pages', label: 'Pages', value: stats.pages, href: '/admin/pages', cta: 'Manage pages', accent: '#5B6472', tint: 'rgba(91, 100, 114, 0.1)', icon: '▣' },
     { key: 'media', label: 'Media assets', value: stats.media, href: '/admin/media', cta: 'Open media library', accent: '#2C504A', tint: 'rgba(44, 80, 74, 0.13)', icon: '◉' },
   ] as const;

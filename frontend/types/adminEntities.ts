@@ -75,3 +75,44 @@ export interface SectorPayload {
   icon: string;
   order_index: number;
 }
+
+export interface InsightCategory {
+  id: number;
+  name: string;
+  slug: string;
+  order_index: number;
+}
+
+export interface InsightCategoryPayload {
+  name: string;
+  slug: string;
+  order_index: number;
+}
+
+export interface InsightPost {
+  id: number;
+  slug: string;
+  title: string;
+  meta: string | null;
+  excerpt: string | null;
+  body: string | null;
+  image_url: string | null;
+  media_class: string | null;
+  published: boolean;
+  order_index: number;
+  category_id: number | null;
+  category: { id: number; name: string; slug: string } | null;
+}
+
+export interface InsightPostPayload {
+  slug: string;
+  title: string;
+  meta: string;
+  excerpt: string;
+  body: string;
+  image_url: string;
+  media_class: string;
+  published: boolean;
+  order_index: number;
+  category_id: number | null;
+}

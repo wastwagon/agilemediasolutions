@@ -136,7 +136,8 @@ export default function Page() {
       </div>
 
       <section className="section section-sectors" id="sectors">
-        <div className="section-inner animate-on-scroll">
+        {/* No animate-on-scroll: entire grid was opacity:0 until observer runs, which looked like a blank page below the hero. */}
+        <div className="section-inner">
           <SectionHeader
             variant="inner"
             label={copy.sectionLabel}

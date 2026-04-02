@@ -7,7 +7,6 @@ import CaseStudiesCarousel from '../components/CaseStudiesCarousel';
 import SectionHeader from '../components/SectionHeader';
 import HomeFeaturedWork, { type HomeFeaturedStudy } from '../components/HomeFeaturedWork';
 import HomeInsightsPreview from '../components/HomeInsightsPreview';
-import { useScrollAnimations } from '../hooks/useScrollAnimations';
 import { useSiteSectionContent } from '@/lib/siteSectionCms';
 
 interface Brand {
@@ -81,7 +80,6 @@ export default function Page() {
   const [activeServiceIdx, setActiveServiceIdx] = useState<number | null>(0);
   const [loading, setLoading] = useState(true);
 
-  useScrollAnimations([loading, brands.length, services.length, events.length, caseStudiesHome.length]);
   const homeEventsCopy = useSiteSectionContent('home.events', {
     label: 'Flagship Convenings',
     title: 'Signature Events',
@@ -89,6 +87,19 @@ export default function Page() {
     linkLabel: 'See all events',
     ctaPrimary: 'See Event Calendar',
     ctaSecondary: 'Partner With Us',
+  });
+
+  const homeInsightsCopy = useSiteSectionContent('home.insights', {
+    label: 'Press + Intelligence',
+    title: 'Insights & Press Room',
+    subtitle:
+      'Stay updated with our bulletins, press briefings, news and thought leadership through the Agile Press Group.',
+    linkLabel: 'Read updates',
+    linkHref: '/insights',
+    ctaPrimary: 'Visit Agile Press Group →',
+    ctaPrimaryHref: '/agile-press-group',
+    ctaSecondary: 'Insights & press room',
+    ctaSecondaryHref: '/insights',
   });
 
   useEffect(() => {
@@ -438,17 +449,19 @@ export default function Page() {
         <div className="section-inner animate-on-scroll">
           <SectionHeader
             variant="home"
-            label="Press + Intelligence"
-            title={<>Insights &amp; Press Room</>}
-            linkHref="/insights"
-            linkLabel="Read updates"
+            label={homeInsightsCopy.label}
+            title={<>{homeInsightsCopy.title}</>}
+            linkHref={homeInsightsCopy.linkHref}
+            linkLabel={homeInsightsCopy.linkLabel}
           />
-          <p className="section-subtitle centered">
-            Stay updated with our bulletins, press briefings, news and thought leadership through the Agile Press Group.
-          </p>
+          <p className="section-subtitle centered">{homeInsightsCopy.subtitle}</p>
           <div className="section-cta-center">
-            <Link href="/agile-press-group" className="btn btn-primary">Visit Agile Press Group →</Link>
-            <Link href="/insights" className="btn btn-outline">Insights &amp; press room</Link>
+            <Link href={homeInsightsCopy.ctaPrimaryHref} className="btn btn-primary">
+              {homeInsightsCopy.ctaPrimary}
+            </Link>
+            <Link href={homeInsightsCopy.ctaSecondaryHref} className="btn btn-outline">
+              {homeInsightsCopy.ctaSecondary}
+            </Link>
           </div>
           <HomeInsightsPreview />
         </div>

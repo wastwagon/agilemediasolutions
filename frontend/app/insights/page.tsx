@@ -2,6 +2,13 @@ import React from 'react';
 import Link from 'next/link';
 import SectionHeader from '../../components/SectionHeader';
 import { getSiteSectionContent } from '@/lib/siteSectionCmsServer';
+import {
+  INSIGHTS_FEATURED_DEFAULTS,
+  getInsightFeaturedReadCta,
+  normalizeMediaClass,
+  parseInsightFeatured,
+} from '@/lib/insightsFeatured';
+import { getPublicInsightPosts } from '@/lib/insightPostsServer';
 
 export const metadata = {
   title: 'Insights & Press Room',
@@ -51,6 +58,21 @@ export default async function Page() {
   const insightsBullets = parseLineList(copy.insightsBullets);
   const pressBullets = parseLineList(copy.pressBullets);
 
+  const featuredFlat = await getSiteSectionContent('insights.featured', INSIGHTS_FEATURED_DEFAULTS);
+  const dbPosts = await getPublicInsightPosts();
+  const featuredCards =
+    dbPosts.length > 0
+      ? dbPosts.map((p) => ({
+          slug: p.slug,
+          meta: [p.category?.name, p.meta].filter(Boolean).join(' · '),
+          title: p.title,
+          excerpt: p.excerpt || '',
+          imageUrl: p.image_url?.trim() || '',
+          mediaClass: normalizeMediaClass(p.media_class || ''),
+        }))
+      : parseInsightFeatured(featuredFlat);
+  const featuredReadCta = getInsightFeaturedReadCta(featuredFlat);
+
   return (
     <main className="services-page-main creative-public-page">
       <div className="page-hero">
@@ -62,6 +84,46 @@ export default async function Page() {
           </p>
         </div>
       </div>
+      {featuredCards.length > 0 ? (
+        <section className="section section-insights-featured-preview" aria-labelledby="insights-featured-heading">
+          <div className="section-inner">
+            <div className="insights-featured-preview-head">
+              <span className="section-label" id="insights-featured-heading">
+                From the desk
+              </span>
+              <h2 className="section-title">Featured briefings &amp; analysis</h2>
+            </div>
+            <div className="insights-featured-preview-grid">
+              {featuredCards.map((item) => (
+                <Link
+                  key={item.slug}
+                  href={`/insights/${item.slug}`}
+                  className="insights-featured-preview-card"
+                >
+                  {item.imageUrl ? (
+                    <div
+                      className="insights-featured-preview-media insights-featured-preview-media--image"
+                      style={{ backgroundImage: `url(${item.imageUrl})` }}
+                      aria-hidden="true"
+                    />
+                  ) : (
+                    <div
+                      className={`insights-featured-preview-media card-image-placeholder ${item.mediaClass}`}
+                      aria-hidden="true"
+                    />
+                  )}
+                  <div className="insights-featured-preview-body">
+                    <span className="insights-featured-preview-meta">{item.meta}</span>
+                    <h3 className="insights-featured-preview-title">{item.title}</h3>
+                    <p className="insights-featured-preview-excerpt">{item.excerpt}</p>
+                    <span className="insights-featured-preview-cta">{featuredReadCta}</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
       <section className="section section-insights" id="insights">
         <div className="section-inner animate-on-scroll">
           <SectionHeader

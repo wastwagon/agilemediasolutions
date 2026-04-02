@@ -321,6 +321,60 @@ const SEED_CASE_STUDIES = [
   },
 ];
 
+const SEED_INSIGHT_CATEGORIES = [
+  { name: 'Press briefing', slug: 'press-briefing', order_index: 1 },
+  { name: 'Thought leadership', slug: 'thought-leadership', order_index: 2 },
+  { name: 'Agile Press Group', slug: 'agile-press-group', order_index: 3 },
+];
+
+const SEED_INSIGHT_POSTS = [
+  {
+    slug: 'trade-policy-briefing-q1',
+    category_slug: 'press-briefing',
+    title: 'What we learned convening trade and policy leaders',
+    meta: 'Press briefing · Q1 2026',
+    excerpt:
+      'Key takeaways from summit-side conversations on intra-African trade narratives, institutional trust, and how briefings travel across capitals.',
+    media_class: 'home-insights-media-briefing',
+    order_index: 1,
+    body: `Across a packed quarter of convenings with trade negotiators, policy leads, and institutional partners, a few themes kept surfacing: audiences are tired of slogans, hungry for evidence, and quicker than ever to test whether a narrative matches what they see on the ground.
+
+We saw the strongest briefings win when they paired clear stakes with credible third-party anchors—data, practitioner voices, and timelines that leaders could actually use in their own rooms. Trust moved not from volume of messaging but from consistency between what was said in public and what stakeholders heard in smaller sessions.
+
+For teams preparing the next cycle of engagements, the takeaway is practical: design briefing arcs that travel—from prepared remarks to corridor conversations to follow-up notes—so the same story deepens instead of fragmenting as it crosses capitals.`,
+  },
+  {
+    slug: 'governance-stories-attention',
+    category_slug: 'thought-leadership',
+    title: 'Governance stories that earn attention—and keep it',
+    meta: 'Thought leadership',
+    excerpt:
+      'Why clarity, cadence, and evidence still outperform noise in high-stakes sectors, and how we structure editorial for long-term credibility.',
+    media_class: 'home-insights-media-editorial',
+    order_index: 2,
+    body: `In high-stakes sectors, attention is easy to rent and hard to own. Governance and policy audiences in particular reward narratives that respect their time: a sharp thesis, a transparent method, and a steady publishing cadence that proves you are in the conversation for the long haul—not only when you need something.
+
+We structure editorial programs around three layers: a flagship point of view that states where you stand, proof assets that show your work (briefings, data slices, and subject-matter explainers), and human stories that make abstract policy tangible for broader publics. That mix keeps specialist readers engaged while still giving general outlets something they can carry.
+
+The through-line is credibility. When institutions publish only in moments of crisis, audiences learn to expect spin. When they publish regularly—and invite scrutiny—they earn the right to be heard when it matters most.`,
+  },
+  {
+    slug: 'syndication-african-media',
+    category_slug: 'agile-press-group',
+    title: 'Syndication that extends your reach across African media',
+    meta: 'Agile Press Group',
+    excerpt:
+      'How our publishing desk pairs original reporting with licensed circulation so campaigns, institutions, and brands show up where audiences already read.',
+    media_class: 'home-insights-media-syndication',
+    order_index: 3,
+    body: `Distribution is not an afterthought; it is part of the story design. The Agile Press Group combines original reporting and partner-ready formats with licensed circulation across trusted African media networks, so your message appears in the publications audiences already rely on—not only on owned channels.
+
+We work with desks and editors to adapt tone and length for each outlet while preserving factual integrity and a single strategic spine. That means fewer “one-size” press releases and more assets that editors can actually use: concise briefings, Q&As, visuals, and localized angles where they add value.
+
+If you are planning a launch, a policy milestone, or a sustained thought-leadership arc, start with the end readership in mind: where they read, who they trust, and what proof they need before they amplify your narrative.`,
+  },
+];
+
 async function seedAgileContent(pool) {
   await pool.query(
     `INSERT INTO pages (slug, title, description, content_json)
@@ -396,6 +450,30 @@ async function seedAgileContent(pool) {
        SELECT $1, $2, $3, NULL, '{}'::jsonb, $4
        WHERE NOT EXISTS (SELECT 1 FROM case_studies WHERE title = $1)`,
       [c.title, c.client_name, c.description, c.order_index]
+    );
+  }
+
+  for (const c of SEED_INSIGHT_CATEGORIES) {
+    await pool.query(
+      `INSERT INTO insight_categories (name, slug, order_index)
+       SELECT $1, $2, $3
+       WHERE NOT EXISTS (SELECT 1 FROM insight_categories WHERE slug = $2)`,
+      [c.name, c.slug, c.order_index]
+    );
+  }
+
+  for (const p of SEED_INSIGHT_POSTS) {
+    const catSlug = p.category_slug || null;
+    let categoryId = null;
+    if (catSlug) {
+      const cr = await pool.query('SELECT id FROM insight_categories WHERE slug = $1', [catSlug]);
+      categoryId = cr.rows[0]?.id ?? null;
+    }
+    await pool.query(
+      `INSERT INTO insight_posts (slug, title, meta, excerpt, body, image_url, media_class, published, order_index, category_id)
+       SELECT $1, $2, $3, $4, $5, NULL, $6, TRUE, $7, $8
+       WHERE NOT EXISTS (SELECT 1 FROM insight_posts WHERE slug = $1)`,
+      [p.slug, p.title, p.meta, p.excerpt, p.body, p.media_class, p.order_index, categoryId]
     );
   }
 }

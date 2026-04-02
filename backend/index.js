@@ -304,6 +304,61 @@ const parseOrderIndex = (value) => {
   return n;
 };
 
+const parseInsightSlug = (value) => {
+  const raw = parseRequiredText(value, 'slug', 180);
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(raw)) {
+    throw new ValidationError('slug must use lowercase letters, numbers, and hyphens only');
+  }
+  return raw;
+};
+
+const parsePublishedFlag = (value) => {
+  if (value === true || value === 1) return true;
+  if (value === false || value === 0) return false;
+  if (typeof value === 'string') {
+    const s = value.trim().toLowerCase();
+    if (s === 'true' || s === '1' || s === 'yes' || s === 'on') return true;
+    if (s === 'false' || s === '0' || s === 'no') return false;
+  }
+  return Boolean(value);
+};
+
+const resolveInsightCategoryId = async (pool, value) => {
+  if (!pool) throw new ValidationError('Database not available');
+  if (value === undefined || value === null || value === '') return null;
+  const n = Number.parseInt(String(value), 10);
+  if (!Number.isFinite(n) || n < 1) {
+    throw new ValidationError('category_id must be a positive integer or empty');
+  }
+  const r = await pool.query('SELECT id FROM insight_categories WHERE id = $1', [n]);
+  if (r.rows.length === 0) throw new ValidationError('Category not found');
+  return n;
+};
+
+const shapeInsightPostRow = (row) => {
+  if (!row) return row;
+  const category =
+    row.category_id != null && row.category_name != null
+      ? { id: row.category_id, name: row.category_name, slug: row.category_slug }
+      : null;
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    meta: row.meta,
+    excerpt: row.excerpt,
+    body: row.body,
+    image_url: row.image_url,
+    media_class: row.media_class,
+    published: row.published,
+    order_index: row.order_index,
+    category_id: row.category_id ?? null,
+    category,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+  };
+};
+
 // Ensure uploads directory exists
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)){
@@ -513,6 +568,31 @@ const ensureAppSchemaAndSeed = async () => {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+
+    CREATE TABLE IF NOT EXISTS insight_categories (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      slug TEXT NOT NULL UNIQUE,
+      order_index INTEGER NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS insight_posts (
+      id SERIAL PRIMARY KEY,
+      slug TEXT NOT NULL UNIQUE,
+      title TEXT NOT NULL,
+      meta TEXT,
+      excerpt TEXT,
+      body TEXT,
+      image_url TEXT,
+      media_class TEXT,
+      published BOOLEAN NOT NULL DEFAULT TRUE,
+      order_index INTEGER NOT NULL DEFAULT 0,
+      category_id INTEGER REFERENCES insight_categories(id) ON DELETE SET NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
   `);
   await pgPool.query(`ALTER TABLE brands ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();`);
   await pgPool.query(`ALTER TABLE brands ADD COLUMN IF NOT EXISTS audience TEXT;`);
@@ -526,6 +606,12 @@ const ensureAppSchemaAndSeed = async () => {
   await pgPool.query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS audience TEXT;`);
   await pgPool.query(`ALTER TABLE case_studies ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();`);
   await pgPool.query(`ALTER TABLE sectors ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();`);
+  await pgPool.query(`ALTER TABLE insight_posts ADD COLUMN IF NOT EXISTS media_class TEXT;`);
+  await pgPool.query(`ALTER TABLE insight_posts ADD COLUMN IF NOT EXISTS published BOOLEAN NOT NULL DEFAULT TRUE;`);
+  await pgPool.query(
+    `ALTER TABLE insight_posts ADD COLUMN IF NOT EXISTS category_id INTEGER REFERENCES insight_categories(id) ON DELETE SET NULL;`
+  );
+  await pgPool.query(`ALTER TABLE insight_categories ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();`);
   await ensureMediaAssetsTable();
   await ensureSiteSectionsTable();
   await ensureAdminAuditLogsTable();
@@ -1009,6 +1095,222 @@ app.delete('/api/services/:id', authenticateToken, async (req, res) => {
     if (result.rows.length === 0) return res.status(404).json({ error: 'Service not found' });
     res.json({ message: 'Service deleted successfully' });
   } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Insight categories (admin CRUD; public GET for filters / display)
+app.get('/api/insight-categories', async (req, res) => {
+  if (!pgPool) return res.status(500).json({ error: 'Database not available' });
+  try {
+    const result = await pgPool.query(
+      'SELECT * FROM insight_categories ORDER BY order_index ASC, name ASC'
+    );
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/insight-categories', authenticateToken, async (req, res) => {
+  if (!pgPool) return res.status(500).json({ error: 'Database not available' });
+  const { name, slug, order_index } = req.body || {};
+  try {
+    const safeName = parseRequiredText(name, 'name', 200);
+    const safeSlug = parseInsightSlug(slug);
+    const safeOrderIndex = parseOrderIndex(order_index);
+    const result = await pgPool.query(
+      'INSERT INTO insight_categories (name, slug, order_index) VALUES ($1, $2, $3) RETURNING *',
+      [safeName, safeSlug, safeOrderIndex]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (err.code === '23505') return res.status(409).json({ error: 'Slug already in use' });
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/insight-categories/:id', authenticateToken, async (req, res) => {
+  if (!pgPool) return res.status(500).json({ error: 'Database not available' });
+  const { name, slug, order_index } = req.body || {};
+  try {
+    const safeName = parseRequiredText(name, 'name', 200);
+    const safeSlug = parseInsightSlug(slug);
+    const safeOrderIndex = parseOrderIndex(order_index);
+    const result = await pgPool.query(
+      'UPDATE insight_categories SET name = $1, slug = $2, order_index = $3, updated_at = NOW() WHERE id = $4 RETURNING *',
+      [safeName, safeSlug, safeOrderIndex, req.params.id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Category not found' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (err.code === '23505') return res.status(409).json({ error: 'Slug already in use' });
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/insight-categories/:id', authenticateToken, async (req, res) => {
+  if (!pgPool) return res.status(500).json({ error: 'Database not available' });
+  try {
+    const result = await pgPool.query('DELETE FROM insight_categories WHERE id = $1 RETURNING *', [
+      req.params.id,
+    ]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Category not found' });
+    res.json({ message: 'Category deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+const INSIGHT_POST_ADMIN_SELECT = `
+  SELECT ip.id, ip.slug, ip.title, ip.meta, ip.excerpt, ip.body, ip.image_url, ip.media_class,
+         ip.published, ip.order_index, ip.created_at, ip.updated_at, ip.category_id,
+         ic.name AS category_name, ic.slug AS category_slug
+  FROM insight_posts ip
+  LEFT JOIN insight_categories ic ON ic.id = ip.category_id
+`;
+
+// Insight posts (blog / press desk — admin list requires auth; public read is separate)
+app.get('/api/insight-posts', authenticateToken, async (req, res) => {
+  if (!pgPool) return res.status(500).json({ error: 'Database not available' });
+  try {
+    const result = await pgPool.query(
+      `${INSIGHT_POST_ADMIN_SELECT} ORDER BY ip.order_index ASC, ip.created_at DESC`
+    );
+    res.json(result.rows.map(shapeInsightPostRow));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/public/insight-posts', async (req, res) => {
+  if (!pgPool) return res.status(500).json({ error: 'Database not available' });
+  try {
+    const result = await pgPool.query(
+      `SELECT ip.id, ip.slug, ip.title, ip.meta, ip.excerpt, ip.image_url, ip.media_class,
+              ip.order_index, ip.created_at, ip.updated_at, ip.category_id,
+              ic.name AS category_name, ic.slug AS category_slug
+       FROM insight_posts ip
+       LEFT JOIN insight_categories ic ON ic.id = ip.category_id
+       WHERE ip.published = true
+       ORDER BY ip.order_index ASC, ip.created_at DESC`
+    );
+    res.json(result.rows.map(shapeInsightPostRow));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/public/insight-posts/:slug', async (req, res) => {
+  if (!pgPool) return res.status(500).json({ error: 'Database not available' });
+  try {
+    const slug = parseInsightSlug(String(req.params.slug || ''));
+    const result = await pgPool.query(
+      `${INSIGHT_POST_ADMIN_SELECT} WHERE ip.slug = $1 AND ip.published = true`,
+      [slug]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Not found' });
+    res.json(shapeInsightPostRow(result.rows[0]));
+  } catch (err) {
+    if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/insight-posts', authenticateToken, async (req, res) => {
+  if (!pgPool) return res.status(500).json({ error: 'Database not available' });
+  const { slug, title, meta, excerpt, body, image_url, media_class, published, order_index, category_id } =
+    req.body || {};
+  try {
+    const safeSlug = parseInsightSlug(slug);
+    const safeTitle = parseRequiredText(title, 'title', 300);
+    const safeMeta = parseOptionalText(meta, 'meta', 400);
+    const safeExcerpt = parseOptionalText(excerpt, 'excerpt', 2000);
+    const safeBody = parseOptionalText(body, 'body', 120000);
+    const safeImageUrl = parseOptionalUrlLike(image_url, 'image_url');
+    const safeMediaClass = parseOptionalText(media_class, 'media_class', 120);
+    const safePublished = parsePublishedFlag(published);
+    const safeOrderIndex = parseOrderIndex(order_index);
+    const safeCategoryId = await resolveInsightCategoryId(pgPool, category_id);
+    const insert = await pgPool.query(
+      `INSERT INTO insight_posts (slug, title, meta, excerpt, body, image_url, media_class, published, order_index, category_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       RETURNING id`,
+      [
+        safeSlug,
+        safeTitle,
+        safeMeta,
+        safeExcerpt,
+        safeBody,
+        safeImageUrl,
+        safeMediaClass,
+        safePublished,
+        safeOrderIndex,
+        safeCategoryId,
+      ]
+    );
+    const full = await pgPool.query(`${INSIGHT_POST_ADMIN_SELECT} WHERE ip.id = $1`, [insert.rows[0].id]);
+    res.status(201).json(shapeInsightPostRow(full.rows[0]));
+  } catch (err) {
+    if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (err.code === '23505') return res.status(409).json({ error: 'Slug already in use' });
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/insight-posts/:id', authenticateToken, async (req, res) => {
+  if (!pgPool) return res.status(500).json({ error: 'Database not available' });
+  const { slug, title, meta, excerpt, body, image_url, media_class, published, order_index, category_id } =
+    req.body || {};
+  try {
+    const safeSlug = parseInsightSlug(slug);
+    const safeTitle = parseRequiredText(title, 'title', 300);
+    const safeMeta = parseOptionalText(meta, 'meta', 400);
+    const safeExcerpt = parseOptionalText(excerpt, 'excerpt', 2000);
+    const safeBody = parseOptionalText(body, 'body', 120000);
+    const safeImageUrl = parseOptionalUrlLike(image_url, 'image_url');
+    const safeMediaClass = parseOptionalText(media_class, 'media_class', 120);
+    const safePublished = parsePublishedFlag(published);
+    const safeOrderIndex = parseOrderIndex(order_index);
+    const safeCategoryId = await resolveInsightCategoryId(pgPool, category_id);
+    const result = await pgPool.query(
+      `UPDATE insight_posts
+       SET slug = $1, title = $2, meta = $3, excerpt = $4, body = $5, image_url = $6, media_class = $7, published = $8, order_index = $9, category_id = $10, updated_at = NOW()
+       WHERE id = $11
+       RETURNING id`,
+      [
+        safeSlug,
+        safeTitle,
+        safeMeta,
+        safeExcerpt,
+        safeBody,
+        safeImageUrl,
+        safeMediaClass,
+        safePublished,
+        safeOrderIndex,
+        safeCategoryId,
+        req.params.id,
+      ]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Insight post not found' });
+    const full = await pgPool.query(`${INSIGHT_POST_ADMIN_SELECT} WHERE ip.id = $1`, [req.params.id]);
+    res.json(shapeInsightPostRow(full.rows[0]));
+  } catch (err) {
+    if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (err.code === '23505') return res.status(409).json({ error: 'Slug already in use' });
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/insight-posts/:id', authenticateToken, async (req, res) => {
+  if (!pgPool) return res.status(500).json({ error: 'Database not available' });
+  try {
+    const result = await pgPool.query('DELETE FROM insight_posts WHERE id = $1 RETURNING *', [req.params.id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Insight post not found' });
+    res.json({ message: 'Insight post deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Events

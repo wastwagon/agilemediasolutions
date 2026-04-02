@@ -8,10 +8,13 @@ import TopBar from './TopBar';
 import Header from './Header';
 import Preloader from './Preloader';
 import MobileTabBar from './MobileTabBar';
+import { useScrollAnimations } from '@/hooks/useScrollAnimations';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAdminRoute = pathname?.startsWith('/admin');
+
+  useScrollAnimations(isAdminRoute ? [] : [pathname]);
 
   if (isAdminRoute) {
     return <>{children}</>;
