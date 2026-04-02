@@ -45,14 +45,17 @@ type DisplayItem = {
 
 function buildItems(studies?: HomeFeaturedStudy[] | null): DisplayItem[] {
   if (studies && studies.length >= 2) {
-    return studies.slice(0, 2).map((s, i) => ({
-      href: '/case-studies',
-      tag: s.client_name?.trim() || 'Case study',
-      title: s.title,
-      line: truncate(s.description, 150),
-      imageUrl: s.image_url || undefined,
-      mediaClass: FALLBACK_MEDIA[i % FALLBACK_MEDIA.length],
-    }));
+    return studies.slice(0, 2).map((s, i) => {
+      const trimmed = typeof s.image_url === 'string' ? s.image_url.trim() : '';
+      return {
+        href: '/case-studies',
+        tag: s.client_name?.trim() || 'Case study',
+        title: s.title,
+        line: truncate(s.description, 150),
+        imageUrl: trimmed || undefined,
+        mediaClass: FALLBACK_MEDIA[i % FALLBACK_MEDIA.length],
+      };
+    });
   }
   return STATIC_SPOTLIGHTS.map((s) => ({ ...s, imageUrl: undefined }));
 }
@@ -65,12 +68,8 @@ export default function HomeFeaturedWork({ studies }: { studies?: HomeFeaturedSt
       {items.map((item, index) => (
         <Link key={`${item.tag}-${item.title}-${index}`} href={item.href} className="home-featured-work-card">
           <div
-            className={`home-featured-work-media card-image-placeholder ${item.imageUrl ? '' : item.mediaClass}`}
-            style={
-              item.imageUrl
-                ? { backgroundImage: `url(${item.imageUrl})`, backgroundColor: '#1a1a1f' }
-                : undefined
-            }
+            className={`home-featured-work-media card-image-placeholder ${item.imageUrl ? 'has-image' : item.mediaClass}`}
+            style={item.imageUrl ? { backgroundImage: `url(${item.imageUrl})` } : undefined}
             aria-hidden="true"
           />
           <div className="home-featured-work-body">

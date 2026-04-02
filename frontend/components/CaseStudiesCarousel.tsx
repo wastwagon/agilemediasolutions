@@ -49,13 +49,16 @@ export default function CaseStudiesCarousel() {
 
   const items: DisplayItem[] = useMemo(() => {
     if (caseStudies.length > 0) {
-      return caseStudies.map((item) => ({
-        id: `case-${item.id}`,
-        title: item.title,
-        text: item.description,
-        imageUrl: item.image_url || undefined,
-        clientName: item.client_name || undefined,
-      }));
+      return caseStudies.map((item) => {
+        const trimmed = typeof item.image_url === 'string' ? item.image_url.trim() : '';
+        return {
+          id: `case-${item.id}`,
+          title: item.title,
+          text: item.description,
+          imageUrl: trimmed || undefined,
+          clientName: item.client_name || undefined,
+        };
+      });
     }
 
     return FALLBACK_HIGHLIGHTS.map((item, index) => ({
@@ -136,9 +139,6 @@ export default function CaseStudiesCarousel() {
                 style={{
                   backgroundImage: item.imageUrl ? `url(${item.imageUrl})` : undefined,
                   backgroundColor: !item.imageUrl && !item.imgClass ? '#1f2937' : undefined,
-                  backgroundSize: item.imageUrl ? 'cover' : undefined,
-                  backgroundPosition: item.imageUrl ? 'top center' : undefined,
-                  backgroundRepeat: item.imageUrl ? 'no-repeat' : undefined,
                 }}
                 aria-hidden="true"
               />

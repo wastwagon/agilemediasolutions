@@ -1373,11 +1373,18 @@ main {
 }
 
 .case-carousel-media {
-  height: 190px;
+  height: clamp(180px, 22vw, 210px);
   border-radius: 0;
   border: none;
   min-height: 0;
-  background-position: top center;
+}
+
+/* Live Campaign Highlights: show full image centered in the frame (uploads + Unsplash fallbacks) */
+.case-carousel .case-carousel-media.card-image-placeholder {
+  background-color: #0f1419;
+  background-size: contain;
+  background-position: center center;
+  background-repeat: no-repeat;
 }
 
 .case-carousel-body {
@@ -3112,6 +3119,14 @@ main {
   border-radius: 0;
   border: none;
   min-height: 0;
+}
+
+/* Uploaded case-study images: show full asset (no crop) and hide placeholder glyph */
+.creative-home .home-featured-work-media.card-image-placeholder.has-image {
+  background-color: #0f1419;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .creative-home .home-featured-work-body {
