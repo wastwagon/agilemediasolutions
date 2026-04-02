@@ -485,7 +485,7 @@ export const SITE_SECTION_DEFINITIONS: SiteSectionDefinition[] = [
     key: 'digital-engagement.page',
     title: 'Digital Engagement Page',
     description:
-      'Edit hero, section intro, headings, and CTAs. Offering cards (with optional bullet lists) are under Admin → Digital engagement management.',
+      'Edit hero, section intro, headings, and CTAs. Offering cards (with optional bullet lists) are under Admin → Digital Engagement.',
     fields: [
       { id: 'heroLabel', label: 'Hero label' },
       { id: 'heroTitle', label: 'Hero title', multiline: true },

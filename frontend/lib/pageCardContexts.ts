@@ -11,7 +11,7 @@ export const PAGE_CARD_CONTEXT_META: Record<
   { label: string; publicPath: string; adminSubtitle: string }
 > = {
   'digital-engagement': {
-    label: 'Digital engagement management',
+    label: 'Digital Engagement',
     publicPath: '/digital-engagement',
     adminSubtitle: 'Cards appear in the “How we can help” grid on the Digital Engagement page. Add, reorder, or hide cards anytime.',
   },

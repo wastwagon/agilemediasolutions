@@ -97,7 +97,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: '/admin/brands', label: 'Brands' },
     { href: '/admin/services', label: 'Services' },
     { href: '/admin/insights', label: 'Insights' },
-    { href: '/admin/page-cards/digital-engagement', label: 'Digital engagement management' },
+    { href: '/admin/page-cards/digital-engagement', label: 'Digital Engagement' },
     { href: '/admin/page-cards/studio', label: 'Studio cards' },
     { href: '/admin/sectors', label: 'Sectors' },
     { href: '/admin/pages', label: 'Pages' },
