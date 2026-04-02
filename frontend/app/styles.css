@@ -2084,6 +2084,13 @@ main {
   text-shadow: 0 14px 38px rgba(8, 16, 28, 0.34);
 }
 
+/* Band intro under header row: match left edge of title/label (not centered). */
+.creative-home .section-inner > .section-subtitle:not(.centered) {
+  text-align: left;
+  margin-left: 0;
+  margin-right: 0;
+}
+
 .creative-home .section-label {
   color: #99f6e4;
   letter-spacing: 0.14em;

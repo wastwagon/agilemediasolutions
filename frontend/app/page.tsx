@@ -317,7 +317,7 @@ export default function Page() {
             linkHref={homeServicesBand.linkHref}
             linkLabel={homeServicesBand.linkLabel}
           />
-          <p className="section-subtitle centered">{homeServicesBand.subtitle}</p>
+          <p className="section-subtitle">{homeServicesBand.subtitle}</p>
           <div className="services-template-panel">
             {homeServices.map((s, idx) => {
               const isActive = idx === activeServiceIdx;
@@ -384,7 +384,7 @@ export default function Page() {
             linkHref={homeBrandsBand.linkHref}
             linkLabel={homeBrandsBand.linkLabel}
           />
-          <p className="section-subtitle centered">{homeBrandsBand.subtitle}</p>
+          <p className="section-subtitle">{homeBrandsBand.subtitle}</p>
           <div className="cards-grid cards-brands">
             {brands.length > 0 ? (
               brands.map((b: Brand) => (
@@ -440,9 +440,7 @@ export default function Page() {
             linkHref="/signature-events"
             linkLabel={homeEventsCopy.linkLabel}
           />
-          <p className="section-subtitle centered">
-            {homeEventsCopy.subtitle}
-          </p>
+          <p className="section-subtitle">{homeEventsCopy.subtitle}</p>
           <div className="cards-grid cards-events">
             {events.length > 0 ? (
               events.slice(0, 3).map((e) => (
@@ -497,7 +495,7 @@ export default function Page() {
             linkHref={homeCaseStudiesBand.linkHref}
             linkLabel={homeCaseStudiesBand.linkLabel}
           />
-          <p className="section-subtitle centered">{homeCaseStudiesBand.subtitle}</p>
+          <p className="section-subtitle">{homeCaseStudiesBand.subtitle}</p>
           <HomeFeaturedWork studies={caseStudiesHome} />
           <CaseStudiesCarousel />
           <div className="section-cta-center">
@@ -520,7 +518,7 @@ export default function Page() {
             linkHref={homeInsightsCopy.linkHref}
             linkLabel={homeInsightsCopy.linkLabel}
           />
-          <p className="section-subtitle centered">{homeInsightsCopy.subtitle}</p>
+          <p className="section-subtitle">{homeInsightsCopy.subtitle}</p>
           <div className="section-cta-center">
             <Link href={homeInsightsCopy.ctaPrimaryHref} className="btn btn-primary">
               {homeInsightsCopy.ctaPrimary}
