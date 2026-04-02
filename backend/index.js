@@ -468,6 +468,55 @@ const ensureSiteSectionsTable = async () => {
   `);
 };
 
+const ALLOWED_PAGE_CARD_CONTEXTS = new Set(['digital-engagement', 'studio']);
+
+const parsePageCardContext = (value, field = 'context') => {
+  const raw = parseRequiredText(value, field, 80);
+  if (!ALLOWED_PAGE_CARD_CONTEXTS.has(raw)) {
+    throw new ValidationError(`${field} must be one of: ${[...ALLOWED_PAGE_CARD_CONTEXTS].join(', ')}`);
+  }
+  return raw;
+};
+
+const shapePageContentCardRow = (row) => {
+  if (!row) return row;
+  return {
+    id: row.id,
+    context: row.context,
+    title: row.title,
+    body: row.body,
+    image_url: row.image_url,
+    list_label: row.list_label,
+    list_items: row.list_items,
+    published: row.published,
+    order_index: row.order_index,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+  };
+};
+
+const ensurePageContentCardsTable = async () => {
+  if (!pgPool) return;
+  await pgPool.query(`
+    CREATE TABLE IF NOT EXISTS page_content_cards (
+      id SERIAL PRIMARY KEY,
+      context TEXT NOT NULL,
+      title TEXT NOT NULL,
+      body TEXT,
+      image_url TEXT,
+      list_label TEXT,
+      list_items TEXT,
+      published BOOLEAN NOT NULL DEFAULT TRUE,
+      order_index INTEGER NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+  await pgPool.query(
+    `CREATE INDEX IF NOT EXISTS page_content_cards_context_published_order_idx ON page_content_cards (context, published, order_index);`
+  );
+};
+
 const ensureAdminAuditLogsTable = async () => {
   if (!pgPool) return;
   await pgPool.query(`
@@ -614,6 +663,7 @@ const ensureAppSchemaAndSeed = async () => {
   await pgPool.query(`ALTER TABLE insight_categories ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();`);
   await ensureMediaAssetsTable();
   await ensureSiteSectionsTable();
+  await ensurePageContentCardsTable();
   await ensureAdminAuditLogsTable();
   await seedAgileContent(pgPool);
 };
@@ -1308,6 +1358,111 @@ app.delete('/api/insight-posts/:id', authenticateToken, async (req, res) => {
     const result = await pgPool.query('DELETE FROM insight_posts WHERE id = $1 RETURNING *', [req.params.id]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'Insight post not found' });
     res.json({ message: 'Insight post deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Page content cards (Digital Engagement, Studio, etc. — admin CRUD + public read)
+app.get('/api/page-content-cards', authenticateToken, async (req, res) => {
+  if (!pgPool) return res.status(500).json({ error: 'Database not available' });
+  try {
+    await ensurePageContentCardsTable();
+    const ctx = req.query?.context;
+    if (typeof ctx !== 'string' || !ctx.trim()) {
+      return res.status(400).json({ error: 'Query parameter context is required' });
+    }
+    const safeContext = parsePageCardContext(ctx.trim(), 'context');
+    const result = await pgPool.query(
+      `SELECT * FROM page_content_cards WHERE context = $1 ORDER BY order_index ASC, id ASC`,
+      [safeContext]
+    );
+    res.json(result.rows.map(shapePageContentCardRow));
+  } catch (err) {
+    if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/public/page-content-cards/:context', async (req, res) => {
+  if (!pgPool) return res.status(500).json({ error: 'Database not available' });
+  try {
+    await ensurePageContentCardsTable();
+    const safeContext = parsePageCardContext(req.params.context, 'context');
+    const result = await pgPool.query(
+      `SELECT id, title, body, image_url, list_label, list_items, order_index
+       FROM page_content_cards
+       WHERE context = $1 AND published = true
+       ORDER BY order_index ASC, id ASC`,
+      [safeContext]
+    );
+    res.json(result.rows.map(shapePageContentCardRow));
+  } catch (err) {
+    if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/page-content-cards', authenticateToken, async (req, res) => {
+  if (!pgPool) return res.status(500).json({ error: 'Database not available' });
+  const { context, title, body, image_url, list_label, list_items, published, order_index } = req.body || {};
+  try {
+    await ensurePageContentCardsTable();
+    const safeContext = parsePageCardContext(context, 'context');
+    const safeTitle = parseRequiredText(title, 'title', 400);
+    const safeBody = parseOptionalText(body, 'body', 12000);
+    const safeImageUrl = parseOptionalUrlLike(image_url, 'image_url');
+    const safeListLabel = parseOptionalText(list_label, 'list_label', 200);
+    const safeListItems = parseOptionalText(list_items, 'list_items', 12000);
+    const safePublished = parsePublishedFlag(published);
+    const safeOrderIndex = parseOrderIndex(order_index);
+    const insert = await pgPool.query(
+      `INSERT INTO page_content_cards (context, title, body, image_url, list_label, list_items, published, order_index)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       RETURNING *`,
+      [safeContext, safeTitle, safeBody, safeImageUrl, safeListLabel, safeListItems, safePublished, safeOrderIndex]
+    );
+    res.status(201).json(shapePageContentCardRow(insert.rows[0]));
+  } catch (err) {
+    if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/page-content-cards/:id', authenticateToken, async (req, res) => {
+  if (!pgPool) return res.status(500).json({ error: 'Database not available' });
+  const { title, body, image_url, list_label, list_items, published, order_index } = req.body || {};
+  try {
+    await ensurePageContentCardsTable();
+    const safeTitle = parseRequiredText(title, 'title', 400);
+    const safeBody = parseOptionalText(body, 'body', 12000);
+    const safeImageUrl = parseOptionalUrlLike(image_url, 'image_url');
+    const safeListLabel = parseOptionalText(list_label, 'list_label', 200);
+    const safeListItems = parseOptionalText(list_items, 'list_items', 12000);
+    const safePublished = parsePublishedFlag(published);
+    const safeOrderIndex = parseOrderIndex(order_index);
+    const result = await pgPool.query(
+      `UPDATE page_content_cards
+       SET title = $1, body = $2, image_url = $3, list_label = $4, list_items = $5, published = $6, order_index = $7, updated_at = NOW()
+       WHERE id = $8
+       RETURNING *`,
+      [safeTitle, safeBody, safeImageUrl, safeListLabel, safeListItems, safePublished, safeOrderIndex, req.params.id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Card not found' });
+    res.json(shapePageContentCardRow(result.rows[0]));
+  } catch (err) {
+    if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/page-content-cards/:id', authenticateToken, async (req, res) => {
+  if (!pgPool) return res.status(500).json({ error: 'Database not available' });
+  try {
+    await ensurePageContentCardsTable();
+    const result = await pgPool.query('DELETE FROM page_content_cards WHERE id = $1 RETURNING *', [req.params.id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Card not found' });
+    res.json({ message: 'Card deleted successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

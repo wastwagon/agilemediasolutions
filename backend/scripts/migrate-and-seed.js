@@ -149,6 +149,21 @@ async function run() {
         content_json JSONB NOT NULL DEFAULT '{}'::jsonb,
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
+
+      CREATE TABLE IF NOT EXISTS page_content_cards (
+        id SERIAL PRIMARY KEY,
+        context TEXT NOT NULL,
+        title TEXT NOT NULL,
+        body TEXT,
+        image_url TEXT,
+        list_label TEXT,
+        list_items TEXT,
+        published BOOLEAN NOT NULL DEFAULT TRUE,
+        order_index INTEGER NOT NULL DEFAULT 0,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS page_content_cards_context_published_order_idx ON page_content_cards (context, published, order_index);
     `);
 
     await pool.query(

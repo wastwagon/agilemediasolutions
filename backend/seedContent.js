@@ -530,6 +530,186 @@ If you are planning a launch, a policy milestone, or a sustained thought-leaders
   },
 ];
 
+/** Default offering cards for Digital Engagement + Studio (inserted once per context if empty). */
+const PAGE_CONTENT_CARD_GROUPS = [
+  {
+    context: 'digital-engagement',
+    cards: [
+      {
+        title: 'Platform Strategy & Management',
+        body:
+          'We build and manage institutional and executive presence across Twitter/X, Instagram, Facebook, LinkedIn, TikTok, YouTube, and emerging platforms. From posting plans to tone-of-voice development, we ensure your digital identity is compelling, credible, and consistent.',
+        image_url: '/images/digital/offering-01.svg',
+        list_label: null,
+        list_items: null,
+      },
+      {
+        title: 'Digital Influence Mapping & Audience Intelligence',
+        body:
+          "We map digital ecosystems-identifying who's leading conversations, where your audiences are clustered, and what topics drive traction. Our analysis covers influencers, competitors, hashtags, and stakeholder sentiment in real time.",
+        image_url: '/images/digital/offering-02.svg',
+        list_label: 'Use cases:',
+        list_items:
+          'Policy or electoral campaigns\nTrade diplomacy or investment outreach\nInstitutional positioning and reform engagement',
+      },
+      {
+        title: 'Executive & Institutional Social Branding',
+        body:
+          'We help CEOs, ministers, and public institutions craft social profiles that build trust and visibility. This includes platform setup, strategic content calendars, verified identity support, and ghostwriting where required.',
+        image_url: '/images/digital/offering-03.svg',
+        list_label: null,
+        list_items: null,
+      },
+      {
+        title: 'Agile Social Studio & Visual Lab',
+        body: 'Our creative studio produces short-form, high-engagement content for digital platforms.',
+        image_url: '/images/digital/offering-04.svg',
+        list_label: null,
+        list_items:
+          'Social videos, reels, and motion graphics\nInfographics and visual explainers\nCarousel storytelling and quote cards\nLivestream and podcast snippets\nCaptioning, subtitling, and rapid-turn content\nPlatform-specific asset formatting (e.g. LinkedIn vs. TikTok)',
+      },
+      {
+        title: 'Paid Media & Performance Boosting',
+        body:
+          'We design and execute targeted social media advertising campaigns across platforms-focused on follower growth, click-throughs, signups, or public sentiment.',
+        image_url: '/images/digital/offering-05.svg',
+        list_label: null,
+        list_items: null,
+      },
+      {
+        title: 'Crisis & Reputation Management',
+        body:
+          'We provide institutional support during digital crises, media attacks, or misinformation events.',
+        image_url: '/images/digital/offering-06.svg',
+        list_label: null,
+        list_items:
+          'Message calibration and control\nReal-time monitoring and sentiment tracking\nInfluencer engagement and media briefings\nPost-crisis cleanup and public confidence rebuilding',
+      },
+      {
+        title: 'Community & Grassroots Mobilization',
+        body:
+          'We use platforms like WhatsApp Broadcast, Telegram Channels, and Facebook Groups to reach diaspora audiences, youth voters, creative communities, and hard-to-reach publics-especially during political, civic, or cultural mobilizations.',
+        image_url: '/images/digital/offering-07.svg',
+        list_label: null,
+        list_items: null,
+      },
+      {
+        title: 'Social Media Training & Digital Capacity Building',
+        body:
+          'Through masterclasses, playbooks, and hands-on labs, we empower teams with practical social capability.',
+        image_url: '/images/digital/offering-08.svg',
+        list_label: null,
+        list_items:
+          'Government communications teams\nNGO campaigners\nPolitical campaign operatives\nPublic figures and spokespersons\nPrivate sector PR teams',
+      },
+      {
+        title: 'Analytics & Data-Driven Reporting',
+        body:
+          'Our monthly performance dashboards cover growth, engagement, reach, and strategic recommendations.',
+        image_url: '/images/digital/offering-09.svg',
+        list_label: null,
+        list_items:
+          'Growth trends and engagement breakdown\nBest-performing content\nInfluencer amplification metrics\nGeographic reach and sentiment\nPlatform algorithm insights\nStrategic recommendations',
+      },
+      {
+        title: 'Platform Verification & Compliance',
+        body:
+          'We help institutions and leaders secure verified accounts, meet community standards, and build secure, compliant platform identities-across global and African social platforms.',
+        image_url: '/images/digital/offering-10.svg',
+        list_label: null,
+        list_items: null,
+      },
+    ],
+  },
+  {
+    context: 'studio',
+    cards: [
+      {
+        title: 'Video Production & Direction',
+        body:
+          'Documentaries, campaign videos, investor pitches, and brand films-crafted for impact and produced to global standards.',
+        image_url: '/images/studio/offering-01.svg',
+        list_label: null,
+        list_items: null,
+      },
+      {
+        title: 'Photography & Content Capture',
+        body:
+          'Professional event coverage, studio photography, behind-the-scenes, and portrait sessions for brands, leaders, and creatives.',
+        image_url: '/images/studio/offering-02.svg',
+        list_label: null,
+        list_items: null,
+      },
+      {
+        title: 'Design & Visual Identity Systems',
+        body:
+          'Logos, branding kits, infographics, social media templates, publications, and design systems aligned with your strategic message.',
+        image_url: '/images/studio/offering-03.svg',
+        list_label: null,
+        list_items: null,
+      },
+      {
+        title: 'Animation & Motion Graphics',
+        body:
+          'Explainer videos, title sequences, motion branding, and creative visuals that bring abstract messages to life.',
+        image_url: '/images/studio/offering-04.svg',
+        list_label: null,
+        list_items: null,
+      },
+      {
+        title: 'Audio Production & Podcasts',
+        body:
+          'Scripted and unscripted podcast production, audio interviews, and thematic sound design for campaign and media use.',
+        image_url: '/images/studio/offering-05.svg',
+        list_label: null,
+        list_items: null,
+      },
+      {
+        title: 'Editing & Post-Production',
+        body:
+          'Full-suite editing, sound mixing, subtitling, formatting, and localization for digital, broadcast, and event use.',
+        image_url: '/images/studio/offering-06.svg',
+        list_label: null,
+        list_items: null,
+      },
+    ],
+  },
+];
+
+async function seedPageContentCards(pool) {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS page_content_cards (
+      id SERIAL PRIMARY KEY,
+      context TEXT NOT NULL,
+      title TEXT NOT NULL,
+      body TEXT,
+      image_url TEXT,
+      list_label TEXT,
+      list_items TEXT,
+      published BOOLEAN NOT NULL DEFAULT TRUE,
+      order_index INTEGER NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+  await pool.query(
+    `CREATE INDEX IF NOT EXISTS page_content_cards_context_published_order_idx ON page_content_cards (context, published, order_index);`
+  );
+
+  for (const group of PAGE_CONTENT_CARD_GROUPS) {
+    const check = await pool.query('SELECT 1 FROM page_content_cards WHERE context = $1 LIMIT 1', [group.context]);
+    if (check.rows.length > 0) continue;
+    for (let i = 0; i < group.cards.length; i++) {
+      const c = group.cards[i];
+      await pool.query(
+        `INSERT INTO page_content_cards (context, title, body, image_url, list_label, list_items, published, order_index)
+         VALUES ($1, $2, $3, $4, $5, $6, TRUE, $7)`,
+        [group.context, c.title, c.body, c.image_url, c.list_label, c.list_items, i]
+      );
+    }
+  }
+}
+
 async function seedAgileContent(pool) {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS site_sections (
@@ -648,6 +828,8 @@ async function seedAgileContent(pool) {
       [p.slug, p.title, p.meta, p.excerpt, p.body, p.media_class, p.order_index, categoryId]
     );
   }
+
+  await seedPageContentCards(pool);
 }
 
 module.exports = { seedAgileContent, HOME_TITLE, HOME_DESCRIPTION, HOME_CONTENT_JSON };

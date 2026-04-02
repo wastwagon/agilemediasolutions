@@ -462,7 +462,8 @@ export const SITE_SECTION_DEFINITIONS: SiteSectionDefinition[] = [
   {
     key: 'studio.page',
     title: 'Studio Page',
-    description: 'Edit hero, offerings, highlights, and CTA labels on the Studio page.',
+    description:
+      'Edit hero, highlights, clients copy, and CTAs. The “What We Do” cards are managed under Admin → Studio cards.',
     fields: [
       { id: 'heroLabel', label: 'Hero label' },
       { id: 'heroTitle', label: 'Hero title', multiline: true },
@@ -471,7 +472,6 @@ export const SITE_SECTION_DEFINITIONS: SiteSectionDefinition[] = [
       { id: 'sectionLabel', label: 'Section label' },
       { id: 'sectionTitle', label: 'Section title' },
       { id: 'sectionLinkLabel', label: 'Section link label' },
-      { id: 'offeringCards', label: 'Offering cards', multiline: true },
       { id: 'highlightsHeading', label: 'Highlights heading' },
       { id: 'highlightsList', label: 'Highlights list', multiline: true },
       { id: 'clientsHeading', label: 'Clients heading' },
@@ -484,7 +484,8 @@ export const SITE_SECTION_DEFINITIONS: SiteSectionDefinition[] = [
   {
     key: 'digital-engagement.page',
     title: 'Digital Engagement Page',
-    description: 'Edit hero, offerings, list content, and CTA copy on Digital Engagement.',
+    description:
+      'Edit hero, section intro, headings, and CTAs. Offering cards (with optional bullet lists) are under Admin → Digital engagement management.',
     fields: [
       { id: 'heroLabel', label: 'Hero label' },
       { id: 'heroTitle', label: 'Hero title', multiline: true },
@@ -495,13 +496,6 @@ export const SITE_SECTION_DEFINITIONS: SiteSectionDefinition[] = [
       { id: 'sectionLinkLabel', label: 'Section link label' },
       { id: 'sectionIntro', label: 'Section intro', multiline: true },
       { id: 'offeringsHeading', label: 'Offerings heading' },
-      { id: 'offeringCards', label: 'Offering cards', multiline: true },
-      { id: 'influenceUseCasesLabel', label: 'Influence use-cases label' },
-      { id: 'influenceUseCasesList', label: 'Influence use-cases list', multiline: true },
-      { id: 'socialStudioList', label: 'Social studio list', multiline: true },
-      { id: 'crisisList', label: 'Crisis response list', multiline: true },
-      { id: 'trainingList', label: 'Training target list', multiline: true },
-      { id: 'analyticsList', label: 'Analytics metrics list', multiline: true },
       { id: 'ctaHeading', label: 'CTA heading' },
       { id: 'ctaText', label: 'CTA text', multiline: true },
       { id: 'ctaPrimary', label: 'CTA primary label' },

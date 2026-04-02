@@ -664,8 +664,23 @@ main {
   background: var(--color-bg);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: var(--space-lg);
+  padding: 0;
+  overflow: hidden;
   transition: box-shadow var(--duration-normal), border-color var(--duration-normal);
+}
+.section-digital .digital-offering-media {
+  aspect-ratio: 16 / 9;
+  background: var(--color-border);
+  overflow: hidden;
+}
+.section-digital .digital-offering-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.section-digital .digital-offering-content {
+  padding: var(--space-lg);
 }
 .section-digital .digital-offering:hover {
   box-shadow: var(--shadow-md);
@@ -2659,6 +2674,26 @@ main {
 .creative-public-page .inner-section-link:hover {
   color: #c8fff5;
   border-bottom-color: #c8fff5;
+}
+
+/* Digital / studio / press inner bands: titles and intros align left with section header */
+.creative-public-page .section-digital .digital-title {
+  text-align: left;
+  margin-left: 0;
+  margin-right: 0;
+  max-width: none;
+}
+.creative-public-page .section-digital .digital-intro {
+  text-align: left;
+  margin-left: 0;
+  margin-right: 0;
+  max-width: min(42rem, 100%);
+}
+.creative-public-page .section-digital .digital-offerings-heading {
+  text-align: left;
+  margin-left: 0;
+  margin-right: 0;
+  max-width: none;
 }
 
 .creative-public-page .insight-card,

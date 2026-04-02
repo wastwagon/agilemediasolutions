@@ -116,3 +116,28 @@ export interface InsightPostPayload {
   order_index: number;
   category_id: number | null;
 }
+
+export interface PageContentCard {
+  id: number;
+  context: string;
+  title: string;
+  body: string | null;
+  image_url: string | null;
+  list_label: string | null;
+  list_items: string | null;
+  published: boolean;
+  order_index: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+/** Body for POST (context added by hook) and PUT */
+export interface PageContentCardPayload {
+  title: string;
+  body: string;
+  image_url: string;
+  list_label: string;
+  list_items: string;
+  published: boolean;
+  order_index: number;
+}

@@ -2,29 +2,39 @@ import React from 'react';
 import Link from 'next/link';
 import SectionHeader from '../../components/SectionHeader';
 import { getSiteSectionContent } from '@/lib/siteSectionCmsServer';
+import { getPublicPageContentCards } from '@/lib/pageContentCardsServer';
 
 export const metadata = {
   title: 'Digital Engagement & Social Media',
-  description: 'Activate digital audiences with Agile Media Solutions social media strategy, audience intelligence, crisis support, and analytics.',
+  description:
+    'Activate digital audiences with Agile Media Solutions social media strategy, audience intelligence, crisis support, and analytics.',
 };
 
-function parseLineList(value: string): string[] {
+function parseLineList(value: string | null | undefined): string[] {
+  if (!value) return [];
   return value
     .split('\n')
     .map((line) => line.trim())
     .filter(Boolean);
 }
 
-function parseTitledCards(value: string): Array<{ title: string; desc: string }> {
-  return value
-    .split('\n')
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => {
-      const [title, ...rest] = line.split('::');
-      return { title: (title || '').trim(), desc: rest.join('::').trim() };
-    })
-    .filter((x) => x.title && x.desc);
+const DEFAULT_OFFERING_IMAGES = [
+  '/images/digital/offering-01.svg',
+  '/images/digital/offering-02.svg',
+  '/images/digital/offering-03.svg',
+  '/images/digital/offering-04.svg',
+  '/images/digital/offering-05.svg',
+  '/images/digital/offering-06.svg',
+  '/images/digital/offering-07.svg',
+  '/images/digital/offering-08.svg',
+  '/images/digital/offering-09.svg',
+  '/images/digital/offering-10.svg',
+];
+
+function cardImageUrl(imageUrl: string | null | undefined, index: number): string {
+  const u = imageUrl?.trim();
+  if (u) return u;
+  return DEFAULT_OFFERING_IMAGES[index % DEFAULT_OFFERING_IMAGES.length];
 }
 
 export default async function Page() {
@@ -41,19 +51,6 @@ export default async function Page() {
     sectionIntro:
       'From platform strategy and creative production to analytics and verification-we design digital infrastructure that matches your mandate and your audiences.',
     offeringsHeading: 'How we can help',
-    offeringCards:
-      "Platform Strategy & Management :: We build and manage institutional and executive presence across Twitter/X, Instagram, Facebook, LinkedIn, TikTok, YouTube, and emerging platforms. From posting plans to tone-of-voice development, we ensure your digital identity is compelling, credible, and consistent.\nDigital Influence Mapping & Audience Intelligence :: We map digital ecosystems-identifying who's leading conversations, where your audiences are clustered, and what topics drive traction. Our analysis covers influencers, competitors, hashtags, and stakeholder sentiment in real time.\nExecutive & Institutional Social Branding :: We help CEOs, ministers, and public institutions craft social profiles that build trust and visibility. This includes platform setup, strategic content calendars, verified identity support, and ghostwriting where required.\nAgile Social Studio & Visual Lab :: Our creative studio produces short-form, high-engagement content for digital platforms.\nPaid Media & Performance Boosting :: We design and execute targeted social media advertising campaigns across platforms-focused on follower growth, click-throughs, signups, or public sentiment.\nCrisis & Reputation Management :: We provide institutional support during digital crises, media attacks, or misinformation events.\nCommunity & Grassroots Mobilization :: We use platforms like WhatsApp Broadcast, Telegram Channels, and Facebook Groups to reach diaspora audiences, youth voters, creative communities, and hard-to-reach publics-especially during political, civic, or cultural mobilizations.\nSocial Media Training & Digital Capacity Building :: Through masterclasses, playbooks, and hands-on labs, we empower teams with practical social capability.\nAnalytics & Data-Driven Reporting :: Our monthly performance dashboards cover growth, engagement, reach, and strategic recommendations.\nPlatform Verification & Compliance :: We help institutions and leaders secure verified accounts, meet community standards, and build secure, compliant platform identities-across global and African social platforms.",
-    influenceUseCasesLabel: 'Use cases:',
-    influenceUseCasesList:
-      'Policy or electoral campaigns\nTrade diplomacy or investment outreach\nInstitutional positioning and reform engagement',
-    socialStudioList:
-      'Social videos, reels, and motion graphics\nInfographics and visual explainers\nCarousel storytelling and quote cards\nLivestream and podcast snippets\nCaptioning, subtitling, and rapid-turn content\nPlatform-specific asset formatting (e.g. LinkedIn vs. TikTok)',
-    crisisList:
-      'Message calibration and control\nReal-time monitoring and sentiment tracking\nInfluencer engagement and media briefings\nPost-crisis cleanup and public confidence rebuilding',
-    trainingList:
-      'Government communications teams\nNGO campaigners\nPolitical campaign operatives\nPublic figures and spokespersons\nPrivate sector PR teams',
-    analyticsList:
-      'Growth trends and engagement breakdown\nBest-performing content\nInfluencer amplification metrics\nGeographic reach and sentiment\nPlatform algorithm insights\nStrategic recommendations',
     ctaHeading: "Let's Go Digital with Purpose",
     ctaText:
       'We treat digital space as infrastructure. Let Agile Media Solutions power your online influence with precision, agility, and clarity.',
@@ -61,12 +58,8 @@ export default async function Page() {
     ctaSecondary: 'View Our Digital Case Studies',
     ctaTertiary: 'Engage Our Studio',
   });
-  const offeringCards = parseTitledCards(copy.offeringCards);
-  const influenceUseCases = parseLineList(copy.influenceUseCasesList);
-  const socialStudioList = parseLineList(copy.socialStudioList);
-  const crisisList = parseLineList(copy.crisisList);
-  const trainingList = parseLineList(copy.trainingList);
-  const analyticsList = parseLineList(copy.analyticsList);
+
+  const offeringCards = await getPublicPageContentCards('digital-engagement');
 
   return (
     <main className="services-page-main creative-public-page">
@@ -74,9 +67,7 @@ export default async function Page() {
         <div className="page-hero-inner">
           <span className="page-hero-label">{copy.heroLabel}</span>
           <h1 className="page-hero-title">{copy.heroTitle}</h1>
-          <p className="page-hero-tagline">
-            {copy.heroIntro}
-          </p>
+          <p className="page-hero-tagline">{copy.heroIntro}</p>
           <p className="page-hero-tagline" style={{ marginTop: 'var(--space-md)' }}>
             {copy.heroSubIntro}
           </p>
@@ -92,65 +83,56 @@ export default async function Page() {
             linkLabel={copy.sectionLinkLabel}
             titleClassName="digital-title"
           />
-        <p className="digital-intro">
-          {copy.sectionIntro}
-        </p>
-        <h3 className="digital-offerings-heading">{copy.offeringsHeading}</h3>
-        <div className="digital-offerings">
-          {offeringCards.map((card, idx) => (
-            <div key={card.title} className="digital-offering">
-              <h4 className="digital-offering-title">{card.title}</h4>
-              <p className="digital-offering-desc">{card.desc}</p>
-              {idx === 1 && influenceUseCases.length > 0 ? (
-                <>
-                  <p className="digital-list-label">{copy.influenceUseCasesLabel}</p>
-                  <ul className="digital-list">
-                    {influenceUseCases.map((item) => <li key={item}>{item}</li>)}
-                  </ul>
-                </>
-              ) : null}
-              {idx === 3 && socialStudioList.length > 0 ? (
-                <ul className="digital-list">
-                  {socialStudioList.map((item) => <li key={item}>{item}</li>)}
-                </ul>
-              ) : null}
-              {idx === 5 && crisisList.length > 0 ? (
-                <ul className="digital-list">
-                  {crisisList.map((item) => <li key={item}>{item}</li>)}
-                </ul>
-              ) : null}
-              {idx === 7 && trainingList.length > 0 ? (
-                <ul className="digital-list">
-                  {trainingList.map((item) => <li key={item}>{item}</li>)}
-                </ul>
-              ) : null}
-              {idx === 8 && analyticsList.length > 0 ? (
-                <ul className="digital-list">
-                  {analyticsList.map((item) => <li key={item}>{item}</li>)}
-                </ul>
-              ) : null}
+          <p className="digital-intro">{copy.sectionIntro}</p>
+          <h3 className="digital-offerings-heading">{copy.offeringsHeading}</h3>
+          <div className="digital-offerings">
+            {offeringCards.map((card, idx) => {
+              const bullets = parseLineList(card.list_items);
+              return (
+                <div key={card.id} className="digital-offering">
+                  <div className="digital-offering-media">
+                    <img
+                      src={cardImageUrl(card.image_url, idx)}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </div>
+                  <div className="digital-offering-content">
+                    <h4 className="digital-offering-title">{card.title}</h4>
+                    {card.body ? <p className="digital-offering-desc">{card.body}</p> : null}
+                    {card.list_label?.trim() ? (
+                      <p className="digital-list-label">{card.list_label.trim()}</p>
+                    ) : null}
+                    {bullets.length > 0 ? (
+                      <ul className="digital-list">
+                        {bullets.map((item) => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="digital-cta-block">
+            <h3 className="digital-cta-heading">{copy.ctaHeading}</h3>
+            <p className="digital-cta-text">{copy.ctaText}</p>
+            <div className="section-cta-center digital-cta-buttons">
+              <Link href="/contact#contact" className="btn btn-primary">
+                {copy.ctaPrimary}
+              </Link>
+              <Link href="/case-studies" className="btn btn-outline">
+                {copy.ctaSecondary}
+              </Link>
+              <Link href="/studio" className="btn btn-outline">
+                {copy.ctaTertiary}
+              </Link>
             </div>
-          ))}
-        </div>
-        <div className="digital-cta-block">
-          <h3 className="digital-cta-heading">{copy.ctaHeading}</h3>
-          <p className="digital-cta-text">
-            {copy.ctaText}
-          </p>
-          <div className="section-cta-center digital-cta-buttons">
-            <Link href="/contact#contact" className="btn btn-primary">
-              {copy.ctaPrimary}
-            </Link>
-            <Link href="/case-studies" className="btn btn-outline">
-              {copy.ctaSecondary}
-            </Link>
-            <Link href="/studio" className="btn btn-outline">
-              {copy.ctaTertiary}
-            </Link>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
     </main>
   );
 }
