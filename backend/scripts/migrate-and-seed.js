@@ -143,6 +143,12 @@ async function run() {
         alt_text TEXT,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
+
+      CREATE TABLE IF NOT EXISTS site_sections (
+        section_key TEXT PRIMARY KEY,
+        content_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
     `);
 
     await pool.query(

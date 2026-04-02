@@ -4,7 +4,9 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { adminAuthHeaders, adminFetch, parseApiError } from '@/lib/adminApi';
 import { AdminErrorBanner, AdminLoadingState, AdminPageHeader } from '@/components/admin/AdminPageUi';
 import { AdminEditorCard } from '@/components/admin/AdminFormUi';
-import { SITE_SECTION_DEFINITIONS } from '@/lib/siteSectionCms';
+import AdminImageUpload from '@/components/AdminImageUpload';
+import MediaLibraryPicker from '@/components/MediaLibraryPicker';
+import { SITE_SECTION_DEFINITIONS, type SiteSectionField } from '@/lib/siteSectionCms';
 
 type SectionContentMap = Record<string, Record<string, string>>;
 type PairRow = { left: string; right: string };
@@ -45,12 +47,14 @@ function toPairList(rows: PairRow[]): string {
     .join('\n');
 }
 
-function getFieldEditorKind(field: { id: string; label: string; multiline?: boolean }): 'text' | 'textarea' | 'list' | 'pairs' {
+function getFieldEditorKind(
+  field: SiteSectionField
+): 'text' | 'textarea' | 'list' | 'pairs' | 'url' | 'image' | 'select' {
+  if (field.kind) return field.kind;
   const id = field.id.toLowerCase();
   const l = field.label.toLowerCase();
   if (id.includes('cards')) return 'pairs';
   if (id.includes('list') || id.includes('bullets')) return 'list';
-  // Backward compatibility for any legacy labels that still include format hints.
   if (l.includes('title :: description')) return 'pairs';
   if (l.includes('one item per line')) return 'list';
   if (field.multiline) return 'textarea';
@@ -109,18 +113,30 @@ function getFriendlyFieldLabel(label: string): string {
   return next.charAt(0).toUpperCase() + next.slice(1);
 }
 
-function getFriendlyHint(kind: 'text' | 'textarea' | 'list' | 'pairs', fieldMultiline: boolean): string {
+function getFriendlyHint(
+  kind: 'text' | 'textarea' | 'list' | 'pairs' | 'url' | 'image' | 'select',
+  fieldMultiline: boolean
+): string {
   if (kind === 'pairs') return 'Add cards with a title and supporting description.';
   if (kind === 'list') return 'Add and reorder talking points as separate items.';
+  if (kind === 'url') return 'Paste a URL, or pick an uploaded file from the library if applicable.';
+  if (kind === 'image') return 'Upload, pick from the media library, or paste an image URL.';
+  if (kind === 'select') return 'Choose a preset.';
   if (fieldMultiline) return 'Write a longer paragraph for this section.';
   return '';
 }
 
-function getFieldPlaceholder(kind: 'text' | 'textarea' | 'list' | 'pairs', friendlyLabel: string): string {
+function getFieldPlaceholder(
+  kind: 'text' | 'textarea' | 'list' | 'pairs' | 'url' | 'image' | 'select',
+  friendlyLabel: string
+): string {
   const label = friendlyLabel.toLowerCase();
 
   if (kind === 'list') return 'Add one key point';
   if (kind === 'pairs') return '';
+  if (kind === 'url') return 'https://…';
+  if (kind === 'image') return '/uploads/… or https://…';
+  if (kind === 'select') return '';
   if (label.includes('button text')) return 'e.g. Learn more';
   if (label.includes('email')) return 'e.g. hello@agilemedia.africa';
   if (label.includes('headline')) return 'e.g. Empowering bold African storytelling';
@@ -556,9 +572,74 @@ export default function AdminSiteContentPage() {
                       </span>
                     ) : null}
                     {(() => {
+                      if (kind === 'select' && field.options?.length) {
+                        return (
+                          <select
+                            value={data[field.id] ?? ''}
+                            onChange={(e) => setField(section.key, field.id, e.target.value)}
+                            style={{ width: '100%', borderRadius: 10, border: '1px solid var(--color-border)', padding: '0.64rem 0.78rem' }}
+                          >
+                            <option value="">Default (inherit)</option>
+                            {field.options.map((opt) => (
+                              <option key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </option>
+                            ))}
+                          </select>
+                        );
+                      }
+
+                      if (kind === 'url') {
+                        return (
+                          <div style={{ display: 'grid', gap: '0.5rem' }}>
+                            <input
+                              type="text"
+                              value={data[field.id] || ''}
+                              onChange={(e) => setField(section.key, field.id, e.target.value)}
+                              placeholder={placeholder}
+                              style={{ width: '100%', borderRadius: 10, border: '1px solid var(--color-border)', padding: '0.64rem 0.78rem' }}
+                            />
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
+                              <MediaLibraryPicker
+                                buttonLabel="Choose file URL from library"
+                                onSelect={(url) => setField(section.key, field.id, url)}
+                              />
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      if (kind === 'image') {
+                        return (
+                          <div style={{ display: 'grid', gap: '0.5rem' }}>
+                            <input
+                              type="text"
+                              value={data[field.id] || ''}
+                              onChange={(e) => setField(section.key, field.id, e.target.value)}
+                              placeholder={placeholder}
+                              style={{ width: '100%', borderRadius: 10, border: '1px solid var(--color-border)', padding: '0.64rem 0.78rem' }}
+                            />
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
+                              <AdminImageUpload
+                                currentUrl={data[field.id] || ''}
+                                onUploadSuccess={(url) => setField(section.key, field.id, url)}
+                                label="Upload image"
+                              />
+                              <MediaLibraryPicker
+                                buttonLabel="Choose from library"
+                                onSelect={(url) => setField(section.key, field.id, url)}
+                              />
+                            </div>
+                          </div>
+                        );
+                      }
+
                       if (kind === 'pairs') {
                         const rows = parsePairList(data[field.id] || '');
                         const renderedRows = rows.length > 0 ? rows : [{ left: '', right: '' }];
+                        const leftPh = field.pairLeftPlaceholder || 'Card headline';
+                        const rightPh = field.pairRightPlaceholder || 'Supporting paragraph';
+                        const rightIsUrl = Boolean(field.pairRightPlaceholder?.includes('http') || field.id.toLowerCase().includes('link'));
                         return (
                           <div style={{ display: 'grid', gap: '0.5rem' }}>
                             {renderedRows.map((row, idx) => (
@@ -567,16 +648,32 @@ export default function AdminSiteContentPage() {
                                   type="text"
                                   value={row.left}
                                   onChange={(e) => setPairField(section.key, field.id, idx, 'left', e.target.value)}
-                                  placeholder="Card headline"
+                                  placeholder={leftPh}
                                   style={{ width: '100%', borderRadius: 8, border: '1px solid var(--color-border)', padding: '0.5rem 0.6rem' }}
                                 />
-                                <textarea
-                                  rows={2}
-                                  value={row.right}
-                                  onChange={(e) => setPairField(section.key, field.id, idx, 'right', e.target.value)}
-                                  placeholder="Supporting paragraph"
-                                  style={{ width: '100%', borderRadius: 8, border: '1px solid var(--color-border)', padding: '0.55rem 0.6rem', resize: 'vertical' }}
-                                />
+                                {rightIsUrl ? (
+                                  <div style={{ display: 'grid', gap: '0.35rem' }}>
+                                    <input
+                                      type="text"
+                                      value={row.right}
+                                      onChange={(e) => setPairField(section.key, field.id, idx, 'right', e.target.value)}
+                                      placeholder={rightPh}
+                                      style={{ width: '100%', borderRadius: 8, border: '1px solid var(--color-border)', padding: '0.5rem 0.6rem' }}
+                                    />
+                                    <MediaLibraryPicker
+                                      buttonLabel="Pick URL from library"
+                                      onSelect={(url) => setPairField(section.key, field.id, idx, 'right', url)}
+                                    />
+                                  </div>
+                                ) : (
+                                  <textarea
+                                    rows={2}
+                                    value={row.right}
+                                    onChange={(e) => setPairField(section.key, field.id, idx, 'right', e.target.value)}
+                                    placeholder={rightPh}
+                                    style={{ width: '100%', borderRadius: 8, border: '1px solid var(--color-border)', padding: '0.55rem 0.6rem', resize: 'vertical' }}
+                                  />
+                                )}
                                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                                   <button
                                     type="button"

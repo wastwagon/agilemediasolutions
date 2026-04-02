@@ -15,6 +15,161 @@ const HOME_CONTENT_JSON = {
   ],
 };
 
+const COL1_DEFAULT = `Who we are :: /about
+Services :: /services
+Sectors :: /sectors
+Studio :: /studio`;
+
+const COL2_DEFAULT = `Agile Press Group :: /agile-press-group
+Our brands :: /brands
+Case studies :: /case-studies
+Resources :: /insights`;
+
+const COL3_DEFAULT = `Insights :: /insights
+Digital engagement :: /digital-engagement
+Events :: /signature-events
+Careers :: /careers
+Partnerships :: /partnerships`;
+
+const COL4_DEFAULT = `Contact us :: /contact
+Privacy policy :: /privacy
+Terms of service :: /terms
+Cookie notice :: /cookies`;
+
+const DEFAULT_HERO_SOCIAL = `Facebook :: https://facebook.com
+Instagram :: https://instagram.com
+X :: https://x.com`;
+
+/** Populates Site Content when missing (does not overwrite existing rows). */
+const SITE_SECTION_SEEDS = [
+  {
+    key: 'home.marquee',
+    content: {
+      primaryLines:
+        'Strategic Storytelling\nMedia Intelligence\nCampaign Architecture\nDigital Influence\nCreative Production',
+      secondaryLines:
+        'Institutional trust\nCross-border narrative\nExecutive visibility\nSummit & event media\nMeasured impact',
+    },
+  },
+  {
+    key: 'home.whoWeAre',
+    content: {
+      label: 'About Agile',
+      title: 'Who We Are',
+      body:
+        'We are a multidisciplinary communications agency operating at the intersection of strategy, storytelling, and public influence. From presidential campaigns to global brand launches, our work blends intelligence, creativity, and execution power—helping clients lead conversations and shape change.',
+      ctaLabel: 'Learn More About Us →',
+      ctaHref: '/about',
+      imageUrl: '',
+    },
+  },
+  {
+    key: 'home.servicesBand',
+    content: {
+      label: 'Capabilities',
+      title: 'Our services',
+      linkLabel: 'View all services',
+      linkHref: '/services',
+      subtitle:
+        'Comprehensive communications solutions. Strategically designed. Precisely delivered.',
+      ctaPrimaryLabel: 'View all services',
+      ctaPrimaryHref: '/services',
+      ctaSecondaryLabel: 'Request a Consultation',
+      ctaSecondaryHref: '/contact#contact',
+    },
+  },
+  {
+    key: 'home.brandsBand',
+    content: {
+      label: 'Media Network',
+      title: 'Our Brands',
+      linkLabel: 'Explore portfolio',
+      linkHref: '/brands',
+      subtitle:
+        'Media Properties That Inform, Inspire, and Influence. Agile Media Solutions owns and operates a growing portfolio of high-impact media platforms that shape public discourse, elevate African voices, and spotlight key sectors across the continent.',
+      ctaPrimaryLabel: 'View All Brands',
+      ctaPrimaryHref: '/brands',
+      ctaSecondaryLabel: 'Advertise With Us',
+      ctaSecondaryHref: '/contact#contact',
+    },
+  },
+  {
+    key: 'home.caseStudiesBand',
+    content: {
+      label: 'Selected Work',
+      title: 'Case Studies & Campaign Highlights',
+      linkLabel: 'View projects',
+      linkHref: '/case-studies',
+      subtitle:
+        'Explore our portfolio of strategic communications projects across Africa and the global stage—from cross-border campaigns to policy communications and narrative repositioning.',
+      ctaPrimaryLabel: 'See Case Studies →',
+      ctaPrimaryHref: '/case-studies',
+      ctaSecondaryLabel: 'Start a Project',
+      ctaSecondaryHref: '/contact#contact',
+    },
+  },
+  {
+    key: 'home.careersBand',
+    content: {
+      label: 'Talent',
+      title: 'Join the Team',
+      subtitle:
+        "We're building a creative, strategic, and fearless team across Africa and beyond.",
+      ctaPrimaryLabel: 'Explore Careers',
+      ctaPrimaryHref: '/careers',
+      ctaSecondaryLabel: 'Become a Contributor',
+      ctaSecondaryHref: '/contact#contact',
+    },
+  },
+  {
+    key: 'home.hero',
+    content: {
+      kicker: 'Creative Communications Studio',
+      videoSrc: '/videos/herobannervideo.mp4',
+      videoPoster: '/images/hero-politics.jpg',
+      primaryCtaLabel: 'Explore Our Brands',
+      primaryCtaHref: '/brands',
+      socialLinks: DEFAULT_HERO_SOCIAL,
+    },
+  },
+  {
+    key: 'layout.topBar',
+    content: {
+      email: 'info@agilemediasolutions.com',
+      contactLabel: 'Phone / WhatsApp',
+      contactHref: '/contact#contact',
+      facebookUrl: 'https://facebook.com',
+      twitterUrl: 'https://twitter.com',
+      linkedinUrl: 'https://linkedin.com',
+      instagramUrl: 'https://instagram.com',
+    },
+  },
+  {
+    key: 'layout.footer',
+    content: {
+      impactText: 'Agile Media',
+      brandingCopy:
+        'We shape narratives that move institutions, markets, and culture across Africa and beyond.',
+      newsletterHeading: 'Newsletter',
+      newsletterBody:
+        'Subscribe to the Agile Brief—our monthly roundup of ideas, strategy, and news. No spam.',
+      copyrightEntity: 'Agile Media Solutions',
+      col1Heading: 'Company',
+      col1Links: COL1_DEFAULT,
+      col2Heading: 'Agile Press Group',
+      col2Links: COL2_DEFAULT,
+      col3Heading: 'Press room',
+      col3Links: COL3_DEFAULT,
+      col4Heading: 'Contact & legal',
+      col4Links: COL4_DEFAULT,
+      facebookUrl: 'https://facebook.com',
+      instagramUrl: 'https://instagram.com',
+      xUrl: 'https://x.com',
+      linkedinUrl: 'https://linkedin.com',
+    },
+  },
+];
+
 const CMS_PAGE_SEEDS = [
   { slug: 'about', title: 'About', description: 'Who we are and what we stand for.' },
   { slug: 'services', title: 'Services', description: 'Our communication and media services.' },
@@ -376,6 +531,23 @@ If you are planning a launch, a policy milestone, or a sustained thought-leaders
 ];
 
 async function seedAgileContent(pool) {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS site_sections (
+      section_key TEXT PRIMARY KEY,
+      content_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  for (const row of SITE_SECTION_SEEDS) {
+    await pool.query(
+      `INSERT INTO site_sections (section_key, content_json, updated_at)
+       SELECT $1, $2::jsonb, NOW()
+       WHERE NOT EXISTS (SELECT 1 FROM site_sections WHERE section_key = $1)`,
+      [row.key, JSON.stringify(row.content)]
+    );
+  }
+
   await pool.query(
     `INSERT INTO pages (slug, title, description, content_json)
      VALUES ('home', $1, $2, $3::jsonb)

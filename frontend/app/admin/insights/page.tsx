@@ -15,6 +15,7 @@ import type {
   InsightPost,
   InsightPostPayload,
 } from '@/types/adminEntities';
+import { INSIGHTS_MEDIA_CLASS_OPTIONS } from '@/lib/siteSectionCms';
 
 export default function AdminInsightsPage() {
   const looksLikeImageUrl = (value?: string | null) => {
@@ -438,12 +439,25 @@ export default function AdminInsightsPage() {
                 <MediaLibraryPicker onSelect={(url) => setImageUrl(url)} buttonLabel="Choose from library" />
               </div>
               <div className={`form-group ${mediaClass ? 'has-value' : ''}`}>
-                <input type="text" id="mediaClass" value={mediaClass} onChange={(e) => setMediaClass(e.target.value)} />
-                <label htmlFor="mediaClass">Placeholder style if no image</label>
-                <div className="form-border"></div>
-                <p style={{ margin: '0.5rem 0 0', fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>
-                  home-insights-media-briefing, home-insights-media-editorial, or home-insights-media-syndication
-                </p>
+                <label htmlFor="mediaClass" style={{ display: 'block', marginBottom: '0.35rem', fontWeight: 600, fontSize: '0.85rem' }}>
+                  Placeholder style if no cover image
+                </label>
+                <select
+                  id="mediaClass"
+                  value={mediaClass || INSIGHTS_MEDIA_CLASS_OPTIONS[0].value}
+                  onChange={(e) => setMediaClass(e.target.value)}
+                  style={{ width: '100%', borderRadius: 10, border: '1px solid var(--color-border)', padding: '0.64rem 0.78rem' }}
+                >
+                  {INSIGHTS_MEDIA_CLASS_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                  {mediaClass &&
+                  !INSIGHTS_MEDIA_CLASS_OPTIONS.some((o) => o.value === mediaClass) ? (
+                    <option value={mediaClass}>Legacy value: {mediaClass}</option>
+                  ) : null}
+                </select>
               </div>
             </div>
 

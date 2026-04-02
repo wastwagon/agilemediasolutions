@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import { parseSiteContentPairs, useSiteSectionContent } from '@/lib/siteSectionCms';
 
 const FALLBACK_SLIDES = [
   {
@@ -11,9 +12,29 @@ const FALLBACK_SLIDES = [
   },
 ];
 
+const DEFAULT_SOCIAL = [
+  { left: 'Facebook', right: 'https://facebook.com' },
+  { left: 'Instagram', right: 'https://instagram.com' },
+  { left: 'X', right: 'https://x.com' },
+];
+
 export default function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [slides, setSlides] = useState<any[]>([]);
+  const [slides, setSlides] = useState<{ title?: string; subtitle?: string }[]>([]);
+
+  const heroChrome = useSiteSectionContent('home.hero', {
+    kicker: 'Creative Communications Studio',
+    videoSrc: '/videos/herobannervideo.mp4',
+    videoPoster: '/images/hero-politics.jpg',
+    primaryCtaLabel: 'Explore Our Brands',
+    primaryCtaHref: '/brands',
+    socialLinks: DEFAULT_SOCIAL.map((r) => `${r.left} :: ${r.right}`).join('\n'),
+  });
+
+  const socialRows = useMemo(() => {
+    const parsed = parseSiteContentPairs(heroChrome.socialLinks || '');
+    return parsed.length > 0 ? parsed : DEFAULT_SOCIAL;
+  }, [heroChrome.socialLinks]);
 
   useEffect(() => {
     const fetchHomeData = async () => {
@@ -33,7 +54,6 @@ export default function Hero() {
   }, []);
 
   const activeSlides = slides.length > 0 ? slides : FALLBACK_SLIDES;
-
   const slidesCount = activeSlides.length;
 
   useEffect(() => {
@@ -44,6 +64,11 @@ export default function Hero() {
   }, [slidesCount]);
 
   const currentData = activeSlides[currentSlide] || activeSlides[0];
+  const title = currentData?.title || FALLBACK_SLIDES[0].title;
+  const subtitle = currentData?.subtitle || FALLBACK_SLIDES[0].subtitle;
+
+  const videoSrc = heroChrome.videoSrc?.trim() || '/videos/herobannervideo.mp4';
+  const poster = heroChrome.videoPoster?.trim() || '/images/hero-politics.jpg';
 
   return (
     <section className="hero" id="home">
@@ -55,31 +80,43 @@ export default function Hero() {
           muted
           playsInline
           preload="metadata"
-          poster="/images/hero-politics.jpg"
+          poster={poster}
+          key={videoSrc + poster}
         >
-          <source src="/videos/herobannervideo.mp4" type="video/mp4" />
+          <source src={videoSrc} type="video/mp4" />
         </video>
       </div>
       <div className="hero-overlay"></div>
       <div className="hero-noise" aria-hidden="true"></div>
       <div className="hero-content">
-        <span className="hero-kicker">Creative Communications Studio</span>
+        <span className="hero-kicker">{heroChrome.kicker}</span>
         <h1 className="hero-headline">
-          {currentData.title.split('. ').map((line: string, idx: number, arr: string[]) => (
-             <span key={idx} className="hero-line-mask">
-               <span className={`hero-line hero-line-${idx + 1}`}>{line}{idx < arr.length - 1 ? '.' : ''}</span>
-             </span>
+          {title.split('. ').map((line: string, idx: number, arr: string[]) => (
+            <span key={idx} className="hero-line-mask">
+              <span className={`hero-line hero-line-${idx + 1}`}>
+                {line}
+                {idx < arr.length - 1 ? '.' : ''}
+              </span>
+            </span>
           ))}
         </h1>
-        <p className="hero-description">{currentData.subtitle}</p>
+        <p className="hero-description">{subtitle}</p>
         <div className="hero-cta" style={{ flexWrap: 'wrap', gap: '0.75rem', justifyContent: 'center' }}>
-          <Link href="/brands" className="btn btn-hero-secondary">Explore Our Brands</Link>
+          <Link href={heroChrome.primaryCtaHref?.trim() || '/brands'} className="btn btn-hero-secondary">
+            {heroChrome.primaryCtaLabel}
+          </Link>
         </div>
       </div>
       <div className="hero-social-rail" aria-label="Social channels">
-        <a href="https://facebook.com" target="_blank" rel="noopener noreferrer">Facebook</a>
-        <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">Instagram</a>
-        <a href="https://x.com" target="_blank" rel="noopener noreferrer">X</a>
+        {socialRows.map((row, idx) => {
+          const href = row.right?.trim();
+          if (!href) return null;
+          return (
+            <a key={`${row.left}-${idx}`} href={href} target="_blank" rel="noopener noreferrer">
+              {row.left?.trim() || 'Link'}
+            </a>
+          );
+        })}
       </div>
     </section>
   );

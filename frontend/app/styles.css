@@ -554,6 +554,9 @@ main {
   background-position: center;
 }
 .media-who::after { display: none; }
+.media-placeholder.has-image::after {
+  display: none;
+}
 .section-who .section-media .media-placeholder {
   max-width: 470px;
   margin-left: auto;

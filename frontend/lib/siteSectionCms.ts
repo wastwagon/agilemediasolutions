@@ -2,11 +2,31 @@
 
 import { useEffect, useMemo, useState } from 'react';
 
+export type SiteSectionFieldKind =
+  | 'text'
+  | 'textarea'
+  | 'list'
+  | 'pairs'
+  | 'url'
+  | 'image'
+  | 'select';
+
 export type SiteSectionField = {
   id: string;
   label: string;
   multiline?: boolean;
+  /** When set, overrides id/label heuristics in the admin UI */
+  kind?: SiteSectionFieldKind;
+  options?: { value: string; label: string }[];
+  pairLeftPlaceholder?: string;
+  pairRightPlaceholder?: string;
 };
+
+export const INSIGHTS_MEDIA_CLASS_OPTIONS: { value: string; label: string }[] = [
+  { value: 'home-insights-media-briefing', label: 'Press briefing style' },
+  { value: 'home-insights-media-editorial', label: 'Editorial / thought leadership' },
+  { value: 'home-insights-media-syndication', label: 'Syndication / distribution' },
+];
 
 export type SiteSectionDefinition = {
   key: string;
@@ -44,6 +64,156 @@ export const SITE_SECTION_DEFINITIONS: SiteSectionDefinition[] = [
       { id: 'ctaPrimaryHref', label: 'Primary button URL (e.g. /agile-press-group)' },
       { id: 'ctaSecondary', label: 'Secondary button label' },
       { id: 'ctaSecondaryHref', label: 'Secondary button URL (e.g. /insights)' },
+    ],
+  },
+  {
+    key: 'home.marquee',
+    title: 'Homepage marquees',
+    description: 'Two scrolling ticker lines on the homepage. Add one phrase per row.',
+    fields: [
+      {
+        id: 'primaryLines',
+        label: 'Primary marquee lines',
+        kind: 'list',
+      },
+      {
+        id: 'secondaryLines',
+        label: 'Secondary marquee lines',
+        kind: 'list',
+      },
+    ],
+  },
+  {
+    key: 'home.whoWeAre',
+    title: 'Homepage — Who we are',
+    description: 'About band copy, CTA, and optional image (upload or library).',
+    fields: [
+      { id: 'label', label: 'Section label' },
+      { id: 'title', label: 'Section title' },
+      { id: 'body', label: 'Body paragraph', multiline: true },
+      { id: 'ctaLabel', label: 'Button text' },
+      { id: 'ctaHref', label: 'Button URL', kind: 'url' },
+      { id: 'imageUrl', label: 'Section image', kind: 'image' },
+    ],
+  },
+  {
+    key: 'home.servicesBand',
+    title: 'Homepage — Services band',
+    description: 'Headlines above the expandable services list.',
+    fields: [
+      { id: 'label', label: 'Section label' },
+      { id: 'title', label: 'Section title' },
+      { id: 'linkLabel', label: 'Top-right link text' },
+      { id: 'linkHref', label: 'Top-right link URL', kind: 'url' },
+      { id: 'subtitle', label: 'Subtitle', multiline: true },
+      { id: 'ctaPrimaryLabel', label: 'Bottom primary button text' },
+      { id: 'ctaPrimaryHref', label: 'Bottom primary button URL', kind: 'url' },
+      { id: 'ctaSecondaryLabel', label: 'Bottom secondary button text' },
+      { id: 'ctaSecondaryHref', label: 'Bottom secondary button URL', kind: 'url' },
+    ],
+  },
+  {
+    key: 'home.brandsBand',
+    title: 'Homepage — Brands band',
+    description: 'Headlines above the brand cards.',
+    fields: [
+      { id: 'label', label: 'Section label' },
+      { id: 'title', label: 'Section title' },
+      { id: 'linkLabel', label: 'Top-right link text' },
+      { id: 'linkHref', label: 'Top-right link URL', kind: 'url' },
+      { id: 'subtitle', label: 'Subtitle', multiline: true },
+      { id: 'ctaPrimaryLabel', label: 'Bottom primary button text' },
+      { id: 'ctaPrimaryHref', label: 'Bottom primary button URL', kind: 'url' },
+      { id: 'ctaSecondaryLabel', label: 'Bottom secondary button text' },
+      { id: 'ctaSecondaryHref', label: 'Bottom secondary button URL', kind: 'url' },
+    ],
+  },
+  {
+    key: 'home.caseStudiesBand',
+    title: 'Homepage — Case studies band',
+    description: 'Headlines and CTAs around featured work and the carousel.',
+    fields: [
+      { id: 'label', label: 'Section label' },
+      { id: 'title', label: 'Section title' },
+      { id: 'linkLabel', label: 'Top-right link text' },
+      { id: 'linkHref', label: 'Top-right link URL', kind: 'url' },
+      { id: 'subtitle', label: 'Subtitle', multiline: true },
+      { id: 'ctaPrimaryLabel', label: 'Primary button text' },
+      { id: 'ctaPrimaryHref', label: 'Primary button URL', kind: 'url' },
+      { id: 'ctaSecondaryLabel', label: 'Secondary button text' },
+      { id: 'ctaSecondaryHref', label: 'Secondary button URL', kind: 'url' },
+    ],
+  },
+  {
+    key: 'home.careersBand',
+    title: 'Homepage — Careers band',
+    description: 'Join the team strip at the bottom of the homepage.',
+    fields: [
+      { id: 'label', label: 'Section label' },
+      { id: 'title', label: 'Section title' },
+      { id: 'subtitle', label: 'Subtitle', multiline: true },
+      { id: 'ctaPrimaryLabel', label: 'Primary button text' },
+      { id: 'ctaPrimaryHref', label: 'Primary button URL', kind: 'url' },
+      { id: 'ctaSecondaryLabel', label: 'Secondary button text' },
+      { id: 'ctaSecondaryHref', label: 'Secondary button URL', kind: 'url' },
+    ],
+  },
+  {
+    key: 'home.hero',
+    title: 'Homepage — Hero (video & chrome)',
+    description:
+      'Hero slides (rotating headlines) stay under Admin → Pages → Home. Configure kicker, video, poster, main CTA, and social links here.',
+    fields: [
+      { id: 'kicker', label: 'Kicker line (small text above headline)' },
+      { id: 'videoSrc', label: 'Background video URL', kind: 'url' },
+      { id: 'videoPoster', label: 'Video poster image', kind: 'image' },
+      { id: 'primaryCtaLabel', label: 'Primary button text' },
+      { id: 'primaryCtaHref', label: 'Primary button URL', kind: 'url' },
+      {
+        id: 'socialLinks',
+        label: 'Social links (rail)',
+        kind: 'pairs',
+        pairLeftPlaceholder: 'e.g. Facebook',
+        pairRightPlaceholder: 'https://…',
+      },
+    ],
+  },
+  {
+    key: 'layout.topBar',
+    title: 'Top bar',
+    description: 'Thin bar above the main header: email, contact link, and social icons.',
+    fields: [
+      { id: 'email', label: 'Email address (shown and used for mailto)' },
+      { id: 'contactLabel', label: 'Contact link text' },
+      { id: 'contactHref', label: 'Contact link URL', kind: 'url' },
+      { id: 'facebookUrl', label: 'Facebook URL', kind: 'url' },
+      { id: 'twitterUrl', label: 'X / Twitter URL', kind: 'url' },
+      { id: 'linkedinUrl', label: 'LinkedIn URL', kind: 'url' },
+      { id: 'instagramUrl', label: 'Instagram URL', kind: 'url' },
+    ],
+  },
+  {
+    key: 'layout.footer',
+    title: 'Footer',
+    description: 'Footer columns, newsletter copy, copyright line, and social URLs.',
+    fields: [
+      { id: 'impactText', label: 'Large impact word(s)' },
+      { id: 'brandingCopy', label: 'Blurb under logo', multiline: true },
+      { id: 'newsletterHeading', label: 'Newsletter column heading' },
+      { id: 'newsletterBody', label: 'Newsletter intro', multiline: true },
+      { id: 'copyrightEntity', label: 'Copyright entity name' },
+      { id: 'col1Heading', label: 'Column 1 heading' },
+      { id: 'col1Links', label: 'Column 1 links', kind: 'pairs', pairLeftPlaceholder: 'Link text', pairRightPlaceholder: '/path' },
+      { id: 'col2Heading', label: 'Column 2 heading' },
+      { id: 'col2Links', label: 'Column 2 links', kind: 'pairs' },
+      { id: 'col3Heading', label: 'Column 3 heading' },
+      { id: 'col3Links', label: 'Column 3 links', kind: 'pairs' },
+      { id: 'col4Heading', label: 'Column 4 heading' },
+      { id: 'col4Links', label: 'Column 4 links', kind: 'pairs' },
+      { id: 'facebookUrl', label: 'Facebook URL', kind: 'url' },
+      { id: 'instagramUrl', label: 'Instagram URL', kind: 'url' },
+      { id: 'xUrl', label: 'X (Twitter) URL', kind: 'url' },
+      { id: 'linkedinUrl', label: 'LinkedIn URL', kind: 'url' },
     ],
   },
   {
@@ -255,21 +425,36 @@ export const SITE_SECTION_DEFINITIONS: SiteSectionDefinition[] = [
       { id: 'card1Meta', label: 'Card 1 — meta / kicker line' },
       { id: 'card1Title', label: 'Card 1 — title' },
       { id: 'card1Excerpt', label: 'Card 1 — excerpt', multiline: true },
-      { id: 'card1MediaClass', label: 'Card 1 — placeholder style (home-insights-media-briefing | editorial | syndication)' },
+      {
+        id: 'card1MediaClass',
+        label: 'Card 1 — placeholder style (if no image)',
+        kind: 'select',
+        options: INSIGHTS_MEDIA_CLASS_OPTIONS,
+      },
       { id: 'card1ImageUrl', label: 'Card 1 — image URL (optional)' },
       { id: 'card1Body', label: 'Card 1 — full article body', multiline: true },
       { id: 'card2Slug', label: 'Card 2 — URL slug' },
       { id: 'card2Meta', label: 'Card 2 — meta / kicker line' },
       { id: 'card2Title', label: 'Card 2 — title' },
       { id: 'card2Excerpt', label: 'Card 2 — excerpt', multiline: true },
-      { id: 'card2MediaClass', label: 'Card 2 — placeholder (home-insights-media-briefing | editorial | syndication)' },
+      {
+        id: 'card2MediaClass',
+        label: 'Card 2 — placeholder style (if no image)',
+        kind: 'select',
+        options: INSIGHTS_MEDIA_CLASS_OPTIONS,
+      },
       { id: 'card2ImageUrl', label: 'Card 2 — image URL (optional)' },
       { id: 'card2Body', label: 'Card 2 — full article body', multiline: true },
       { id: 'card3Slug', label: 'Card 3 — URL slug' },
       { id: 'card3Meta', label: 'Card 3 — meta / kicker line' },
       { id: 'card3Title', label: 'Card 3 — title' },
       { id: 'card3Excerpt', label: 'Card 3 — excerpt', multiline: true },
-      { id: 'card3MediaClass', label: 'Card 3 — placeholder (home-insights-media-briefing | editorial | syndication)' },
+      {
+        id: 'card3MediaClass',
+        label: 'Card 3 — placeholder style (if no image)',
+        kind: 'select',
+        options: INSIGHTS_MEDIA_CLASS_OPTIONS,
+      },
       { id: 'card3ImageUrl', label: 'Card 3 — image URL (optional)' },
       { id: 'card3Body', label: 'Card 3 — full article body', multiline: true },
     ],
@@ -390,6 +575,32 @@ export const SITE_SECTION_DEFINITIONS: SiteSectionDefinition[] = [
     ],
   },
 ];
+
+/** Newline-separated list values from Site Content (list fields). */
+export function parseSiteContentLines(value: string): string[] {
+  return value
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
+export type SiteContentPairRow = { left: string; right: string };
+
+/** `Label :: URL` rows from Site Content (pairs fields). */
+export function parseSiteContentPairs(value: string): SiteContentPairRow[] {
+  return value
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const [left, ...rest] = line.split('::');
+      return {
+        left: (left || '').trim(),
+        right: rest.join('::').trim(),
+      };
+    })
+    .filter((row) => row.left || row.right);
+}
 
 type SiteSectionsMap = Record<string, Record<string, string>>;
 

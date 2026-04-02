@@ -7,7 +7,7 @@ import CaseStudiesCarousel from '../components/CaseStudiesCarousel';
 import SectionHeader from '../components/SectionHeader';
 import HomeFeaturedWork, { type HomeFeaturedStudy } from '../components/HomeFeaturedWork';
 import HomeInsightsPreview from '../components/HomeInsightsPreview';
-import { useSiteSectionContent } from '@/lib/siteSectionCms';
+import { parseSiteContentLines, useSiteSectionContent } from '@/lib/siteSectionCms';
 
 interface Brand {
   id: number;
@@ -87,6 +87,73 @@ export default function Page() {
     linkLabel: 'See all events',
     ctaPrimary: 'See Event Calendar',
     ctaSecondary: 'Partner With Us',
+  });
+
+  const homeMarquee = useSiteSectionContent('home.marquee', {
+    primaryLines:
+      'Strategic Storytelling\nMedia Intelligence\nCampaign Architecture\nDigital Influence\nCreative Production',
+    secondaryLines:
+      'Institutional trust\nCross-border narrative\nExecutive visibility\nSummit & event media\nMeasured impact',
+  });
+
+  const homeWhoWeAre = useSiteSectionContent('home.whoWeAre', {
+    label: 'About Agile',
+    title: 'Who We Are',
+    body:
+      'We are a multidisciplinary communications agency operating at the intersection of strategy, storytelling, and public influence. From presidential campaigns to global brand launches, our work blends intelligence, creativity, and execution power—helping clients lead conversations and shape change.',
+    ctaLabel: 'Learn More About Us →',
+    ctaHref: '/about',
+    imageUrl: '',
+  });
+
+  const homeServicesBand = useSiteSectionContent('home.servicesBand', {
+    label: 'Capabilities',
+    title: 'Our services',
+    linkLabel: 'View all services',
+    linkHref: '/services',
+    subtitle:
+      'Comprehensive communications solutions. Strategically designed. Precisely delivered.',
+    ctaPrimaryLabel: 'View all services',
+    ctaPrimaryHref: '/services',
+    ctaSecondaryLabel: 'Request a Consultation',
+    ctaSecondaryHref: '/contact#contact',
+  });
+
+  const homeBrandsBand = useSiteSectionContent('home.brandsBand', {
+    label: 'Media Network',
+    title: 'Our Brands',
+    linkLabel: 'Explore portfolio',
+    linkHref: '/brands',
+    subtitle:
+      'Media Properties That Inform, Inspire, and Influence. Agile Media Solutions owns and operates a growing portfolio of high-impact media platforms that shape public discourse, elevate African voices, and spotlight key sectors across the continent.',
+    ctaPrimaryLabel: 'View All Brands',
+    ctaPrimaryHref: '/brands',
+    ctaSecondaryLabel: 'Advertise With Us',
+    ctaSecondaryHref: '/contact#contact',
+  });
+
+  const homeCaseStudiesBand = useSiteSectionContent('home.caseStudiesBand', {
+    label: 'Selected Work',
+    title: 'Case Studies & Campaign Highlights',
+    linkLabel: 'View projects',
+    linkHref: '/case-studies',
+    subtitle:
+      'Explore our portfolio of strategic communications projects across Africa and the global stage—from cross-border campaigns to policy communications and narrative repositioning.',
+    ctaPrimaryLabel: 'See Case Studies →',
+    ctaPrimaryHref: '/case-studies',
+    ctaSecondaryLabel: 'Start a Project',
+    ctaSecondaryHref: '/contact#contact',
+  });
+
+  const homeCareersBand = useSiteSectionContent('home.careersBand', {
+    label: 'Talent',
+    title: 'Join the Team',
+    subtitle:
+      "We're building a creative, strategic, and fearless team across Africa and beyond.",
+    ctaPrimaryLabel: 'Explore Careers',
+    ctaPrimaryHref: '/careers',
+    ctaSecondaryLabel: 'Become a Contributor',
+    ctaSecondaryHref: '/contact#contact',
   });
 
   const homeInsightsCopy = useSiteSectionContent('home.insights', {
@@ -177,46 +244,57 @@ export default function Page() {
     }
   }, [activeServiceIdx, homeServices.length]);
 
+  const marqueePrimaryItems = parseSiteContentLines(homeMarquee.primaryLines);
+  const marqueeSecondaryItems = parseSiteContentLines(homeMarquee.secondaryLines);
+
+  const renderMarqueeSpans = (lines: string[]) => {
+    const out: React.ReactNode[] = [];
+    lines.forEach((line, i) => {
+      out.push(
+        <span key={`t-${i}`}>{line}</span>,
+        <span key={`b-${i}`}>•</span>
+      );
+    });
+    return [...out, ...out];
+  };
+
   return (
     <main className="home-page creative-home">
       <Hero />
 
       <section className="creative-marquee" aria-label="Brand statement ticker">
         <div className="creative-marquee-track">
-          <span>Strategic Storytelling</span>
-          <span>•</span>
-          <span>Media Intelligence</span>
-          <span>•</span>
-          <span>Campaign Architecture</span>
-          <span>•</span>
-          <span>Digital Influence</span>
-          <span>•</span>
-          <span>Creative Production</span>
-          <span>•</span>
-          <span>Strategic Storytelling</span>
-          <span>•</span>
-          <span>Media Intelligence</span>
-          <span>•</span>
-          <span>Campaign Architecture</span>
-          <span>•</span>
-          <span>Digital Influence</span>
+          {marqueePrimaryItems.length > 0 ? renderMarqueeSpans(marqueePrimaryItems) : null}
         </div>
       </section>
 
       <section className="section section-who creative-section-band" id="who-we-are">
         <div className="section-inner section-split animate-on-scroll">
           <div className="section-content">
-            <span className="section-label">About Agile</span>
-            <h2 className="section-title">Who We Are</h2>
-            <p className="section-text">
-              We are a multidisciplinary communications agency operating at the intersection of strategy, storytelling, and public influence. From presidential campaigns to global brand launches, our work blends intelligence, creativity, and execution power—helping clients lead conversations and shape change.
-            </p>
+            <span className="section-label">{homeWhoWeAre.label}</span>
+            <h2 className="section-title">{homeWhoWeAre.title}</h2>
+            <p className="section-text">{homeWhoWeAre.body}</p>
             <div className="section-cta-inline">
-              <Link href="/about" className="btn btn-learn">Learn More About Us →</Link>
+              <Link href={homeWhoWeAre.ctaHref || '/about'} className="btn btn-learn">
+                {homeWhoWeAre.ctaLabel}
+              </Link>
             </div>
           </div>
           <div className="section-media">
-            <div className="media-placeholder media-who" aria-hidden="true"></div>
+            <div
+              className={`media-placeholder ${homeWhoWeAre.imageUrl?.trim() ? 'has-image' : 'media-who'}`}
+              style={
+                homeWhoWeAre.imageUrl?.trim()
+                  ? {
+                      backgroundImage: `url(${homeWhoWeAre.imageUrl.trim()})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      backgroundRepeat: 'no-repeat',
+                    }
+                  : undefined
+              }
+              aria-hidden="true"
+            />
           </div>
         </div>
       </section>
@@ -226,25 +304,7 @@ export default function Page() {
         aria-label="Institutional focus areas"
       >
         <div className="creative-marquee-track creative-marquee-track--reverse">
-          <span>Institutional trust</span>
-          <span>•</span>
-          <span>Cross-border narrative</span>
-          <span>•</span>
-          <span>Executive visibility</span>
-          <span>•</span>
-          <span>Summit &amp; event media</span>
-          <span>•</span>
-          <span>Measured impact</span>
-          <span>•</span>
-          <span>Institutional trust</span>
-          <span>•</span>
-          <span>Cross-border narrative</span>
-          <span>•</span>
-          <span>Executive visibility</span>
-          <span>•</span>
-          <span>Summit &amp; event media</span>
-          <span>•</span>
-          <span>Measured impact</span>
+          {marqueeSecondaryItems.length > 0 ? renderMarqueeSpans(marqueeSecondaryItems) : null}
         </div>
       </section>
 
@@ -252,14 +312,12 @@ export default function Page() {
         <div className="section-inner animate-on-scroll">
           <SectionHeader
             variant="home"
-            label="Capabilities"
-            title="Our services"
-            linkHref="/services"
-            linkLabel="View all services"
+            label={homeServicesBand.label}
+            title={homeServicesBand.title}
+            linkHref={homeServicesBand.linkHref}
+            linkLabel={homeServicesBand.linkLabel}
           />
-          <p className="section-subtitle centered">
-            Comprehensive communications solutions. Strategically designed. Precisely delivered.
-          </p>
+          <p className="section-subtitle centered">{homeServicesBand.subtitle}</p>
           <div className="services-template-panel">
             {homeServices.map((s, idx) => {
               const isActive = idx === activeServiceIdx;
@@ -307,8 +365,12 @@ export default function Page() {
             })}
           </div>
           <div className="section-cta-center">
-            <Link href="/services" className="btn btn-outline">View all services</Link>
-            <Link href="/contact#contact" className="btn btn-outline">Request a Consultation</Link>
+            <Link href={homeServicesBand.ctaPrimaryHref} className="btn btn-outline">
+              {homeServicesBand.ctaPrimaryLabel}
+            </Link>
+            <Link href={homeServicesBand.ctaSecondaryHref} className="btn btn-outline">
+              {homeServicesBand.ctaSecondaryLabel}
+            </Link>
           </div>
         </div>
       </section>
@@ -317,14 +379,12 @@ export default function Page() {
         <div className="section-inner animate-on-scroll">
           <SectionHeader
             variant="home"
-            label="Media Network"
-            title="Our Brands"
-            linkHref="/brands"
-            linkLabel="Explore portfolio"
+            label={homeBrandsBand.label}
+            title={homeBrandsBand.title}
+            linkHref={homeBrandsBand.linkHref}
+            linkLabel={homeBrandsBand.linkLabel}
           />
-          <p className="section-subtitle centered">
-            Media Properties That Inform, Inspire, and Influence. Agile Media Solutions owns and operates a growing portfolio of high-impact media platforms that shape public discourse, elevate African voices, and spotlight key sectors across the continent.
-          </p>
+          <p className="section-subtitle centered">{homeBrandsBand.subtitle}</p>
           <div className="cards-grid cards-brands">
             {brands.length > 0 ? (
               brands.map((b: Brand) => (
@@ -361,8 +421,12 @@ export default function Page() {
             )}
           </div>
           <div className="section-cta-center">
-            <Link href="/brands" className="btn btn-outline btn-view-all-brands">View All Brands</Link>
-            <Link href="/contact#contact" className="btn btn-outline">Advertise With Us</Link>
+            <Link href={homeBrandsBand.ctaPrimaryHref} className="btn btn-outline btn-view-all-brands">
+              {homeBrandsBand.ctaPrimaryLabel}
+            </Link>
+            <Link href={homeBrandsBand.ctaSecondaryHref} className="btn btn-outline">
+              {homeBrandsBand.ctaSecondaryLabel}
+            </Link>
           </div>
         </div>
       </section>
@@ -428,19 +492,21 @@ export default function Page() {
         <div className="section-inner animate-on-scroll">
           <SectionHeader
             variant="home"
-            label="Selected Work"
-            title={<>Case Studies &amp; Campaign Highlights</>}
-            linkHref="/case-studies"
-            linkLabel="View projects"
+            label={homeCaseStudiesBand.label}
+            title={homeCaseStudiesBand.title}
+            linkHref={homeCaseStudiesBand.linkHref}
+            linkLabel={homeCaseStudiesBand.linkLabel}
           />
-          <p className="section-subtitle centered">
-            Explore our portfolio of strategic communications projects across Africa and the global stage—from cross-border campaigns to policy communications and narrative repositioning.
-          </p>
+          <p className="section-subtitle centered">{homeCaseStudiesBand.subtitle}</p>
           <HomeFeaturedWork studies={caseStudiesHome} />
           <CaseStudiesCarousel />
           <div className="section-cta-center">
-            <Link href="/case-studies" className="btn btn-outline">See Case Studies →</Link>
-            <Link href="/contact#contact" className="btn btn-primary">Start a Project</Link>
+            <Link href={homeCaseStudiesBand.ctaPrimaryHref} className="btn btn-outline">
+              {homeCaseStudiesBand.ctaPrimaryLabel}
+            </Link>
+            <Link href={homeCaseStudiesBand.ctaSecondaryHref} className="btn btn-primary">
+              {homeCaseStudiesBand.ctaSecondaryLabel}
+            </Link>
           </div>
         </div>
       </section>
@@ -472,16 +538,18 @@ export default function Page() {
           <SectionHeader
             variant="home"
             layout="stack"
-            label="Talent"
-            title="Join the Team"
+            label={homeCareersBand.label}
+            title={homeCareersBand.title}
             titleClassName="centered"
           />
-          <p className="section-subtitle centered">
-            We&apos;re building a creative, strategic, and fearless team across Africa and beyond.
-          </p>
+          <p className="section-subtitle centered">{homeCareersBand.subtitle}</p>
           <div className="section-cta-center">
-            <Link href="/careers" className="btn btn-primary">Explore Careers</Link>
-            <Link href="/contact#contact" className="btn btn-outline">Become a Contributor</Link>
+            <Link href={homeCareersBand.ctaPrimaryHref} className="btn btn-primary">
+              {homeCareersBand.ctaPrimaryLabel}
+            </Link>
+            <Link href={homeCareersBand.ctaSecondaryHref} className="btn btn-outline">
+              {homeCareersBand.ctaSecondaryLabel}
+            </Link>
           </div>
         </div>
       </section>
