@@ -2241,14 +2241,28 @@ main {
   margin-left: 0;
   margin-right: auto;
   padding: clamp(1.35rem, 3.2vw, 2.15rem) clamp(1.35rem, 3.6vw, 2.5rem);
-  border-radius: 1.125rem;
-  background: linear-gradient(155deg, rgba(7, 14, 26, 0.26) 0%, rgba(5, 11, 22, 0.18) 55%, rgba(6, 18, 28, 0.12) 100%);
-  backdrop-filter: blur(12px) saturate(1.08);
-  -webkit-backdrop-filter: blur(12px) saturate(1.08);
-  box-shadow:
-    0 20px 40px -22px rgba(0, 0, 0, 0.32),
-    0 0 0 1px rgba(255, 255, 255, 0.08) inset;
-  border: 1px solid rgba(153, 246, 228, 0.16);
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+/* Soft read wedge behind copy only — no card / frosted panel */
+.creative-home .hero-content::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  top: -0.5rem;
+  bottom: -0.5rem;
+  left: clamp(-1.5rem, -3vw, -0.75rem);
+  right: clamp(-2rem, -8vw, -0.5rem);
+  background: linear-gradient(
+    102deg,
+    rgba(3, 9, 20, 0.82) 0%,
+    rgba(3, 9, 20, 0.45) 42%,
+    rgba(3, 9, 20, 0.14) 72%,
+    transparent 100%
+  );
+  pointer-events: none;
 }
 
 .hero-kicker {
@@ -3212,7 +3226,14 @@ main {
     width: 100%;
     max-width: none;
     padding: 1.2rem 1.15rem;
-    border-radius: 1rem;
+  }
+
+  .creative-home .hero-content::before {
+    left: -0.65rem;
+    right: 0;
+    top: -0.35rem;
+    bottom: -0.35rem;
+    background: linear-gradient(95deg, rgba(3, 9, 20, 0.78) 0%, rgba(3, 9, 20, 0.28) 58%, transparent 96%);
   }
 
   .hero-social-rail {
