@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { parseSiteContentPairs, useSiteSectionContent } from '@/lib/siteSectionCms';
 
@@ -27,6 +27,7 @@ function videoMimeTypeForSrc(src: string): string {
 }
 
 export default function Hero() {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [slides, setSlides] = useState<{ title?: string; subtitle?: string }[]>([]);
 
@@ -79,18 +80,67 @@ export default function Hero() {
   const poster = heroChrome.videoPoster?.trim() || '/images/hero-politics.jpg';
   const videoType = videoMimeTypeForSrc(videoSrc);
 
+  const kickPlayback = useCallback(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.defaultMuted = true;
+    v.muted = true;
+    v.setAttribute('muted', '');
+    v.playsInline = true;
+    void v.play().catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    kickPlayback();
+  }, [videoSrc, poster, kickPlayback]);
+
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    const onLifecycle = () => kickPlayback();
+    v.addEventListener('loadeddata', onLifecycle);
+    v.addEventListener('canplay', onLifecycle);
+    v.addEventListener('canplaythrough', onLifecycle);
+    v.addEventListener('stalled', onLifecycle);
+    v.addEventListener('suspend', onLifecycle);
+    return () => {
+      v.removeEventListener('loadeddata', onLifecycle);
+      v.removeEventListener('canplay', onLifecycle);
+      v.removeEventListener('canplaythrough', onLifecycle);
+      v.removeEventListener('stalled', onLifecycle);
+      v.removeEventListener('suspend', onLifecycle);
+    };
+  }, [videoSrc, poster, kickPlayback]);
+
+  useEffect(() => {
+    const onVis = () => {
+      if (document.visibilityState === 'visible') kickPlayback();
+    };
+    const onShow = () => kickPlayback();
+    document.addEventListener('visibilitychange', onVis);
+    window.addEventListener('pageshow', onShow);
+    return () => {
+      document.removeEventListener('visibilitychange', onVis);
+      window.removeEventListener('pageshow', onShow);
+    };
+  }, [kickPlayback]);
+
   return (
     <section className="hero" id="home">
       <div className="hero-video" aria-hidden="true">
         <video
+          ref={videoRef}
           className="hero-video-el"
           autoPlay
           loop
           muted
           playsInline
-          preload="metadata"
+          preload="auto"
           poster={poster}
           key={videoSrc + poster}
+          disablePictureInPicture
+          disableRemotePlayback
+          controls={false}
         >
           <source src={videoSrc} type={videoType} />
         </video>

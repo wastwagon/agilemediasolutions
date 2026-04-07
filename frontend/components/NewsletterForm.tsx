@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { trackAnalyticsEvent } from '@/lib/analyticsClient';
 
 export default function NewsletterForm() {
   const [email, setEmail] = useState('');
@@ -18,6 +19,9 @@ export default function NewsletterForm() {
         body: JSON.stringify({ email }),
       });
       if (res.ok) {
+        void trackAnalyticsEvent('newsletter_signup', typeof window !== 'undefined' ? window.location.pathname : '/', {
+          source: 'newsletter_form',
+        });
         setStatus('success');
         setEmail('');
         setTimeout(() => setStatus('idle'), 5000);

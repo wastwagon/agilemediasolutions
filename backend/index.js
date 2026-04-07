@@ -560,6 +560,25 @@ const ensureAdminAuditLogsTable = async () => {
   `);
 };
 
+const ensureSiteAnalyticsTable = async () => {
+  if (!pgPool) return;
+  await pgPool.query(`
+    CREATE TABLE IF NOT EXISTS site_analytics_events (
+      id BIGSERIAL PRIMARY KEY,
+      event_type TEXT NOT NULL,
+      path TEXT NOT NULL,
+      referrer TEXT,
+      session_key TEXT,
+      user_agent TEXT,
+      meta_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS site_analytics_events_created_idx ON site_analytics_events (created_at DESC);
+    CREATE INDEX IF NOT EXISTS site_analytics_events_type_created_idx ON site_analytics_events (event_type, created_at DESC);
+    CREATE INDEX IF NOT EXISTS site_analytics_events_path_created_idx ON site_analytics_events (path, created_at DESC);
+  `);
+};
+
 const ensureAppSchemaAndSeed = async () => {
   if (!pgPool) return;
   await ensureCoreSchema();
@@ -690,10 +709,45 @@ const ensureAppSchemaAndSeed = async () => {
   await ensureSiteSectionsTable();
   await ensurePageContentCardsTable();
   await ensureAdminAuditLogsTable();
+  await ensureSiteAnalyticsTable();
   await seedAgileContent(pgPool);
 };
 
 const pgPool = DATABASE_URL ? new Pool({ connectionString: DATABASE_URL }) : null;
+
+const ANALYTICS_ALLOWED_EVENTS = new Set([
+  'page_view',
+  'newsletter_signup',
+  'contact_submit',
+  'cta_click',
+  'outbound_link',
+]);
+const ANALYTICS_RATE_WINDOW_MS = 60_000;
+const ANALYTICS_RATE_MAX = 100;
+const analyticsRateBuckets = new Map();
+
+const getClientIp = (req) => {
+  const fwd = (req.headers['x-forwarded-for'] || '').toString().split(',')[0].trim();
+  return fwd || req.socket?.remoteAddress || 'unknown';
+};
+
+const allowAnalyticsRequest = (ip) => {
+  const now = Date.now();
+  let b = analyticsRateBuckets.get(ip);
+  if (!b || now - b.start > ANALYTICS_RATE_WINDOW_MS) {
+    b = { start: now, count: 0 };
+    analyticsRateBuckets.set(ip, b);
+  }
+  b.count += 1;
+  return b.count <= ANALYTICS_RATE_MAX;
+};
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, b] of analyticsRateBuckets.entries()) {
+    if (now - b.start > ANALYTICS_RATE_WINDOW_MS * 2) analyticsRateBuckets.delete(ip);
+  }
+}, 120_000).unref?.();
 
 let redisClient = null;
 if (REDIS_URL) {
@@ -1026,6 +1080,42 @@ app.get('/api/public/site-sections', async (req, res) => {
     res.json(map);
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+// First-party analytics (self-hosted; no third-party scripts)
+app.post('/api/public/analytics', async (req, res) => {
+  if (!pgPool) return res.status(503).json({ error: 'Analytics unavailable' });
+  const ip = getClientIp(req);
+  if (!allowAnalyticsRequest(ip)) {
+    return res.status(429).json({ error: 'Too many requests' });
+  }
+  const body = req.body || {};
+  const eventType = String(body.eventType || '').trim();
+  if (!ANALYTICS_ALLOWED_EVENTS.has(eventType)) {
+    return res.status(400).json({ error: 'Invalid event type' });
+  }
+  let path = String(body.path || '').trim();
+  if (!path.startsWith('/')) path = '/';
+  if (path.length > 1024) path = path.slice(0, 1024);
+  let referrer = body.referrer != null ? String(body.referrer).trim() : '';
+  if (referrer.length > 1500) referrer = referrer.slice(0, 1500);
+  const sessionKey = body.sessionKey != null ? String(body.sessionKey).trim().slice(0, 80) : '';
+  const ua = (req.headers['user-agent'] || '').toString().slice(0, 400);
+  let meta = body.meta;
+  if (meta == null || typeof meta !== 'object' || Array.isArray(meta)) meta = {};
+  const metaJson = JSON.stringify(meta).length > 4000 ? '{}' : JSON.stringify(meta);
+
+  try {
+    await ensureSiteAnalyticsTable();
+    await pgPool.query(
+      `INSERT INTO site_analytics_events (event_type, path, referrer, session_key, user_agent, meta_json)
+       VALUES ($1, $2, $3, $4, $5, $6::jsonb)`,
+      [eventType, path, referrer || null, sessionKey || null, ua || null, metaJson]
+    );
+    res.status(201).json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Could not record event' });
   }
 });
 
@@ -1738,6 +1828,99 @@ app.get('/api/admin/contacts', authenticateToken, async (req, res) => {
     const result = await pgPool.query('SELECT * FROM contact_messages ORDER BY created_at DESC');
     res.json(result.rows);
   } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/admin/analytics/summary', authenticateToken, async (req, res) => {
+  if (!pgPool) return res.status(500).json({ error: 'Database not available' });
+  const daysRaw = Number.parseInt(String(req.query?.days || '30'), 10);
+  const days = Number.isFinite(daysRaw) ? Math.min(Math.max(daysRaw, 1), 90) : 30;
+  try {
+    await ensureSiteAnalyticsTable();
+    const [totals, topPaths, byDay, conversions] = await Promise.all([
+      pgPool.query(
+        `SELECT event_type, COUNT(*)::int AS c
+         FROM site_analytics_events
+         WHERE created_at >= NOW() - ($1::int * INTERVAL '1 day')
+         GROUP BY event_type`,
+        [days]
+      ),
+      pgPool.query(
+        `SELECT path, COUNT(*)::int AS c
+         FROM site_analytics_events
+         WHERE created_at >= NOW() - ($1::int * INTERVAL '1 day')
+           AND event_type = 'page_view'
+         GROUP BY path
+         ORDER BY c DESC
+         LIMIT 25`,
+        [days]
+      ),
+      pgPool.query(
+        `SELECT (created_at AT TIME ZONE 'UTC')::date AS d, COUNT(*)::int AS c
+         FROM site_analytics_events
+         WHERE created_at >= NOW() - ($1::int * INTERVAL '1 day')
+         GROUP BY 1
+         ORDER BY 1 ASC`,
+        [days]
+      ),
+      pgPool.query(
+        `SELECT event_type, COUNT(*)::int AS c
+         FROM site_analytics_events
+         WHERE created_at >= NOW() - ($1::int * INTERVAL '1 day')
+           AND event_type IN ('newsletter_signup','contact_submit','cta_click','outbound_link')
+         GROUP BY event_type`,
+        [days]
+      ),
+    ]);
+    const byType = {};
+    for (const row of totals.rows || []) {
+      byType[row.event_type] = row.c;
+    }
+    const conv = {};
+    for (const row of conversions.rows || []) {
+      conv[row.event_type] = row.c;
+    }
+    res.json({
+      rangeDays: days,
+      byType,
+      conversions: conv,
+      topPaths: topPaths.rows || [],
+      byDay: (byDay.rows || []).map((r) => ({ day: r.d, count: r.c })),
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/admin/analytics/events', authenticateToken, async (req, res) => {
+  if (!pgPool) return res.status(500).json({ error: 'Database not available' });
+  const limitRaw = Number.parseInt(String(req.query?.limit || '150'), 10);
+  const limit = Number.isFinite(limitRaw) ? Math.min(Math.max(limitRaw, 1), 500) : 150;
+  const offsetRaw = Number.parseInt(String(req.query?.offset || '0'), 10);
+  const offset = Number.isFinite(offsetRaw) ? Math.max(offsetRaw, 0) : 0;
+  const eventType = String(req.query?.eventType || '').trim();
+  try {
+    await ensureSiteAnalyticsTable();
+    const result =
+      eventType && ANALYTICS_ALLOWED_EVENTS.has(eventType)
+        ? await pgPool.query(
+            `SELECT id, event_type, path, referrer, session_key, meta_json, created_at
+             FROM site_analytics_events
+             WHERE event_type = $3
+             ORDER BY created_at DESC
+             LIMIT $1 OFFSET $2`,
+            [limit, offset, eventType]
+          )
+        : await pgPool.query(
+            `SELECT id, event_type, path, referrer, session_key, meta_json, created_at
+             FROM site_analytics_events
+             ORDER BY created_at DESC
+             LIMIT $1 OFFSET $2`,
+            [limit, offset]
+          );
+    res.json(result.rows || []);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.get('/api/admin/audit-logs', authenticateToken, async (req, res) => {

@@ -1,6 +1,6 @@
 /** Canonical public origin (no trailing slash). */
 export function publicSiteUrl(): string {
-  return (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.agilemediasolutions.com').replace(/\/$/, '');
+  return (process.env.NEXT_PUBLIC_SITE_URL || 'https://agile-media.com').replace(/\/$/, '');
 }
 
 /** Turn a path or absolute URL into an absolute URL for OG / JSON-LD. */

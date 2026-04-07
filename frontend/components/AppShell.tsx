@@ -7,6 +7,7 @@ import NewsletterForm from './NewsletterForm';
 import TopBar from './TopBar';
 import Header from './Header';
 import Preloader from './Preloader';
+import SiteAnalytics from './SiteAnalytics';
 import MobileTabBar from './MobileTabBar';
 import { useScrollAnimations } from '@/hooks/useScrollAnimations';
 import { parseSiteContentPairs, useSiteSectionContent } from '@/lib/siteSectionCms';
@@ -93,6 +94,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
+      <SiteAnalytics />
       <Preloader />
       <TopBar />
       <Header />

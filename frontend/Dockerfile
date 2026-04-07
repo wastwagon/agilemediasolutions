@@ -14,6 +14,10 @@ COPY . .
 ARG NEXT_PUBLIC_SITE_NAME
 ENV NEXT_PUBLIC_SITE_NAME=${NEXT_PUBLIC_SITE_NAME}
 
+# Canonical public site URL (no trailing slash). Used for OG metadata, sitemap, JSON-LD.
+ARG NEXT_PUBLIC_SITE_URL=https://agile-media.com
+ENV NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL}
+
 # Must match your Compose/stack service URL (Coolify: same compose network as backend)
 ARG BACKEND_INTERNAL_URL=http://backend:4000
 ENV BACKEND_INTERNAL_URL=${BACKEND_INTERNAL_URL}

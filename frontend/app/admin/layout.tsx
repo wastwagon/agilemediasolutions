@@ -106,6 +106,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: '/admin/case-studies', label: 'Case Studies' },
     { href: '/admin/contacts', label: 'Contact form' },
     { href: '/admin/audit-logs', label: 'Audit Logs' },
+    { href: '/admin/analytics', label: 'Analytics' },
     { href: '/admin/site-content', label: 'Site Content' },
     { href: '/admin/settings', label: 'Settings' },
   ];

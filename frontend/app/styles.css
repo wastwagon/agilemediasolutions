@@ -339,12 +339,25 @@ main {
   position: absolute;
   inset: 0;
   z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: var(--color-hero-bg, #0d213b);
 }
 .hero-video-el {
-  width: 100%;
-  height: 100%;
+  /* Fill + cover all aspect ratios (mobile landscape, ultrawide, iOS) */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: auto;
+  height: auto;
+  min-width: 100%;
+  min-height: 100%;
+  max-width: none;
+  transform: translate(-50%, -50%);
   object-fit: cover;
   object-position: center;
+  -webkit-object-fit: cover;
+  background: var(--color-hero-bg, #0d213b);
 }
 .hero-slide {
   position: absolute;
@@ -2169,6 +2182,19 @@ main {
   opacity: 0.08;
   background-image: radial-gradient(rgba(255, 255, 255, 0.34) 0.7px, transparent 0.7px);
   background-size: 3px 3px;
+}
+
+/* Homepage hero: keep video beneath overlay/noise/content on every breakpoint */
+.creative-home .hero-video {
+  z-index: 0;
+}
+.creative-home .hero-overlay {
+  z-index: 1;
+}
+/* Stable viewport height on mobile (address bar) so the video layer keeps full bleed */
+.creative-home .hero {
+  min-height: 100vh;
+  min-height: 100svh;
 }
 
 .hero-content {

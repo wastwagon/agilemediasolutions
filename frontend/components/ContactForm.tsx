@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { trackAnalyticsEvent } from '@/lib/analyticsClient';
 
 export default function ContactForm() {
   const [formData, setFormData] = useState({ name: '', email: '', topic: '', message: '' });
@@ -40,6 +41,11 @@ export default function ContactForm() {
         body: JSON.stringify(formData),
       });
       if (res.ok) {
+        void trackAnalyticsEvent(
+          'contact_submit',
+          typeof window !== 'undefined' ? window.location.pathname : '/contact',
+          { source: 'contact_form' }
+        );
         setStatus('success');
         setFormData({ name: '', email: '', topic: '', message: '' });
         setTimeout(() => setStatus('idle'), 5000);
