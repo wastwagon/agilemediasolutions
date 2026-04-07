@@ -40,6 +40,52 @@ const DEFAULT_HERO_SOCIAL = `Facebook :: https://facebook.com
 Instagram :: https://instagram.com
 X :: https://x.com`;
 
+/** Shipped in frontend `public/videos/`; used to auto-repair Site Content when DB still points at missing files. */
+const BUNDLED_HERO_VIDEO_SRC = '/videos/home-hero-video.mp4';
+
+function heroVideoSrcNeedsBundledDefault(raw) {
+  const t = (raw || '').trim();
+  if (!t) return true;
+  const pathOnly = t.split('?')[0].toLowerCase().replace(/\\/g, '/');
+  if (pathOnly.endsWith('herobannervideo.mp4')) return true;
+  if (pathOnly.endsWith('/hero-banner-video.mp4')) return true;
+  if (/hero-politics|hero-sports|hero-studio/i.test(pathOnly) && /\.(mp4|webm|mov)$/i.test(pathOnly)) {
+    return true;
+  }
+  return false;
+}
+
+function heroVideoPosterShouldClear(raw) {
+  const t = (raw || '').trim();
+  if (!t) return false;
+  const pathOnly = t.split('?')[0].toLowerCase();
+  if (pathOnly.endsWith('opening-launch.webp')) return true;
+  if (/hero-politics|hero-sports|hero-studio/i.test(t)) return true;
+  return false;
+}
+
+/** Idempotent: fixes home.hero video URL/poster after legacy CMS or bad uploads (404). */
+async function ensureHomeHeroVideoFromSeed(pool) {
+  const r = await pool.query(`SELECT content_json FROM site_sections WHERE section_key = 'home.hero' LIMIT 1`);
+  if (r.rows.length === 0) return;
+  const c = r.rows[0].content_json;
+  const content = c && typeof c === 'object' && !Array.isArray(c) ? { ...c } : {};
+  let changed = false;
+  if (heroVideoSrcNeedsBundledDefault(content.videoSrc)) {
+    content.videoSrc = BUNDLED_HERO_VIDEO_SRC;
+    changed = true;
+  }
+  if (heroVideoPosterShouldClear(content.videoPoster)) {
+    content.videoPoster = '';
+    changed = true;
+  }
+  if (!changed) return;
+  await pool.query(
+    `UPDATE site_sections SET content_json = $1::jsonb, updated_at = NOW() WHERE section_key = 'home.hero'`,
+    [JSON.stringify(content)]
+  );
+}
+
 /** Populates Site Content when missing (does not overwrite existing rows). */
 const SITE_SECTION_SEEDS = [
   {
@@ -125,7 +171,7 @@ const SITE_SECTION_SEEDS = [
     key: 'home.hero',
     content: {
       kicker: 'Creative Communications Studio',
-      videoSrc: '/videos/home-hero-video.mp4',
+      videoSrc: BUNDLED_HERO_VIDEO_SRC,
       videoPoster: '',
       primaryCtaLabel: 'Explore Our Brands',
       primaryCtaHref: '/brands',
@@ -728,6 +774,8 @@ async function seedAgileContent(pool) {
     );
   }
 
+  await ensureHomeHeroVideoFromSeed(pool);
+
   await pool.query(
     `INSERT INTO pages (slug, title, description, content_json)
      VALUES ('home', $1, $2, $3::jsonb)
@@ -833,4 +881,11 @@ async function seedAgileContent(pool) {
   await seedPageContentCards(pool);
 }
 
-module.exports = { seedAgileContent, HOME_TITLE, HOME_DESCRIPTION, HOME_CONTENT_JSON };
+module.exports = {
+  seedAgileContent,
+  HOME_TITLE,
+  HOME_DESCRIPTION,
+  HOME_CONTENT_JSON,
+  BUNDLED_HERO_VIDEO_SRC,
+  ensureHomeHeroVideoFromSeed,
+};
