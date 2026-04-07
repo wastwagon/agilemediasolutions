@@ -4,6 +4,10 @@ import React from 'react';
 import Link from 'next/link';
 import { useSiteSectionContent } from '@/lib/siteSectionCms';
 import {
+  DEFAULT_PHONE_WHATSAPP_HREF,
+  DEFAULT_PHONE_WHATSAPP_LABEL,
+} from '@/lib/defaultPhoneChannel';
+import {
   DEFAULT_AGILE_INSTAGRAM_URL,
   DEFAULT_AGILE_LINKEDIN_URL,
   DEFAULT_AGILE_X_URL,
@@ -14,8 +18,8 @@ import {
 export default function TopBar() {
   const bar = useSiteSectionContent('layout.topBar', {
     email: 'info@agilemediasolutions.com',
-    contactLabel: 'Phone / WhatsApp',
-    contactHref: '/contact#contact',
+    contactLabel: DEFAULT_PHONE_WHATSAPP_LABEL,
+    contactHref: DEFAULT_PHONE_WHATSAPP_HREF,
     facebookUrl: DEFAULT_FACEBOOK_URL,
     twitterUrl: DEFAULT_AGILE_X_URL,
     instagramUrl: DEFAULT_AGILE_INSTAGRAM_URL,
@@ -25,8 +29,16 @@ export default function TopBar() {
 
   const mailHref = bar.email?.trim() ? `mailto:${bar.email.trim()}` : 'mailto:info@agilemediasolutions.com';
   const emailDisplay = bar.email?.trim() || 'info@agilemediasolutions.com';
-  const contactHref = bar.contactHref?.trim() || '/contact#contact';
-  const contactLabel = bar.contactLabel?.trim() || 'Phone / WhatsApp';
+  const contactHref = bar.contactHref?.trim() || DEFAULT_PHONE_WHATSAPP_HREF;
+  const contactLabel = bar.contactLabel?.trim() || DEFAULT_PHONE_WHATSAPP_LABEL;
+  const contactIsHttp = /^https?:\/\//i.test(contactHref);
+  const contactIsTel = /^tel:/i.test(contactHref);
+  const phoneLinkStyle: React.CSSProperties = { color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' };
+  const phoneIcon = (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+    </svg>
+  );
 
   const fb = bar.facebookUrl?.trim() || DEFAULT_FACEBOOK_URL;
   const tw = bar.twitterUrl?.trim() || DEFAULT_AGILE_X_URL;
@@ -59,12 +71,21 @@ export default function TopBar() {
           </svg>
           {emailDisplay}
         </a>
-        <Link href={contactHref} style={{ color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-          </svg>
-          {contactLabel}
-        </Link>
+        {contactIsHttp || contactIsTel ? (
+          <a
+            href={contactHref}
+            {...(contactIsHttp ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+            style={phoneLinkStyle}
+          >
+            {phoneIcon}
+            {contactLabel}
+          </a>
+        ) : (
+          <Link href={contactHref} style={phoneLinkStyle}>
+            {phoneIcon}
+            {contactLabel}
+          </Link>
+        )}
       </div>
 
       <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>

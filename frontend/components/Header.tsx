@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSiteSectionContent } from '@/lib/siteSectionCms';
+import { DEFAULT_PHONE_WHATSAPP_HREF, DEFAULT_PHONE_WHATSAPP_LABEL } from '@/lib/defaultPhoneChannel';
 import {
   DEFAULT_AGILE_INSTAGRAM_URL,
   DEFAULT_AGILE_LINKEDIN_URL,
@@ -54,8 +55,8 @@ export default function Header() {
   const pathname = usePathname();
   const bar = useSiteSectionContent('layout.topBar', {
     email: 'info@agilemediasolutions.com',
-    contactLabel: 'Phone / WhatsApp',
-    contactHref: '/contact#contact',
+    contactLabel: DEFAULT_PHONE_WHATSAPP_LABEL,
+    contactHref: DEFAULT_PHONE_WHATSAPP_HREF,
     facebookUrl: DEFAULT_FACEBOOK_URL,
     twitterUrl: DEFAULT_AGILE_X_URL,
     instagramUrl: DEFAULT_AGILE_INSTAGRAM_URL,

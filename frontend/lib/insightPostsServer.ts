@@ -18,6 +18,8 @@ export type PublicInsightPostListItem = {
   order_index: number;
   category_id: number | null;
   category: PublicInsightCategory | null;
+  created_at?: string | null;
+  updated_at?: string | null;
 };
 
 export type PublicInsightPostDetail = PublicInsightPostListItem & {

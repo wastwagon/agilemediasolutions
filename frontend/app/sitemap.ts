@@ -3,6 +3,7 @@ import { pagesApiOrigin } from '@/lib/pagesApiOrigin';
 import { publicSiteUrl } from '@/lib/publicSite';
 
 type CmsSitemapRow = { slug: string; updated_at?: string | null };
+type InsightSitemapRow = { slug: string; updated_at?: string | null };
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = publicSiteUrl();
@@ -53,5 +54,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     /* sitemap still valid with static routes only */
   }
 
-  return [...staticEntries, ...cmsEntries];
+  let insightEntries: MetadataRoute.Sitemap = [];
+  try {
+    const res = await fetch(`${pagesApiOrigin()}/api/public/insight-posts`, {
+      next: { revalidate: 300 },
+    });
+    if (res.ok) {
+      const rows = (await res.json()) as InsightSitemapRow[];
+      if (Array.isArray(rows)) {
+        insightEntries = rows.map((r) => ({
+          url: `${siteUrl}/insights/${encodeURIComponent(r.slug)}`,
+          changeFrequency: 'monthly' as const,
+          priority: 0.65,
+          lastModified: r.updated_at ? new Date(r.updated_at) : new Date(),
+        }));
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+
+  return [...staticEntries, ...cmsEntries, ...insightEntries];
 }

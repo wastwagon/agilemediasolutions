@@ -43,12 +43,13 @@ LinkedIn :: https://www.linkedin.com/company/agile-mediasolutions/?viewAsMember=
 YouTube :: https://www.youtube.com/@agilemediasolutions`;
 
 /** Shipped in frontend `public/videos/`; used to auto-repair Site Content when DB still points at missing files. */
-const BUNDLED_HERO_VIDEO_SRC = '/videos/home-hero-video.mp4';
+const BUNDLED_HERO_VIDEO_SRC = '/videos/homepage-hero-video.mp4';
 
 function heroVideoSrcNeedsBundledDefault(raw) {
   const t = (raw || '').trim();
   if (!t) return true;
   const pathOnly = t.split('?')[0].toLowerCase().replace(/\\/g, '/');
+  if (pathOnly.endsWith('/home-hero-video.mp4')) return true;
   if (pathOnly.endsWith('herobannervideo.mp4')) return true;
   if (pathOnly.endsWith('/hero-banner-video.mp4')) return true;
   if (/hero-politics|hero-sports|hero-studio/i.test(pathOnly) && /\.(mp4|webm|mov)$/i.test(pathOnly)) {
@@ -84,6 +85,87 @@ async function ensureHomeHeroVideoFromSeed(pool) {
   if (!changed) return;
   await pool.query(
     `UPDATE site_sections SET content_json = $1::jsonb, updated_at = NOW() WHERE section_key = 'home.hero'`,
+    [JSON.stringify(content)]
+  );
+}
+
+const PUBLIC_PHONE_TOP_BAR_LABEL = 'Phone / WhatsApp: +233 50 536 6200';
+const PUBLIC_PHONE_WA_HREF = 'https://wa.me/233505366200';
+const PUBLIC_HEAD_OFFICE_LINE = 'No. 5 Teinor Street - Dzorwulu, Accra - Ghana';
+
+/** Idempotent: replaces legacy top-bar contact link with WhatsApp + full label. */
+async function ensureTopBarPhoneUpgrade(pool) {
+  const r = await pool.query(`SELECT content_json FROM site_sections WHERE section_key = 'layout.topBar' LIMIT 1`);
+  if (r.rows.length === 0) return;
+  const raw = r.rows[0].content_json;
+  const content = raw && typeof raw === 'object' && !Array.isArray(raw) ? { ...raw } : {};
+  let changed = false;
+  const href = String(content.contactHref || '').trim();
+  const label = String(content.contactLabel || '').trim();
+  if (href === '/contact#contact' || href === '/contact') {
+    content.contactHref = PUBLIC_PHONE_WA_HREF;
+    changed = true;
+  }
+  if (label === 'Phone / WhatsApp') {
+    content.contactLabel = PUBLIC_PHONE_TOP_BAR_LABEL;
+    changed = true;
+  }
+  if (!changed) return;
+  await pool.query(
+    `UPDATE site_sections SET content_json = $1::jsonb, updated_at = NOW() WHERE section_key = 'layout.topBar'`,
+    [JSON.stringify(content)]
+  );
+}
+
+/** Idempotent: adds phone/WhatsApp fields to contact.page when the number line was never configured. */
+async function ensureContactPagePhoneFields(pool) {
+  const r = await pool.query(`SELECT content_json FROM site_sections WHERE section_key = 'contact.page' LIMIT 1`);
+  if (r.rows.length === 0) return;
+  const raw = r.rows[0].content_json;
+  const content = raw && typeof raw === 'object' && !Array.isArray(raw) ? { ...raw } : {};
+  if (String(content.generalPhoneDisplay || '').trim()) return;
+  content.generalPhoneLabel = 'Phone / WhatsApp';
+  content.generalPhoneDisplay = '+233 50 536 6200';
+  content.generalPhoneHref = PUBLIC_PHONE_WA_HREF;
+  await pool.query(
+    `UPDATE site_sections SET content_json = $1::jsonb, updated_at = NOW() WHERE section_key = 'contact.page'`,
+    [JSON.stringify(content)]
+  );
+}
+
+/** Idempotent: upgrades legacy “Accra, Ghana” head office line to full street address. */
+async function ensureContactPageHeadOfficeUpgrade(pool) {
+  const r = await pool.query(`SELECT content_json FROM site_sections WHERE section_key = 'contact.page' LIMIT 1`);
+  if (r.rows.length === 0) return;
+  const raw = r.rows[0].content_json;
+  const content = raw && typeof raw === 'object' && !Array.isArray(raw) ? { ...raw } : {};
+  if (String(content.generalHeadOffice || '').trim() !== 'Accra, Ghana') return;
+  content.generalHeadOffice = PUBLIC_HEAD_OFFICE_LINE;
+  await pool.query(
+    `UPDATE site_sections SET content_json = $1::jsonb, updated_at = NOW() WHERE section_key = 'contact.page'`,
+    [JSON.stringify(content)]
+  );
+}
+
+/** Idempotent: updates About “presence” copy when it still references the old Accra-only head office line. */
+async function ensureAboutPagePresenceAddressUpgrade(pool) {
+  const r = await pool.query(`SELECT content_json FROM site_sections WHERE section_key = 'about.page' LIMIT 1`);
+  if (r.rows.length === 0) return;
+  const raw = r.rows[0].content_json;
+  const content = raw && typeof raw === 'object' && !Array.isArray(raw) ? { ...raw } : {};
+  const sub = String(content.presenceSubtitle || '');
+  const legacyOffice = 'Head Office: Accra, Ghana';
+  const legacyOfficeLower = 'Head office: Accra, Ghana';
+  let next = null;
+  if (sub.startsWith(legacyOffice)) {
+    next = `Address: ${PUBLIC_HEAD_OFFICE_LINE}` + sub.slice(legacyOffice.length);
+  } else if (sub.startsWith(legacyOfficeLower)) {
+    next = `Address: ${PUBLIC_HEAD_OFFICE_LINE}` + sub.slice(legacyOfficeLower.length);
+  }
+  if (next == null) return;
+  content.presenceSubtitle = next;
+  await pool.query(
+    `UPDATE site_sections SET content_json = $1::jsonb, updated_at = NOW() WHERE section_key = 'about.page'`,
     [JSON.stringify(content)]
   );
 }
@@ -191,8 +273,8 @@ const SITE_SECTION_SEEDS = [
     key: 'layout.topBar',
     content: {
       email: 'info@agilemediasolutions.com',
-      contactLabel: 'Phone / WhatsApp',
-      contactHref: '/contact#contact',
+      contactLabel: 'Phone / WhatsApp: +233 50 536 6200',
+      contactHref: 'https://wa.me/233505366200',
       facebookUrl: 'https://www.facebook.com/profile.php?id=61578349921960',
       twitterUrl: 'https://x.com/agilemedias',
       instagramUrl: 'https://www.instagram.com/agile_media_solutions/',
@@ -223,6 +305,45 @@ const SITE_SECTION_SEEDS = [
       xUrl: 'https://x.com/agilemedias',
       linkedinUrl: 'https://www.linkedin.com/company/agile-mediasolutions/?viewAsMember=true',
       youtubeUrl: 'https://www.youtube.com/@agilemediasolutions',
+    },
+  },
+  {
+    key: 'contact.page',
+    content: {
+      heroLabel: 'Contact',
+      heroTitle: "Let's Talk Strategy, Storytelling, and Solutions",
+      heroIntro:
+        "Whether you're ready to launch a campaign, partner on a project, or explore how Agile Media Solutions can support your brand or institution-we'd love to hear from you.",
+      heroSubIntro:
+        'We are available across time zones and channels to discuss ideas, opportunities, and collaborations.',
+      connectionsLabel: 'Connections',
+      connectionsTitle: 'Get In Touch',
+      connectionsLinkLabel: 'View services',
+      quickBriefLabel: 'Quick Brief',
+      quickBriefTitle: 'Send a message',
+      quickBriefSubtitle:
+        'Use the form for campaigns, partnerships, media enquiries, or general questions.',
+      generalCardTitle: 'General Inquiries',
+      generalEmail: 'info@agilemediasolutions.com',
+      generalPhoneLabel: 'Phone / WhatsApp',
+      generalPhoneDisplay: '+233 50 536 6200',
+      generalPhoneHref: 'https://wa.me/233505366200',
+      generalHours: 'Monday-Friday, 9:00 AM-6:00 PM (GMT)',
+      generalHeadOffice: PUBLIC_HEAD_OFFICE_LINE,
+      generalLocations: 'Nairobi | Johannesburg',
+      consultationCardTitle: 'Request a Consultation',
+      consultationCardBody:
+        'Interested in our services? Fill out the consultation form below and our team will reach out within 48 hours.',
+      pressCardTitle: 'Media & Press Inquiries',
+      pressCardBody:
+        'For interviews, speaker bookings, press releases, or story access, contact us from the email above and we will route you to the press desk.',
+      pressCardCta: 'Download Media Kit',
+      followTitle: 'Follow Us',
+      followSubtitle:
+        'Stay connected for insights, event updates, behind-the-scenes content, and stories that matter-Twitter, LinkedIn, Instagram, YouTube, and Facebook.',
+      socialCta: 'Social links',
+      finalSubtitle: "Let's build something meaningful-together.",
+      finalCta: 'Contact Us Now',
     },
   },
 ];
@@ -786,6 +907,10 @@ async function seedAgileContent(pool) {
   }
 
   await ensureHomeHeroVideoFromSeed(pool);
+  await ensureTopBarPhoneUpgrade(pool);
+  await ensureContactPagePhoneFields(pool);
+  await ensureContactPageHeadOfficeUpgrade(pool);
+  await ensureAboutPagePresenceAddressUpgrade(pool);
 
   await pool.query(
     `INSERT INTO pages (slug, title, description, content_json)
@@ -899,4 +1024,8 @@ module.exports = {
   HOME_CONTENT_JSON,
   BUNDLED_HERO_VIDEO_SRC,
   ensureHomeHeroVideoFromSeed,
+  ensureTopBarPhoneUpgrade,
+  ensureContactPagePhoneFields,
+  ensureContactPageHeadOfficeUpgrade,
+  ensureAboutPagePresenceAddressUpgrade,
 };

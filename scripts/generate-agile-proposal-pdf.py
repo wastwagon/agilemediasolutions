@@ -410,7 +410,7 @@ def main():
     pdf.set_text_color(*INK)
     pdf._font("Lato", "", 9)
     pdf.set_x(pdf.l_margin)
-    pdf.multi_cell(0, 4.5, "Accra, Ghana")
+    pdf.multi_cell(0, 4.5, "No. 5 Teinor Street - Dzorwulu, Accra - Ghana")
     pdf.ln(4)
     mc(
         pdf,

@@ -2,6 +2,12 @@ import React from 'react';
 import Link from 'next/link';
 import ContactForm from '../../components/ContactForm';
 import SectionHeader from '../../components/SectionHeader';
+import { DEFAULT_HEAD_OFFICE_LINE } from '@/lib/defaultAddress';
+import {
+  DEFAULT_GENERAL_PHONE_DISPLAY,
+  DEFAULT_GENERAL_PHONE_LABEL,
+  DEFAULT_PHONE_WHATSAPP_HREF,
+} from '@/lib/defaultPhoneChannel';
 import { getSiteSectionContent } from '@/lib/siteSectionCmsServer';
 
 export const metadata = {
@@ -24,8 +30,11 @@ export default async function Page() {
     quickBriefSubtitle: 'Use the form for campaigns, partnerships, media enquiries, or general questions.',
     generalCardTitle: 'General Inquiries',
     generalEmail: 'info@agilemediasolutions.com',
+    generalPhoneLabel: DEFAULT_GENERAL_PHONE_LABEL,
+    generalPhoneDisplay: DEFAULT_GENERAL_PHONE_DISPLAY,
+    generalPhoneHref: DEFAULT_PHONE_WHATSAPP_HREF,
     generalHours: 'Monday-Friday, 9:00 AM-6:00 PM (GMT)',
-    generalHeadOffice: 'Accra, Ghana',
+    generalHeadOffice: DEFAULT_HEAD_OFFICE_LINE,
     generalLocations: 'Nairobi | Johannesburg',
     consultationCardTitle: 'Request a Consultation',
     consultationCardBody: 'Interested in our services? Fill out the consultation form below and our team will reach out within 48 hours.',
@@ -73,11 +82,23 @@ export default async function Page() {
                 <strong>Email:</strong>{' '}
                 <a href={`mailto:${copy.generalEmail}`}>{copy.generalEmail}</a>
               </p>
+              {(copy.generalPhoneDisplay || '').trim() ? (
+                <p>
+                  <strong>{(copy.generalPhoneLabel || DEFAULT_GENERAL_PHONE_LABEL).trim()}:</strong>{' '}
+                  <a
+                    href={(copy.generalPhoneHref || DEFAULT_PHONE_WHATSAPP_HREF).trim()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {(copy.generalPhoneDisplay || DEFAULT_GENERAL_PHONE_DISPLAY).trim()}
+                  </a>
+                </p>
+              ) : null}
               <p>
                 <strong>Hours:</strong> {copy.generalHours}
               </p>
               <p>
-                <strong>Head Office:</strong> {copy.generalHeadOffice}
+                <strong>Address:</strong> {copy.generalHeadOffice}
               </p>
               <p>
                 <strong>Additional locations:</strong> {copy.generalLocations}

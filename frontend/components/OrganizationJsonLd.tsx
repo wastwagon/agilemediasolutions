@@ -1,4 +1,6 @@
 import { absPublicUrl, publicSiteUrl } from '@/lib/publicSite';
+import { DEFAULT_ORGANIZATION_POSTAL_ADDRESS } from '@/lib/defaultAddress';
+import { DEFAULT_PHONE_E164 } from '@/lib/defaultPhoneChannel';
 
 const DEFAULT_DESC =
   'International media, PR, and communications firm helping governments, institutions, brands, and movements shape the messages that move nations, markets, and minds.';
@@ -17,6 +19,8 @@ export default function OrganizationJsonLd() {
         url: base,
         logo: { '@type': 'ImageObject', url: logo },
         description: DEFAULT_DESC,
+        telephone: DEFAULT_PHONE_E164,
+        address: DEFAULT_ORGANIZATION_POSTAL_ADDRESS,
       },
       {
         '@type': 'WebSite',

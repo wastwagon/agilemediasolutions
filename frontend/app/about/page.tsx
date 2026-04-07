@@ -4,6 +4,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import ParallaxImage from '../../components/ParallaxImage';
 import Link from 'next/link';
+import { DEFAULT_HEAD_OFFICE_LINE } from '@/lib/defaultAddress';
 import { useSiteSectionContent } from '@/lib/siteSectionCms';
 
 export default function AboutPage() {
@@ -22,8 +23,7 @@ export default function AboutPage() {
     ctaSecondary: 'Work With Us',
     presenceLabel: 'Presence',
     presenceTitle: 'Where we work',
-    presenceSubtitle:
-      'Head Office: Accra, Ghana. Additional locations in Nairobi and Johannesburg-we are available across time zones and channels to discuss ideas, opportunities, and collaborations.',
+    presenceSubtitle: `Address: ${DEFAULT_HEAD_OFFICE_LINE}. Additional locations in Nairobi and Johannesburg—we are available across time zones and channels to discuss ideas, opportunities, and collaborations.`,
   });
   const container = {
     hidden: { opacity: 0 },

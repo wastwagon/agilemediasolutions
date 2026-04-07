@@ -27,7 +27,7 @@ const DEFAULT_SOCIAL = [
   { left: 'YouTube', right: DEFAULT_AGILE_YOUTUBE_URL },
 ];
 
-const DEFAULT_HERO_VIDEO = '/videos/home-hero-video.mp4';
+const DEFAULT_HERO_VIDEO = '/videos/homepage-hero-video.mp4';
 /** Preloader-only asset; using it as the video poster makes the hero look like a static image. */
 const OPENING_PRELOAD_ART = '/images/opening-launch.webp';
 /** Legacy CMS poster paths (removed files). */
