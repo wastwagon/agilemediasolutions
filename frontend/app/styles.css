@@ -2255,14 +2255,14 @@ main {
   bottom: -0.5rem;
   left: clamp(-1rem, -2vw, -0.35rem);
   right: auto;
-  width: min(72%, 22rem);
+  width: min(82%, 26rem);
   background: radial-gradient(
-    ellipse 118% 132% at 0% 50%,
+    ellipse 132% 132% at 0% 50%,
     rgba(3, 9, 20, 0.78) 0%,
-    rgba(3, 9, 20, 0.4) 38%,
-    rgba(3, 9, 20, 0.14) 56%,
-    rgba(3, 9, 20, 0.04) 68%,
-    transparent 76%
+    rgba(3, 9, 20, 0.4) 40%,
+    rgba(3, 9, 20, 0.14) 58%,
+    rgba(3, 9, 20, 0.04) 72%,
+    transparent 82%
   );
   -webkit-mask-image: linear-gradient(to bottom, transparent, #000 4%, #000 96%, transparent);
   mask-image: linear-gradient(to bottom, transparent, #000 4%, #000 96%, transparent);
@@ -3235,15 +3235,15 @@ main {
   .creative-home .hero-content::before {
     left: -0.5rem;
     right: auto;
-    width: min(88%, 19rem);
+    width: min(94%, 22rem);
     top: -0.35rem;
     bottom: -0.35rem;
     background: radial-gradient(
-      ellipse 125% 130% at -4% 50%,
+      ellipse 138% 130% at -4% 50%,
       rgba(3, 9, 20, 0.76) 0%,
-      rgba(3, 9, 20, 0.32) 44%,
-      rgba(3, 9, 20, 0.08) 62%,
-      transparent 74%
+      rgba(3, 9, 20, 0.32) 46%,
+      rgba(3, 9, 20, 0.08) 64%,
+      transparent 80%
     );
     -webkit-mask-image: linear-gradient(to bottom, transparent, #000 3%, #000 97%, transparent);
     mask-image: linear-gradient(to bottom, transparent, #000 3%, #000 97%, transparent);
