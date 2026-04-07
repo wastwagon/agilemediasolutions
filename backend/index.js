@@ -40,12 +40,16 @@ const ADMIN_CSRF_COOKIE = 'admin_csrf';
 const ADMIN_COOKIE_SAME_SITE = IS_PRODUCTION ? 'strict' : 'lax';
 
 if (IS_PRODUCTION && INSECURE_JWT_SECRETS.has(JWT_SECRET)) {
-  console.error('Fatal: JWT_SECRET must be explicitly set to a strong value in production.');
+  console.error(
+    'Fatal: JWT_SECRET must be set to a strong random value in production (Coolify: Environment Variables for the backend service). Empty or default secrets are rejected.'
+  );
   process.exit(1);
 }
 
 if (IS_PRODUCTION && (!CORS_ORIGIN || CORS_ORIGIN === '*')) {
-  console.error('Fatal: CORS_ORIGIN must be explicitly set to one or more trusted origins in production.');
+  console.error(
+    'Fatal: CORS_ORIGIN must be set to your public site origin(s), comma-separated (e.g. https://agile-media.com). It cannot be empty or * in production.'
+  );
   process.exit(1);
 }
 

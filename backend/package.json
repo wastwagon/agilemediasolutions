@@ -8,7 +8,7 @@
     "start": "node index.js",
     "db:migrate-seed": "node scripts/migrate-and-seed.js",
     "db:sanitize-pages": "node scripts/sanitize-pages-json.js",
-    "start:prod": "node scripts/migrate-and-seed.js && node index.js"
+    "start:prod": "node index.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
