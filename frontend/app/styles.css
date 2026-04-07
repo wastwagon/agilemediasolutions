@@ -2205,7 +2205,7 @@ main {
   inset: 0;
   z-index: 2;
   pointer-events: none;
-  opacity: 0.08;
+  opacity: 0.045;
   background-image: radial-gradient(rgba(255, 255, 255, 0.34) 0.7px, transparent 0.7px);
   background-size: 3px 3px;
 }
@@ -2216,11 +2216,11 @@ main {
 }
 .creative-home .hero-overlay {
   z-index: 1;
-  /* Bottom-left read zone + lighter global tint so video stays visible */
+  /* Light vignette so video stays visible; text legibility mostly from the content card + shadows */
   background:
-    radial-gradient(ellipse 115% 90% at 0% 100%, rgba(3, 8, 18, 0.88) 0%, rgba(3, 8, 18, 0.42) 36%, transparent 64%),
-    linear-gradient(115deg, rgba(9, 9, 10, 0.36), rgba(13, 33, 59, 0.2) 46%, rgba(17, 24, 39, 0.28)),
-    radial-gradient(52rem 30rem at 84% 16%, rgba(44, 80, 74, 0.1), transparent 72%);
+    radial-gradient(ellipse 120% 95% at 0% 100%, rgba(3, 8, 18, 0.5) 0%, rgba(3, 8, 18, 0.18) 42%, transparent 70%),
+    linear-gradient(115deg, rgba(9, 9, 10, 0.18), rgba(13, 33, 59, 0.1) 48%, rgba(17, 24, 39, 0.14)),
+    radial-gradient(52rem 30rem at 84% 16%, rgba(44, 80, 74, 0.05), transparent 75%);
 }
 /* Stable viewport height on mobile (address bar) so the video layer keeps full bleed */
 .creative-home .hero {
@@ -2242,13 +2242,13 @@ main {
   margin-right: auto;
   padding: clamp(1.35rem, 3.2vw, 2.15rem) clamp(1.35rem, 3.6vw, 2.5rem);
   border-radius: 1.125rem;
-  background: linear-gradient(155deg, rgba(7, 14, 26, 0.78) 0%, rgba(5, 11, 22, 0.62) 55%, rgba(6, 18, 28, 0.52) 100%);
-  backdrop-filter: blur(16px) saturate(1.15);
-  -webkit-backdrop-filter: blur(16px) saturate(1.15);
+  background: linear-gradient(155deg, rgba(7, 14, 26, 0.26) 0%, rgba(5, 11, 22, 0.18) 55%, rgba(6, 18, 28, 0.12) 100%);
+  backdrop-filter: blur(12px) saturate(1.08);
+  -webkit-backdrop-filter: blur(12px) saturate(1.08);
   box-shadow:
-    0 28px 56px -18px rgba(0, 0, 0, 0.55),
-    0 0 0 1px rgba(255, 255, 255, 0.06) inset;
-  border: 1px solid rgba(153, 246, 228, 0.12);
+    0 20px 40px -22px rgba(0, 0, 0, 0.32),
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+  border: 1px solid rgba(153, 246, 228, 0.16);
 }
 
 .hero-kicker {
@@ -2276,7 +2276,7 @@ main {
   line-height: 1.05;
   letter-spacing: -0.02em;
   text-wrap: balance;
-  text-shadow: 0 2px 24px rgba(6, 11, 20, 0.55), 0 10px 40px rgba(6, 11, 20, 0.35);
+  text-shadow: 0 1px 4px rgba(2, 6, 14, 0.95), 0 3px 24px rgba(6, 11, 20, 0.65), 0 10px 40px rgba(6, 11, 20, 0.45);
   margin-bottom: 1.1rem;
 }
 
@@ -2286,7 +2286,7 @@ main {
   font-size: 1.02rem;
   margin-left: 0;
   margin-right: 0;
-  text-shadow: 0 1px 12px rgba(2, 6, 14, 0.45), 0 1px 4px rgba(2, 6, 14, 0.35);
+  text-shadow: 0 1px 3px rgba(2, 6, 14, 0.95), 0 2px 18px rgba(2, 6, 14, 0.65);
 }
 
 .hero-social-rail {
