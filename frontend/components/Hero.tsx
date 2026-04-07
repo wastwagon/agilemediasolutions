@@ -90,10 +90,25 @@ export default function Hero() {
   const title = currentData?.title || FALLBACK_SLIDES[0].title;
   const subtitle = currentData?.subtitle || FALLBACK_SLIDES[0].subtitle;
 
-  const videoSrc = heroChrome.videoSrc?.trim() || DEFAULT_HERO_VIDEO;
+  const cmsVideoSrc = heroChrome.videoSrc?.trim() || DEFAULT_HERO_VIDEO;
+  /** If Site Content points at a missing file (404), fall back to the bundled default. */
+  const [heroVideoFallback, setHeroVideoFallback] = useState(false);
+  useEffect(() => {
+    setHeroVideoFallback(false);
+  }, [cmsVideoSrc]);
+
+  const videoSrc =
+    heroVideoFallback && cmsVideoSrc !== DEFAULT_HERO_VIDEO ? DEFAULT_HERO_VIDEO : cmsVideoSrc;
   const poster = heroVideoPosterUrl(heroChrome.videoPoster);
   const videoType = videoMimeTypeForSrc(videoSrc);
   const videoKey = `${videoSrc}\0${poster ?? ''}`;
+
+  const onVideoError = useCallback(() => {
+    setHeroVideoFallback((prev) => {
+      if (prev) return prev;
+      return cmsVideoSrc !== DEFAULT_HERO_VIDEO;
+    });
+  }, [cmsVideoSrc]);
 
   const kickPlayback = useCallback(() => {
     const v = videoRef.current;
@@ -153,6 +168,7 @@ export default function Hero() {
           preload="auto"
           {...(poster ? { poster } : {})}
           key={videoKey}
+          onError={onVideoError}
           disablePictureInPicture
           disableRemotePlayback
           controls={false}
