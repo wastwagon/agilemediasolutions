@@ -15,6 +15,8 @@ export type SiteSectionFieldKind =
 export type SiteSectionField = {
   id: string;
   label: string;
+  /** Optional help shown under the field label in Site Content admin */
+  description?: string;
   multiline?: boolean;
   /** When set, overrides id/label heuristics in the admin UI */
   kind?: SiteSectionFieldKind;
@@ -171,7 +173,13 @@ export const SITE_SECTION_DEFINITIONS: SiteSectionDefinition[] = [
         label: 'Background video',
         kind: 'video',
       },
-      { id: 'videoPoster', label: 'Video poster image', kind: 'image' },
+      {
+        id: 'videoPoster',
+        label: 'Video poster (optional)',
+        kind: 'image',
+        description:
+          'Shown only before the first video frame loads. Leave empty for motion-first hero. Do not use the same image as the opening preloader.',
+      },
       { id: 'primaryCtaLabel', label: 'Primary button text' },
       { id: 'primaryCtaHref', label: 'Primary button URL', kind: 'url' },
       {

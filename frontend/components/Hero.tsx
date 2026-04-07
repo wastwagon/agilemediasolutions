@@ -19,9 +19,20 @@ const DEFAULT_SOCIAL = [
 ];
 
 const DEFAULT_HERO_VIDEO = '/videos/home-hero-video.mp4';
-const DEFAULT_VIDEO_POSTER = '/images/opening-launch.webp';
-/** Legacy CMS values pointed at removed stock images (e.g. hero-politics.jpg). */
+/** Preloader-only asset; using it as the video poster makes the hero look like a static image. */
+const OPENING_PRELOAD_ART = '/images/opening-launch.webp';
+/** Legacy CMS poster paths (removed files). */
 const LEGACY_HERO_POSTER = /hero-politics|hero-sports|hero-studio/i;
+
+function heroVideoPosterUrl(raw: string | undefined): string | undefined {
+  const t = raw?.trim() || '';
+  if (!t) return undefined;
+  const pathOnly = t.split('?')[0].toLowerCase();
+  const preloadPath = OPENING_PRELOAD_ART.toLowerCase();
+  const isOpeningStill = pathOnly === preloadPath || pathOnly.endsWith(preloadPath);
+  if (isOpeningStill || LEGACY_HERO_POSTER.test(t)) return undefined;
+  return t;
+}
 
 function videoMimeTypeForSrc(src: string): string {
   const pathOnly = src.split('?')[0].toLowerCase();
@@ -37,7 +48,7 @@ export default function Hero() {
   const heroChrome = useSiteSectionContent('home.hero', {
     kicker: 'Creative Communications Studio',
     videoSrc: DEFAULT_HERO_VIDEO,
-    videoPoster: DEFAULT_VIDEO_POSTER,
+    videoPoster: '',
     primaryCtaLabel: 'Explore Our Brands',
     primaryCtaHref: '/brands',
     socialLinks: DEFAULT_SOCIAL.map((r) => `${r.left} :: ${r.right}`).join('\n'),
@@ -80,9 +91,9 @@ export default function Hero() {
   const subtitle = currentData?.subtitle || FALLBACK_SLIDES[0].subtitle;
 
   const videoSrc = heroChrome.videoSrc?.trim() || DEFAULT_HERO_VIDEO;
-  const rawPoster = heroChrome.videoPoster?.trim() || DEFAULT_VIDEO_POSTER;
-  const poster = LEGACY_HERO_POSTER.test(rawPoster) ? DEFAULT_VIDEO_POSTER : rawPoster;
+  const poster = heroVideoPosterUrl(heroChrome.videoPoster);
   const videoType = videoMimeTypeForSrc(videoSrc);
+  const videoKey = `${videoSrc}\0${poster ?? ''}`;
 
   const kickPlayback = useCallback(() => {
     const v = videoRef.current;
@@ -140,8 +151,8 @@ export default function Hero() {
           muted
           playsInline
           preload="auto"
-          poster={poster}
-          key={videoSrc + poster}
+          {...(poster ? { poster } : {})}
+          key={videoKey}
           disablePictureInPicture
           disableRemotePlayback
           controls={false}

@@ -569,6 +569,11 @@ export default function AdminSiteContentPage() {
                         />
                       ) : null}
                     </span>
+                    {field.description ? (
+                      <span style={{ marginTop: '-0.15rem', fontSize: '0.76rem', color: 'var(--color-text-muted)', lineHeight: 1.45 }}>
+                        {field.description}
+                      </span>
+                    ) : null}
                     {hint ? (
                       <span style={{ marginTop: '-0.1rem', fontSize: '0.74rem', color: 'var(--color-text-muted)' }}>
                         {hint}
