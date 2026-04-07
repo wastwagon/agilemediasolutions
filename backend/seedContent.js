@@ -106,7 +106,7 @@ async function ensureTopBarPhoneUpgrade(pool) {
     content.contactHref = PUBLIC_PHONE_WA_HREF;
     changed = true;
   }
-  if (label === 'Phone / WhatsApp') {
+  if (label === 'Phone / WhatsApp' || label === 'Phone / WhatsApp:') {
     content.contactLabel = PUBLIC_PHONE_TOP_BAR_LABEL;
     changed = true;
   }

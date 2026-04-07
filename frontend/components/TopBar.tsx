@@ -6,6 +6,7 @@ import { useSiteSectionContent } from '@/lib/siteSectionCms';
 import {
   DEFAULT_PHONE_WHATSAPP_HREF,
   DEFAULT_PHONE_WHATSAPP_LABEL,
+  resolveTopBarPhoneFromCms,
 } from '@/lib/defaultPhoneChannel';
 import {
   DEFAULT_AGILE_INSTAGRAM_URL,
@@ -29,8 +30,7 @@ export default function TopBar() {
 
   const mailHref = bar.email?.trim() ? `mailto:${bar.email.trim()}` : 'mailto:info@agilemediasolutions.com';
   const emailDisplay = bar.email?.trim() || 'info@agilemediasolutions.com';
-  const contactHref = bar.contactHref?.trim() || DEFAULT_PHONE_WHATSAPP_HREF;
-  const contactLabel = bar.contactLabel?.trim() || DEFAULT_PHONE_WHATSAPP_LABEL;
+  const { href: contactHref, label: contactLabel } = resolveTopBarPhoneFromCms(bar.contactLabel, bar.contactHref);
   const contactIsHttp = /^https?:\/\//i.test(contactHref);
   const contactIsTel = /^tel:/i.test(contactHref);
   const phoneLinkStyle: React.CSSProperties = { color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' };
