@@ -1735,6 +1735,38 @@ main {
   line-height: 1.6;
 }
 
+/* Footer newsletter: same dark-bg treatment as contact-form-premium (global --color-text is dark). */
+.footer-newsletter .newsletter-form-premium .form-group input {
+  color: #f8fafc;
+  -webkit-text-fill-color: #f8fafc;
+  caret-color: #99f6e4;
+  border-bottom-color: rgba(255, 255, 255, 0.38);
+}
+.footer-newsletter .newsletter-form-premium .form-group label {
+  color: rgba(248, 250, 252, 0.78);
+}
+.footer-newsletter .newsletter-form-premium .form-group input:focus ~ label,
+.footer-newsletter .newsletter-form-premium .form-group.has-value label {
+  color: #99f6e4;
+}
+.footer-newsletter .newsletter-form-premium .form-group .form-border {
+  background: #99f6e4;
+}
+.footer-newsletter .newsletter-form-premium .form-group input::placeholder {
+  color: rgba(248, 250, 252, 0.45);
+}
+.footer-newsletter .newsletter-form-premium input:-webkit-autofill,
+.footer-newsletter .newsletter-form-premium input:-webkit-autofill:hover,
+.footer-newsletter .newsletter-form-premium input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #f8fafc !important;
+  caret-color: #99f6e4;
+  transition: background-color 9999s ease-out 0s;
+  box-shadow: 0 0 0 1000px rgba(15, 23, 42, 0.85) inset !important;
+}
+.footer-newsletter .newsletter-form-premium .form-error-msg {
+  color: #fca5a5;
+}
+
 .newsletter-form {
   display: flex;
   gap: var(--space-sm);
