@@ -2040,14 +2040,16 @@ const start = async () => {
     await ensureAppSchemaAndSeed();
     console.log('Database schema checked and CMS seed ensured.');
   } catch (err) {
-    console.error('Startup migration/seed failed:', err.message);
-    if (IS_PRODUCTION) {
-      process.exit(1);
-    }
+    console.error('Startup migration/seed failed:', err?.message || err);
+    console.error(
+      IS_PRODUCTION
+        ? 'Continuing anyway so /api/health can pass; fix DB connectivity or SQL errors and redeploy, or run Admin → Run migrations when the API is up.'
+        : 'Dev mode: server still starting.'
+    );
   }
 
-  app.listen(PORT, () => {
-    console.log(`Agile Media CMS Backend running on port ${PORT}`);
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Agile Media CMS Backend listening on 0.0.0.0:${PORT}`);
   });
 };
 

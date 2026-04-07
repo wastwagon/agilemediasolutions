@@ -28,6 +28,8 @@ services:
     networks:
       - coolify
 
+  # If deploy fails with "backend is unhealthy": check container logs — JWT_SECRET and CORS_ORIGIN must
+  # be set for production (not placeholders), and Postgres must accept connections. Migration errors no longer stop the server.
   backend:
     build:
       context: ./backend
