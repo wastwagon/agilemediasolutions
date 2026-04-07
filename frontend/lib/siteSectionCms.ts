@@ -96,7 +96,13 @@ export const SITE_SECTION_DEFINITIONS: SiteSectionDefinition[] = [
       { id: 'body', label: 'Body paragraph', multiline: true },
       { id: 'ctaLabel', label: 'Button text' },
       { id: 'ctaHref', label: 'Button URL', kind: 'url' },
-      { id: 'imageUrl', label: 'Section image', kind: 'image' },
+      {
+        id: 'imageUrl',
+        label: 'Section image',
+        kind: 'image',
+        description:
+          'One image for the right-hand column. The URL field, Upload, and Media Library are three ways to set the same image — not separate images.',
+      },
     ],
   },
   {
@@ -645,19 +651,14 @@ export function parseSiteContentPairs(value: string): SiteContentPairRow[] {
 
 type SiteSectionsMap = Record<string, Record<string, string>>;
 
-let publicSiteSectionsCache: SiteSectionsMap | null = null;
+/** Dedupe concurrent fetches only — do not cache the result, or CMS edits never show until a full reload. */
 let publicSiteSectionsInflight: Promise<SiteSectionsMap> | null = null;
 
 async function fetchPublicSiteSections(): Promise<SiteSectionsMap> {
-  if (publicSiteSectionsCache) return publicSiteSectionsCache;
   if (publicSiteSectionsInflight) return publicSiteSectionsInflight;
-  publicSiteSectionsInflight = fetch('/api/public/site-sections')
+  publicSiteSectionsInflight = fetch('/api/public/site-sections', { cache: 'no-store' })
     .then((res) => (res.ok ? res.json() : {}))
-    .then((data) => {
-      const value = data && typeof data === 'object' ? (data as SiteSectionsMap) : {};
-      publicSiteSectionsCache = value;
-      return value;
-    })
+    .then((data) => (data && typeof data === 'object' ? (data as SiteSectionsMap) : {}))
     .catch(() => ({} as SiteSectionsMap))
     .finally(() => {
       publicSiteSectionsInflight = null;
@@ -673,13 +674,21 @@ export function useSiteSectionContent<T extends Record<string, string>>(
 
   useEffect(() => {
     let mounted = true;
-    fetchPublicSiteSections().then((all) => {
-      if (!mounted) return;
-      const value = all?.[sectionKey];
-      setOverrides(value && typeof value === 'object' ? value : {});
-    });
+    const load = () => {
+      fetchPublicSiteSections().then((all) => {
+        if (!mounted) return;
+        const value = all?.[sectionKey];
+        setOverrides(value && typeof value === 'object' ? value : {});
+      });
+    };
+    load();
+    const onVis = () => {
+      if (document.visibilityState === 'visible') load();
+    };
+    document.addEventListener('visibilitychange', onVis);
     return () => {
       mounted = false;
+      document.removeEventListener('visibilitychange', onVis);
     };
   }, [sectionKey]);
 

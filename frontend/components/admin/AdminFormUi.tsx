@@ -15,9 +15,19 @@ const compactPrimaryBtnStyle: React.CSSProperties = {
   lineHeight: 1.2,
 };
 
-export function AdminEditorCard({ title, children }: { title: string; children: React.ReactNode }) {
+export function AdminEditorCard({
+  title,
+  children,
+  id,
+}: {
+  title: string;
+  children: React.ReactNode;
+  /** Optional anchor id for deep links (e.g. site-section-about.page). */
+  id?: string;
+}) {
   return (
     <div
+      id={id}
       style={{
         background: '#fff',
         padding: '2.15rem',

@@ -520,7 +520,11 @@ export default function AdminSiteContentPage() {
             ? section.fields.filter((field) => isFieldDirty(section.key, field.id))
             : section.fields;
           return (
-            <AdminEditorCard key={section.key} title={`${section.title}${dirty ? ' *' : ''}`}>
+            <AdminEditorCard
+              key={section.key}
+              id={`site-section-${section.key.replace(/\./g, '-')}`}
+              title={`${section.title}${dirty ? ' *' : ''}`}
+            >
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.6rem', alignItems: 'center', marginTop: '-0.4rem', marginBottom: '0.9rem', flexWrap: 'wrap' }}>
                 <p style={{ margin: 0, color: 'var(--color-text-muted)', fontSize: '0.92rem' }}>
                   {section.description}

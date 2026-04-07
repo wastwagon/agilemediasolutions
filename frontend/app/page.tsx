@@ -31,6 +31,14 @@ const DEFAULT_SERVICE_HIGHLIGHTS = [
   'Monitoring and optimization',
 ];
 
+/** Safe `url("…")` for CSS background-image (handles quotes in query strings). */
+function cssBackgroundImageUrl(raw: string | undefined): string | undefined {
+  const u = (raw || '').trim();
+  if (!u) return undefined;
+  const safe = u.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+  return `url("${safe}")`;
+}
+
 function parseServiceHighlights(value?: string | null): string[] {
   if (!value) return DEFAULT_SERVICE_HIGHLIGHTS;
   const items = value
@@ -258,6 +266,8 @@ export default function Page() {
     return [...out, ...out];
   };
 
+  const whoWeAreMediaBg = cssBackgroundImageUrl(homeWhoWeAre.imageUrl);
+
   return (
     <main className="home-page creative-home">
       <Hero />
@@ -282,11 +292,11 @@ export default function Page() {
           </div>
           <div className="section-media">
             <div
-              className={`media-placeholder ${homeWhoWeAre.imageUrl?.trim() ? 'has-image' : 'media-who'}`}
+              className={`media-placeholder ${whoWeAreMediaBg ? 'has-image' : 'media-who'}`}
               style={
-                homeWhoWeAre.imageUrl?.trim()
+                whoWeAreMediaBg
                   ? {
-                      backgroundImage: `url(${homeWhoWeAre.imageUrl.trim()})`,
+                      backgroundImage: whoWeAreMediaBg,
                       backgroundSize: 'cover',
                       backgroundPosition: 'center',
                       backgroundRepeat: 'no-repeat',

@@ -10,6 +10,11 @@ import {
   preparePageBlockAnchorsForSave,
 } from '@/lib/blockSectionAnchor';
 import { adminAuthHeaders, adminFetch } from '@/lib/adminApi';
+import {
+  RESERVED_PAGE_SLUGS,
+  RESERVED_SLUG_PRIMARY_SITE_SECTION,
+  siteContentSectionAnchorId,
+} from '@/lib/reservedPageSlugHints';
 
 type PageBlock =
   | { id: string; anchorId?: string; type: 'text'; heading?: string; body?: string }
@@ -231,6 +236,54 @@ export default function AdminPages() {
           <h3 style={{ marginBottom: '2rem', fontFamily: 'var(--font-display)', fontSize: '1.5rem', color: 'var(--color-dark-blue)' }}>
             {editingPage ? 'Edit page' : 'New page'}
           </h3>
+          {slug && RESERVED_PAGE_SLUGS.has(slug) ? (
+            <div
+              role="status"
+              style={{
+                marginBottom: '1.5rem',
+                padding: '1rem 1.15rem',
+                borderRadius: 12,
+                background: '#FFFBEB',
+                border: '1px solid #FCD34D',
+                color: '#92400E',
+                fontSize: '0.92rem',
+                lineHeight: 1.55,
+              }}
+            >
+              <strong style={{ display: 'block', marginBottom: '0.4rem' }}>
+                This URL uses a built-in page — block content here is not what visitors see
+              </strong>
+              {slug === 'home' ? (
+                <>
+                  The homepage loads from the app template. <strong>Hero slide titles and subtitles</strong> are saved from this
+                  screen. Marquee, services band, hero video, footer, and most other homepage copy live under{' '}
+                  <Link href="/admin/site-content" style={{ fontWeight: 700, color: '#B45309', textDecoration: 'underline' }}>
+                    Site Content
+                  </Link>
+                  .
+                </>
+              ) : RESERVED_SLUG_PRIMARY_SITE_SECTION[slug] ? (
+                <>
+                  Public <code style={{ fontSize: '0.84em' }}>/{slug}</code> is rendered from code and{' '}
+                  <strong>Site Content</strong> (section{' '}
+                  <code style={{ fontSize: '0.84em' }}>{RESERVED_SLUG_PRIMARY_SITE_SECTION[slug]}</code>), not from the blocks
+                  below. Edit the live text here:{' '}
+                  <Link
+                    href={`/admin/site-content#${siteContentSectionAnchorId(RESERVED_SLUG_PRIMARY_SITE_SECTION[slug]!)}`}
+                    style={{ fontWeight: 700, color: '#B45309', textDecoration: 'underline' }}
+                  >
+                    Open Site Content (this section)
+                  </Link>
+                  .
+                </>
+              ) : (
+                <>
+                  Public <code style={{ fontSize: '0.84em' }}>/{slug}</code> is a fixed template in the codebase. These blocks are
+                  not shown on the live site.
+                </>
+              )}
+            </div>
+          ) : null}
           <form onSubmit={handleSubmit}>
             <div className="form-row-split" style={{ marginBottom: '1.5rem' }}>
               <div className={`form-group ${title ? 'has-value' : ''}`}>
