@@ -328,7 +328,8 @@ export const SITE_SECTION_DEFINITIONS: SiteSectionDefinition[] = [
   {
     key: 'about.page',
     title: 'About Page',
-    description: 'Edit hero, identity, and presence copy on the About page.',
+    description:
+      'Controls all public copy on /about (not Admin → Pages → about). Optional SEO and identity image below.',
     fields: [
       { id: 'heroLabel', label: 'Hero label' },
       { id: 'heroTitle', label: 'Hero title', multiline: true },
@@ -337,11 +338,27 @@ export const SITE_SECTION_DEFINITIONS: SiteSectionDefinition[] = [
       { id: 'identityTitle', label: 'Identity title' },
       { id: 'identityP1', label: 'Identity paragraph 1', multiline: true },
       { id: 'identityP2', label: 'Identity paragraph 2', multiline: true },
+      {
+        id: 'identityImageUrl',
+        label: 'Identity section image',
+        kind: 'image',
+        description: 'Right-hand image in “Who we are”. Leave empty to use the default photo from site styles.',
+      },
       { id: 'ctaPrimary', label: 'CTA primary label' },
       { id: 'ctaSecondary', label: 'CTA secondary label' },
       { id: 'presenceLabel', label: 'Presence label' },
       { id: 'presenceTitle', label: 'Presence title' },
       { id: 'presenceSubtitle', label: 'Presence subtitle', multiline: true },
+      {
+        id: 'metaTitle',
+        label: 'Browser tab title (SEO)',
+        description: 'Optional. Empty = “About Agile Media Solutions | …”.',
+      },
+      {
+        id: 'metaDescription',
+        label: 'Meta description (SEO)',
+        description: 'Optional. Empty = first part of hero tagline.',
+      },
     ],
   },
   {

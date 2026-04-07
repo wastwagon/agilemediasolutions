@@ -10,9 +10,16 @@ interface ParallaxImageProps {
   children?: React.ReactNode;
 }
 
+function cssUrl(value: string): string {
+  const s = value.trim();
+  if (!s) return '';
+  return `url("${s.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}")`;
+}
+
 export default function ParallaxImage({ src, className = '', offset = 50, children }: ParallaxImageProps) {
   const ref = useRef(null);
-  
+  const bgImage = src?.trim() ? cssUrl(src) : undefined;
+
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start end", "end start"]
@@ -30,7 +37,7 @@ export default function ParallaxImage({ src, className = '', offset = 50, childr
           height: `calc(100% + ${offset * 2}px)`,
           position: 'absolute',
           top: -offset,
-          backgroundImage: src ? `url(${src})` : undefined,
+          backgroundImage: bgImage,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat'

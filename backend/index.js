@@ -487,6 +487,35 @@ const ensureMediaAssetsTable = async () => {
   `);
 };
 
+/** PUT /api/site-sections/:key used .toLowerCase(), breaking keys like home.whoWeAre → home.whoweare. */
+const SITE_SECTION_KEY_ALIASES = [
+  ['home.whoweare', 'home.whoWeAre'],
+  ['home.servicesband', 'home.servicesBand'],
+  ['home.brandsband', 'home.brandsBand'],
+  ['home.casestudiesband', 'home.caseStudiesBand'],
+  ['home.careersband', 'home.careersBand'],
+];
+
+const migrateSiteSectionCanonicalKeys = async (pool) => {
+  for (const [bad, good] of SITE_SECTION_KEY_ALIASES) {
+    const badR = await pool.query(`SELECT content_json FROM site_sections WHERE section_key = $1`, [bad]);
+    if (badR.rows.length === 0) continue;
+    const goodR = await pool.query(`SELECT content_json FROM site_sections WHERE section_key = $1`, [good]);
+    const badC = badR.rows[0].content_json && typeof badR.rows[0].content_json === 'object' ? badR.rows[0].content_json : {};
+    if (goodR.rows.length === 0) {
+      await pool.query(`UPDATE site_sections SET section_key = $2, updated_at = NOW() WHERE section_key = $1`, [bad, good]);
+      continue;
+    }
+    const goodC = goodR.rows[0].content_json && typeof goodR.rows[0].content_json === 'object' ? goodR.rows[0].content_json : {};
+    const merged = { ...goodC, ...badC };
+    await pool.query(`UPDATE site_sections SET content_json = $1::jsonb, updated_at = NOW() WHERE section_key = $2`, [
+      JSON.stringify(merged),
+      good,
+    ]);
+    await pool.query(`DELETE FROM site_sections WHERE section_key = $1`, [bad]);
+  }
+};
+
 const ensureSiteSectionsTable = async () => {
   if (!pgPool) return;
   await pgPool.query(`
@@ -496,6 +525,7 @@ const ensureSiteSectionsTable = async () => {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
   `);
+  await migrateSiteSectionCanonicalKeys(pgPool);
 };
 
 const ALLOWED_PAGE_CARD_CONTEXTS = new Set(['digital-engagement', 'studio']);
@@ -1062,7 +1092,7 @@ app.get('/api/site-sections', authenticateToken, async (req, res) => {
 
 app.put('/api/site-sections/:key', authenticateToken, async (req, res) => {
   if (!pgPool) return res.status(500).json({ error: 'Database not available' });
-  const key = (req.params.key || '').trim().toLowerCase();
+  const key = (req.params.key || '').trim();
   const contentJson = req.body?.content_json;
   if (!key) return res.status(400).json({ error: 'Missing section key' });
   if (!contentJson || typeof contentJson !== 'object' || Array.isArray(contentJson)) {
