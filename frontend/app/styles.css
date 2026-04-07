@@ -379,15 +379,15 @@ main {
 /* Local hero slideshow images (place files under frontend/public/images) */
 /* Slide 0: politics / leadership */
 .hero-slide[data-slide="0"] {
-  background-image: url('/images/hero-politics.jpg');
+  background-image: url('/images/opening-launch.webp');
 }
 /* Slide 1: sports media */
 .hero-slide[data-slide="1"] {
-  background-image: url('/images/hero-sports.jpg');
+  background-image: url('/images/opening-launch.webp');
 }
 /* Slide 2: creative studio */
 .hero-slide[data-slide="2"] {
-  background-image: url('/images/hero-studio.jpg');
+  background-image: url('/images/opening-launch.webp');
 }
 .hero-slide-active { opacity: 1; z-index: 0; }
 .hero-overlay {

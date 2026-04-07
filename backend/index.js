@@ -451,6 +451,7 @@ const ensureCoreSchema = async () => {
   await pgPool.query(`ALTER TABLE pages ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'published';`);
   await pgPool.query(`ALTER TABLE pages ADD COLUMN IF NOT EXISTS published_at TIMESTAMPTZ;`);
   await pgPool.query(`ALTER TABLE pages ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW();`);
+  await pgPool.query(`ALTER TABLE pages ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();`);
   await pgPool.query(`UPDATE pages SET status = 'published' WHERE status IS NULL;`);
 
   if (SHOULD_SEED_DEFAULT_ADMIN) {
@@ -562,6 +563,7 @@ const ensureAdminAuditLogsTable = async () => {
 
 const ensureSiteAnalyticsTable = async () => {
   if (!pgPool) return;
+  // One statement per round-trip (avoids multi-statement edge cases with some pools / proxies).
   await pgPool.query(`
     CREATE TABLE IF NOT EXISTS site_analytics_events (
       id BIGSERIAL PRIMARY KEY,
@@ -573,10 +575,54 @@ const ensureSiteAnalyticsTable = async () => {
       meta_json JSONB NOT NULL DEFAULT '{}'::jsonb,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
-    CREATE INDEX IF NOT EXISTS site_analytics_events_created_idx ON site_analytics_events (created_at DESC);
-    CREATE INDEX IF NOT EXISTS site_analytics_events_type_created_idx ON site_analytics_events (event_type, created_at DESC);
-    CREATE INDEX IF NOT EXISTS site_analytics_events_path_created_idx ON site_analytics_events (path, created_at DESC);
   `);
+  await pgPool.query(
+    `CREATE INDEX IF NOT EXISTS site_analytics_events_created_idx ON site_analytics_events (created_at DESC);`
+  );
+  await pgPool.query(
+    `CREATE INDEX IF NOT EXISTS site_analytics_events_type_created_idx ON site_analytics_events (event_type, created_at DESC);`
+  );
+  await pgPool.query(
+    `CREATE INDEX IF NOT EXISTS site_analytics_events_path_created_idx ON site_analytics_events (path, created_at DESC);`
+  );
+};
+
+/** Ensures Insights tables exist (init.sql historically omitted them; some DBs only ran Docker init). */
+const ensureInsightsSchema = async () => {
+  if (!pgPool) return;
+  await pgPool.query(`
+    CREATE TABLE IF NOT EXISTS insight_categories (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      slug TEXT NOT NULL UNIQUE,
+      order_index INTEGER NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+  await pgPool.query(`
+    CREATE TABLE IF NOT EXISTS insight_posts (
+      id SERIAL PRIMARY KEY,
+      slug TEXT NOT NULL UNIQUE,
+      title TEXT NOT NULL,
+      meta TEXT,
+      excerpt TEXT,
+      body TEXT,
+      image_url TEXT,
+      media_class TEXT,
+      published BOOLEAN NOT NULL DEFAULT TRUE,
+      order_index INTEGER NOT NULL DEFAULT 0,
+      category_id INTEGER REFERENCES insight_categories(id) ON DELETE SET NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+  await pgPool.query(`ALTER TABLE insight_categories ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();`);
+  await pgPool.query(`ALTER TABLE insight_posts ADD COLUMN IF NOT EXISTS media_class TEXT;`);
+  await pgPool.query(`ALTER TABLE insight_posts ADD COLUMN IF NOT EXISTS published BOOLEAN NOT NULL DEFAULT TRUE;`);
+  await pgPool.query(
+    `ALTER TABLE insight_posts ADD COLUMN IF NOT EXISTS category_id INTEGER REFERENCES insight_categories(id) ON DELETE SET NULL;`
+  );
 };
 
 const ensureAppSchemaAndSeed = async () => {
@@ -660,32 +706,8 @@ const ensureAppSchemaAndSeed = async () => {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
-
-    CREATE TABLE IF NOT EXISTS insight_categories (
-      id SERIAL PRIMARY KEY,
-      name TEXT NOT NULL,
-      slug TEXT NOT NULL UNIQUE,
-      order_index INTEGER NOT NULL DEFAULT 0,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-
-    CREATE TABLE IF NOT EXISTS insight_posts (
-      id SERIAL PRIMARY KEY,
-      slug TEXT NOT NULL UNIQUE,
-      title TEXT NOT NULL,
-      meta TEXT,
-      excerpt TEXT,
-      body TEXT,
-      image_url TEXT,
-      media_class TEXT,
-      published BOOLEAN NOT NULL DEFAULT TRUE,
-      order_index INTEGER NOT NULL DEFAULT 0,
-      category_id INTEGER REFERENCES insight_categories(id) ON DELETE SET NULL,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
   `);
+  await ensureInsightsSchema();
   await pgPool.query(`ALTER TABLE brands ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();`);
   await pgPool.query(`ALTER TABLE brands ADD COLUMN IF NOT EXISTS audience TEXT;`);
   await pgPool.query(`ALTER TABLE brands ADD COLUMN IF NOT EXISTS format TEXT;`);
@@ -699,12 +721,6 @@ const ensureAppSchemaAndSeed = async () => {
   await pgPool.query(`ALTER TABLE case_studies ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();`);
   await pgPool.query(`ALTER TABLE sectors ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();`);
   await pgPool.query(`ALTER TABLE sectors ADD COLUMN IF NOT EXISTS image_url TEXT;`);
-  await pgPool.query(`ALTER TABLE insight_posts ADD COLUMN IF NOT EXISTS media_class TEXT;`);
-  await pgPool.query(`ALTER TABLE insight_posts ADD COLUMN IF NOT EXISTS published BOOLEAN NOT NULL DEFAULT TRUE;`);
-  await pgPool.query(
-    `ALTER TABLE insight_posts ADD COLUMN IF NOT EXISTS category_id INTEGER REFERENCES insight_categories(id) ON DELETE SET NULL;`
-  );
-  await pgPool.query(`ALTER TABLE insight_categories ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();`);
   await ensureMediaAssetsTable();
   await ensureSiteSectionsTable();
   await ensurePageContentCardsTable();
@@ -1069,7 +1085,7 @@ app.put('/api/site-sections/:key', authenticateToken, async (req, res) => {
 });
 
 app.get('/api/public/site-sections', async (req, res) => {
-  if (!pgPool) return res.status(500).json({ error: 'Database not available' });
+  if (!pgPool) return res.status(503).json({ error: 'Database not available' });
   try {
     await ensureSiteSectionsTable();
     const result = await pgPool.query('SELECT section_key, content_json FROM site_sections');
@@ -1135,6 +1151,7 @@ app.post('/api/newsletter', async (req, res) => {
 
 // Brands
 app.get('/api/brands', async (req, res) => {
+  if (!pgPool) return res.status(503).json({ error: 'Database not available' });
   try {
     const result = await pgPool.query('SELECT * FROM brands ORDER BY order_index ASC');
     res.json(result.rows);
@@ -1164,6 +1181,7 @@ app.post('/api/brands', authenticateToken, async (req, res) => {
 
 // Sectors
 app.get('/api/sectors', async (req, res) => {
+  if (!pgPool) return res.status(503).json({ error: 'Database not available' });
   try {
     const result = await pgPool.query('SELECT * FROM sectors ORDER BY order_index ASC');
     res.json(result.rows);
@@ -1248,6 +1266,7 @@ app.delete('/api/brands/:id', authenticateToken, async (req, res) => {
 
 // Services
 app.get('/api/services', async (req, res) => {
+  if (!pgPool) return res.status(503).json({ error: 'Database not available' });
   try {
     const result = await pgPool.query('SELECT * FROM services ORDER BY order_index ASC');
     res.json(result.rows);
@@ -1303,8 +1322,9 @@ app.delete('/api/services/:id', authenticateToken, async (req, res) => {
 
 // Insight categories (admin CRUD; public GET for filters / display)
 app.get('/api/insight-categories', async (req, res) => {
-  if (!pgPool) return res.status(500).json({ error: 'Database not available' });
+  if (!pgPool) return res.status(503).json({ error: 'Database not available' });
   try {
+    await ensureInsightsSchema();
     const result = await pgPool.query(
       'SELECT * FROM insight_categories ORDER BY order_index ASC, name ASC'
     );
@@ -1315,9 +1335,10 @@ app.get('/api/insight-categories', async (req, res) => {
 });
 
 app.post('/api/insight-categories', authenticateToken, async (req, res) => {
-  if (!pgPool) return res.status(500).json({ error: 'Database not available' });
+  if (!pgPool) return res.status(503).json({ error: 'Database not available' });
   const { name, slug, order_index } = req.body || {};
   try {
+    await ensureInsightsSchema();
     const safeName = parseRequiredText(name, 'name', 200);
     const safeSlug = parseInsightSlug(slug);
     const safeOrderIndex = parseOrderIndex(order_index);
@@ -1334,9 +1355,10 @@ app.post('/api/insight-categories', authenticateToken, async (req, res) => {
 });
 
 app.put('/api/insight-categories/:id', authenticateToken, async (req, res) => {
-  if (!pgPool) return res.status(500).json({ error: 'Database not available' });
+  if (!pgPool) return res.status(503).json({ error: 'Database not available' });
   const { name, slug, order_index } = req.body || {};
   try {
+    await ensureInsightsSchema();
     const safeName = parseRequiredText(name, 'name', 200);
     const safeSlug = parseInsightSlug(slug);
     const safeOrderIndex = parseOrderIndex(order_index);
@@ -1354,8 +1376,9 @@ app.put('/api/insight-categories/:id', authenticateToken, async (req, res) => {
 });
 
 app.delete('/api/insight-categories/:id', authenticateToken, async (req, res) => {
-  if (!pgPool) return res.status(500).json({ error: 'Database not available' });
+  if (!pgPool) return res.status(503).json({ error: 'Database not available' });
   try {
+    await ensureInsightsSchema();
     const result = await pgPool.query('DELETE FROM insight_categories WHERE id = $1 RETURNING *', [
       req.params.id,
     ]);
@@ -1376,8 +1399,9 @@ const INSIGHT_POST_ADMIN_SELECT = `
 
 // Insight posts (blog / press desk — admin list requires auth; public read is separate)
 app.get('/api/insight-posts', authenticateToken, async (req, res) => {
-  if (!pgPool) return res.status(500).json({ error: 'Database not available' });
+  if (!pgPool) return res.status(503).json({ error: 'Database not available' });
   try {
+    await ensureInsightsSchema();
     const result = await pgPool.query(
       `${INSIGHT_POST_ADMIN_SELECT} ORDER BY ip.order_index ASC, ip.created_at DESC`
     );
@@ -1388,8 +1412,9 @@ app.get('/api/insight-posts', authenticateToken, async (req, res) => {
 });
 
 app.get('/api/public/insight-posts', async (req, res) => {
-  if (!pgPool) return res.status(500).json({ error: 'Database not available' });
+  if (!pgPool) return res.status(503).json({ error: 'Database not available' });
   try {
+    await ensureInsightsSchema();
     const result = await pgPool.query(
       `SELECT ip.id, ip.slug, ip.title, ip.meta, ip.excerpt, ip.image_url, ip.media_class,
               ip.order_index, ip.created_at, ip.updated_at, ip.category_id,
@@ -1406,8 +1431,9 @@ app.get('/api/public/insight-posts', async (req, res) => {
 });
 
 app.get('/api/public/insight-posts/:slug', async (req, res) => {
-  if (!pgPool) return res.status(500).json({ error: 'Database not available' });
+  if (!pgPool) return res.status(503).json({ error: 'Database not available' });
   try {
+    await ensureInsightsSchema();
     const slug = parseInsightSlug(String(req.params.slug || ''));
     const result = await pgPool.query(
       `${INSIGHT_POST_ADMIN_SELECT} WHERE ip.slug = $1 AND ip.published = true`,
@@ -1422,10 +1448,11 @@ app.get('/api/public/insight-posts/:slug', async (req, res) => {
 });
 
 app.post('/api/insight-posts', authenticateToken, async (req, res) => {
-  if (!pgPool) return res.status(500).json({ error: 'Database not available' });
+  if (!pgPool) return res.status(503).json({ error: 'Database not available' });
   const { slug, title, meta, excerpt, body, image_url, media_class, published, order_index, category_id } =
     req.body || {};
   try {
+    await ensureInsightsSchema();
     const safeSlug = parseInsightSlug(slug);
     const safeTitle = parseRequiredText(title, 'title', 300);
     const safeMeta = parseOptionalText(meta, 'meta', 400);
@@ -1463,10 +1490,11 @@ app.post('/api/insight-posts', authenticateToken, async (req, res) => {
 });
 
 app.put('/api/insight-posts/:id', authenticateToken, async (req, res) => {
-  if (!pgPool) return res.status(500).json({ error: 'Database not available' });
+  if (!pgPool) return res.status(503).json({ error: 'Database not available' });
   const { slug, title, meta, excerpt, body, image_url, media_class, published, order_index, category_id } =
     req.body || {};
   try {
+    await ensureInsightsSchema();
     const safeSlug = parseInsightSlug(slug);
     const safeTitle = parseRequiredText(title, 'title', 300);
     const safeMeta = parseOptionalText(meta, 'meta', 400);
@@ -1507,8 +1535,9 @@ app.put('/api/insight-posts/:id', authenticateToken, async (req, res) => {
 });
 
 app.delete('/api/insight-posts/:id', authenticateToken, async (req, res) => {
-  if (!pgPool) return res.status(500).json({ error: 'Database not available' });
+  if (!pgPool) return res.status(503).json({ error: 'Database not available' });
   try {
+    await ensureInsightsSchema();
     const result = await pgPool.query('DELETE FROM insight_posts WHERE id = $1 RETURNING *', [req.params.id]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'Insight post not found' });
     res.json({ message: 'Insight post deleted successfully' });
@@ -1624,6 +1653,7 @@ app.delete('/api/page-content-cards/:id', authenticateToken, async (req, res) =>
 
 // Events
 app.get('/api/events', async (req, res) => {
+  if (!pgPool) return res.status(503).json({ error: 'Database not available' });
   try {
     const result = await pgPool.query('SELECT * FROM events ORDER BY order_index ASC, created_at DESC');
     res.json(result.rows);
@@ -1687,6 +1717,7 @@ app.delete('/api/events/:id', authenticateToken, async (req, res) => {
 
 // Case Studies
 app.get('/api/case-studies', async (req, res) => {
+  if (!pgPool) return res.status(503).json({ error: 'Database not available' });
   try {
     const result = await pgPool.query('SELECT * FROM case_studies ORDER BY order_index ASC, created_at DESC');
     res.json(result.rows);
@@ -1745,6 +1776,7 @@ app.delete('/api/case-studies/:id', authenticateToken, async (req, res) => {
 
 // Pages
 app.get('/api/pages', authenticateToken, async (req, res) => {
+  if (!pgPool) return res.status(503).json({ error: 'Database not available' });
   try {
     await ensureCoreSchema();
     const result = await pgPool.query('SELECT id, slug, title, description, status, published_at, created_at, updated_at FROM pages ORDER BY updated_at DESC');
@@ -1753,6 +1785,7 @@ app.get('/api/pages', authenticateToken, async (req, res) => {
 });
 
 app.get('/api/pages/:slug', async (req, res) => {
+  if (!pgPool) return res.status(503).json({ error: 'Database not available' });
   try {
     const user = getAuthUserFromRequest(req);
     const result = user
@@ -1831,7 +1864,7 @@ app.get('/api/admin/contacts', authenticateToken, async (req, res) => {
 });
 
 app.get('/api/admin/analytics/summary', authenticateToken, async (req, res) => {
-  if (!pgPool) return res.status(500).json({ error: 'Database not available' });
+  if (!pgPool) return res.status(503).json({ error: 'Database not available' });
   const daysRaw = Number.parseInt(String(req.query?.days || '30'), 10);
   const days = Number.isFinite(daysRaw) ? Math.min(Math.max(daysRaw, 1), 90) : 30;
   try {
@@ -1892,7 +1925,7 @@ app.get('/api/admin/analytics/summary', authenticateToken, async (req, res) => {
 });
 
 app.get('/api/admin/analytics/events', authenticateToken, async (req, res) => {
-  if (!pgPool) return res.status(500).json({ error: 'Database not available' });
+  if (!pgPool) return res.status(503).json({ error: 'Database not available' });
   const limitRaw = Number.parseInt(String(req.query?.limit || '150'), 10);
   const limit = Number.isFinite(limitRaw) ? Math.min(Math.max(limitRaw, 1), 500) : 150;
   const offsetRaw = Number.parseInt(String(req.query?.offset || '0'), 10);

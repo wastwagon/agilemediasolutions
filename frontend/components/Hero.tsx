@@ -19,6 +19,9 @@ const DEFAULT_SOCIAL = [
 ];
 
 const DEFAULT_HERO_VIDEO = '/videos/home-hero-video.mp4';
+const DEFAULT_VIDEO_POSTER = '/images/opening-launch.webp';
+/** Legacy CMS values pointed at removed stock images (e.g. hero-politics.jpg). */
+const LEGACY_HERO_POSTER = /hero-politics|hero-sports|hero-studio/i;
 
 function videoMimeTypeForSrc(src: string): string {
   const pathOnly = src.split('?')[0].toLowerCase();
@@ -34,7 +37,7 @@ export default function Hero() {
   const heroChrome = useSiteSectionContent('home.hero', {
     kicker: 'Creative Communications Studio',
     videoSrc: DEFAULT_HERO_VIDEO,
-    videoPoster: '/images/hero-politics.jpg',
+    videoPoster: DEFAULT_VIDEO_POSTER,
     primaryCtaLabel: 'Explore Our Brands',
     primaryCtaHref: '/brands',
     socialLinks: DEFAULT_SOCIAL.map((r) => `${r.left} :: ${r.right}`).join('\n'),
@@ -77,7 +80,8 @@ export default function Hero() {
   const subtitle = currentData?.subtitle || FALLBACK_SLIDES[0].subtitle;
 
   const videoSrc = heroChrome.videoSrc?.trim() || DEFAULT_HERO_VIDEO;
-  const poster = heroChrome.videoPoster?.trim() || '/images/hero-politics.jpg';
+  const rawPoster = heroChrome.videoPoster?.trim() || DEFAULT_VIDEO_POSTER;
+  const poster = LEGACY_HERO_POSTER.test(rawPoster) ? DEFAULT_VIDEO_POSTER : rawPoster;
   const videoType = videoMimeTypeForSrc(videoSrc);
 
   const kickPlayback = useCallback(() => {

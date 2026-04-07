@@ -90,6 +90,31 @@ CREATE TABLE IF NOT EXISTS sectors (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS insight_categories (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  slug TEXT NOT NULL UNIQUE,
+  order_index INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS insight_posts (
+  id SERIAL PRIMARY KEY,
+  slug TEXT NOT NULL UNIQUE,
+  title TEXT NOT NULL,
+  meta TEXT,
+  excerpt TEXT,
+  body TEXT,
+  image_url TEXT,
+  media_class TEXT,
+  published BOOLEAN NOT NULL DEFAULT TRUE,
+  order_index INTEGER NOT NULL DEFAULT 0,
+  category_id INTEGER REFERENCES insight_categories(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 -- Media library (WordPress-like reusable uploads)
 CREATE TABLE IF NOT EXISTS media_assets (
   id SERIAL PRIMARY KEY,
