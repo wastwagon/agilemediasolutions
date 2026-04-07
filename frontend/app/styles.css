@@ -2818,6 +2818,40 @@ main {
   border-color: rgba(153, 246, 228, 0.75);
 }
 
+/* Contact page premium form: light text on dark bg (global --color-text is dark #1C1B1A) */
+.creative-public-page .contact-form-premium .form-group input,
+.creative-public-page .contact-form-premium .form-group textarea {
+  color: #f8fafc;
+  -webkit-text-fill-color: #f8fafc;
+  caret-color: #99f6e4;
+  border-bottom-color: rgba(255, 255, 255, 0.38);
+}
+.creative-public-page .contact-form-premium .form-group label {
+  color: rgba(248, 250, 252, 0.72);
+}
+.creative-public-page .contact-form-premium .form-group input:focus ~ label,
+.creative-public-page .contact-form-premium .form-group textarea:focus ~ label,
+.creative-public-page .contact-form-premium .form-group.has-value label {
+  color: #99f6e4;
+}
+.creative-public-page .contact-form-premium .form-group .form-border {
+  background: #99f6e4;
+}
+.creative-public-page .contact-form-premium .form-error-msg,
+.creative-public-page .contact-form-premium .form-error-global {
+  color: #fca5a5;
+}
+.creative-public-page .contact-form-premium input:-webkit-autofill,
+.creative-public-page .contact-form-premium input:-webkit-autofill:hover,
+.creative-public-page .contact-form-premium input:-webkit-autofill:focus,
+.creative-public-page .contact-form-premium textarea:-webkit-autofill,
+.creative-public-page .contact-form-premium textarea:-webkit-autofill:focus {
+  -webkit-text-fill-color: #f8fafc !important;
+  caret-color: #99f6e4;
+  transition: background-color 9999s ease-out 0s;
+  box-shadow: 0 0 0 1000px rgba(15, 23, 42, 0.85) inset !important;
+}
+
 /* Creative rhythm pass: tighter spacing cadence + smoother motion */
 .creative-public-page .page-hero-inner {
   max-width: min(980px, 92vw);

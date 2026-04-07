@@ -3,6 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useSiteSectionContent } from '@/lib/siteSectionCms';
+import {
+  DEFAULT_AGILE_INSTAGRAM_URL,
+  DEFAULT_AGILE_LINKEDIN_URL,
+  DEFAULT_AGILE_X_URL,
+  DEFAULT_AGILE_YOUTUBE_URL,
+  DEFAULT_FACEBOOK_URL,
+} from '@/lib/defaultSocialUrls';
 import './Header.css';
 
 const navItems = [
@@ -44,6 +52,21 @@ export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
+  const bar = useSiteSectionContent('layout.topBar', {
+    email: 'info@agilemediasolutions.com',
+    contactLabel: 'Phone / WhatsApp',
+    contactHref: '/contact#contact',
+    facebookUrl: DEFAULT_FACEBOOK_URL,
+    twitterUrl: DEFAULT_AGILE_X_URL,
+    instagramUrl: DEFAULT_AGILE_INSTAGRAM_URL,
+    linkedinUrl: DEFAULT_AGILE_LINKEDIN_URL,
+    youtubeUrl: DEFAULT_AGILE_YOUTUBE_URL,
+  });
+  const fb = bar.facebookUrl?.trim() || DEFAULT_FACEBOOK_URL;
+  const tw = bar.twitterUrl?.trim() || DEFAULT_AGILE_X_URL;
+  const ig = bar.instagramUrl?.trim() || DEFAULT_AGILE_INSTAGRAM_URL;
+  const li = bar.linkedinUrl?.trim() || DEFAULT_AGILE_LINKEDIN_URL;
+  const yt = bar.youtubeUrl?.trim() || DEFAULT_AGILE_YOUTUBE_URL;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -137,10 +160,11 @@ export default function Header() {
           </nav>
           <div className="drawer-footer">
              <div className="drawer-socials">
-                <a href="https://facebook.com" target="_blank" rel="noopener noreferrer">Facebook</a>
-                <a href="https://x.com" target="_blank" rel="noopener noreferrer">X</a>
-                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">Instagram</a>
-                <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+                <a href={fb} target="_blank" rel="noopener noreferrer">Facebook</a>
+                <a href={tw} target="_blank" rel="noopener noreferrer">X</a>
+                <a href={ig} target="_blank" rel="noopener noreferrer">Instagram</a>
+                <a href={li} target="_blank" rel="noopener noreferrer">LinkedIn</a>
+                <a href={yt} target="_blank" rel="noopener noreferrer">YouTube</a>
              </div>
           </div>
         </div>

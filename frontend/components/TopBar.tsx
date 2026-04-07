@@ -3,21 +3,24 @@
 import React from 'react';
 import Link from 'next/link';
 import { useSiteSectionContent } from '@/lib/siteSectionCms';
-
-const FB = 'https://facebook.com';
-const TW = 'https://twitter.com';
-const LI = 'https://linkedin.com';
-const IG = 'https://instagram.com';
+import {
+  DEFAULT_AGILE_INSTAGRAM_URL,
+  DEFAULT_AGILE_LINKEDIN_URL,
+  DEFAULT_AGILE_X_URL,
+  DEFAULT_AGILE_YOUTUBE_URL,
+  DEFAULT_FACEBOOK_URL,
+} from '@/lib/defaultSocialUrls';
 
 export default function TopBar() {
   const bar = useSiteSectionContent('layout.topBar', {
     email: 'info@agilemediasolutions.com',
     contactLabel: 'Phone / WhatsApp',
     contactHref: '/contact#contact',
-    facebookUrl: FB,
-    twitterUrl: TW,
-    linkedinUrl: LI,
-    instagramUrl: IG,
+    facebookUrl: DEFAULT_FACEBOOK_URL,
+    twitterUrl: DEFAULT_AGILE_X_URL,
+    instagramUrl: DEFAULT_AGILE_INSTAGRAM_URL,
+    linkedinUrl: DEFAULT_AGILE_LINKEDIN_URL,
+    youtubeUrl: DEFAULT_AGILE_YOUTUBE_URL,
   });
 
   const mailHref = bar.email?.trim() ? `mailto:${bar.email.trim()}` : 'mailto:info@agilemediasolutions.com';
@@ -25,10 +28,11 @@ export default function TopBar() {
   const contactHref = bar.contactHref?.trim() || '/contact#contact';
   const contactLabel = bar.contactLabel?.trim() || 'Phone / WhatsApp';
 
-  const fb = bar.facebookUrl?.trim() || FB;
-  const tw = bar.twitterUrl?.trim() || TW;
-  const li = bar.linkedinUrl?.trim() || LI;
-  const ig = bar.instagramUrl?.trim() || IG;
+  const fb = bar.facebookUrl?.trim() || DEFAULT_FACEBOOK_URL;
+  const tw = bar.twitterUrl?.trim() || DEFAULT_AGILE_X_URL;
+  const ig = bar.instagramUrl?.trim() || DEFAULT_AGILE_INSTAGRAM_URL;
+  const li = bar.linkedinUrl?.trim() || DEFAULT_AGILE_LINKEDIN_URL;
+  const yt = bar.youtubeUrl?.trim() || DEFAULT_AGILE_YOUTUBE_URL;
 
   return (
     <div
@@ -63,15 +67,22 @@ export default function TopBar() {
         </Link>
       </div>
 
-      <div style={{ display: 'flex', gap: '1rem' }}>
+      <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
         <a href={fb} target="_blank" rel="noopener noreferrer" style={{ color: '#fff', opacity: 0.8 }} aria-label="Facebook">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
             <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
           </svg>
         </a>
-        <a href={tw} target="_blank" rel="noopener noreferrer" style={{ color: '#fff', opacity: 0.8 }} aria-label="Twitter">
+        <a href={tw} target="_blank" rel="noopener noreferrer" style={{ color: '#fff', opacity: 0.8 }} aria-label="X">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path>
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path>
+          </svg>
+        </a>
+        <a href={ig} target="_blank" rel="noopener noreferrer" style={{ color: '#fff', opacity: 0.8 }} aria-label="Instagram">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
           </svg>
         </a>
         <a href={li} target="_blank" rel="noopener noreferrer" style={{ color: '#fff', opacity: 0.8 }} aria-label="LinkedIn">
@@ -81,11 +92,9 @@ export default function TopBar() {
             <circle cx="4" cy="4" r="2"></circle>
           </svg>
         </a>
-        <a href={ig} target="_blank" rel="noopener noreferrer" style={{ color: '#fff', opacity: 0.8 }} aria-label="Instagram">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+        <a href={yt} target="_blank" rel="noopener noreferrer" style={{ color: '#fff', opacity: 0.8 }} aria-label="YouTube">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
           </svg>
         </a>
       </div>

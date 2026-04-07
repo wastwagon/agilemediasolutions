@@ -11,6 +11,13 @@ import SiteAnalytics from './SiteAnalytics';
 import MobileTabBar from './MobileTabBar';
 import { useScrollAnimations } from '@/hooks/useScrollAnimations';
 import { parseSiteContentPairs, useSiteSectionContent } from '@/lib/siteSectionCms';
+import {
+  DEFAULT_AGILE_INSTAGRAM_URL,
+  DEFAULT_AGILE_LINKEDIN_URL,
+  DEFAULT_AGILE_X_URL,
+  DEFAULT_AGILE_YOUTUBE_URL,
+  DEFAULT_FACEBOOK_URL,
+} from '@/lib/defaultSocialUrls';
 
 const COL1_DEFAULT = `Who we are :: /about
 Services :: /services
@@ -74,10 +81,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     col3Links: COL3_DEFAULT,
     col4Heading: 'Contact & legal',
     col4Links: COL4_DEFAULT,
-    facebookUrl: 'https://facebook.com',
-    instagramUrl: 'https://instagram.com',
-    xUrl: 'https://x.com',
-    linkedinUrl: 'https://linkedin.com',
+    facebookUrl: DEFAULT_FACEBOOK_URL,
+    instagramUrl: DEFAULT_AGILE_INSTAGRAM_URL,
+    xUrl: DEFAULT_AGILE_X_URL,
+    linkedinUrl: DEFAULT_AGILE_LINKEDIN_URL,
+    youtubeUrl: DEFAULT_AGILE_YOUTUBE_URL,
   });
 
   useScrollAnimations(!isAdminRoute, pathname ?? '');
@@ -87,10 +95,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   const year = new Date().getFullYear();
-  const fb = footer.facebookUrl?.trim() || 'https://facebook.com';
-  const ig = footer.instagramUrl?.trim() || 'https://instagram.com';
-  const x = footer.xUrl?.trim() || 'https://x.com';
-  const li = footer.linkedinUrl?.trim() || 'https://linkedin.com';
+  const fb = footer.facebookUrl?.trim() || DEFAULT_FACEBOOK_URL;
+  const ig = footer.instagramUrl?.trim() || DEFAULT_AGILE_INSTAGRAM_URL;
+  const x = footer.xUrl?.trim() || DEFAULT_AGILE_X_URL;
+  const li = footer.linkedinUrl?.trim() || DEFAULT_AGILE_LINKEDIN_URL;
+  const yt = footer.youtubeUrl?.trim() || DEFAULT_AGILE_YOUTUBE_URL;
 
   return (
     <>
@@ -153,6 +162,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               <a href={li} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2zM4 2a2 2 0 1 1-2 2 2 2 0 0 1 2-2z"></path>
+                </svg>
+              </a>
+              <a href={yt} target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
                 </svg>
               </a>
             </div>

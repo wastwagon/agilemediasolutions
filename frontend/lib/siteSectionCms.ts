@@ -192,23 +192,45 @@ export const SITE_SECTION_DEFINITIONS: SiteSectionDefinition[] = [
     ],
   },
   {
+    key: 'layout.preloader',
+    title: 'Opening splash (preloader)',
+    description:
+      'Full-screen image shown briefly when the homepage first loads. Upload in Media Library or use a path under /images/…',
+    fields: [
+      {
+        id: 'splashImage',
+        label: 'Splash image',
+        kind: 'image',
+        description: 'Recommended: wide WebP or JPG (e.g. 1920×1080). Shown until the fade-out.',
+      },
+      {
+        id: 'displayDurationMs',
+        label: 'Minimum display time (milliseconds)',
+        description: 'How long the splash stays visible before fading (400–8000). Default 1200.',
+      },
+    ],
+  },
+  {
     key: 'layout.topBar',
     title: 'Top bar',
-    description: 'Thin bar above the main header: email, contact link, and social icons.',
+    description:
+      'Thin bar above the main header: email, contact link, and social icon links. The same four URLs are used in the mobile menu (hamburger) footer.',
     fields: [
       { id: 'email', label: 'Email address (shown and used for mailto)' },
       { id: 'contactLabel', label: 'Contact link text' },
       { id: 'contactHref', label: 'Contact link URL', kind: 'url' },
       { id: 'facebookUrl', label: 'Facebook URL', kind: 'url' },
       { id: 'twitterUrl', label: 'X / Twitter URL', kind: 'url' },
-      { id: 'linkedinUrl', label: 'LinkedIn URL', kind: 'url' },
       { id: 'instagramUrl', label: 'Instagram URL', kind: 'url' },
+      { id: 'linkedinUrl', label: 'LinkedIn URL', kind: 'url' },
+      { id: 'youtubeUrl', label: 'YouTube URL', kind: 'url' },
     ],
   },
   {
     key: 'layout.footer',
     title: 'Footer',
-    description: 'Footer columns, newsletter copy, copyright line, and social URLs.',
+    description:
+      'Footer columns, newsletter copy, copyright line, and the four social icons at the bottom. Keep these URLs aligned with Top bar unless you intentionally want different footer links.',
     fields: [
       { id: 'impactText', label: 'Large impact word(s)' },
       { id: 'brandingCopy', label: 'Blurb under logo', multiline: true },
@@ -227,6 +249,7 @@ export const SITE_SECTION_DEFINITIONS: SiteSectionDefinition[] = [
       { id: 'instagramUrl', label: 'Instagram URL', kind: 'url' },
       { id: 'xUrl', label: 'X (Twitter) URL', kind: 'url' },
       { id: 'linkedinUrl', label: 'LinkedIn URL', kind: 'url' },
+      { id: 'youtubeUrl', label: 'YouTube URL', kind: 'url' },
     ],
   },
   {

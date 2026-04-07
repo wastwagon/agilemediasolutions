@@ -36,9 +36,11 @@ Privacy policy :: /privacy
 Terms of service :: /terms
 Cookie notice :: /cookies`;
 
-const DEFAULT_HERO_SOCIAL = `Facebook :: https://facebook.com
-Instagram :: https://instagram.com
-X :: https://x.com`;
+const DEFAULT_HERO_SOCIAL = `Facebook :: https://www.facebook.com/profile.php?id=61578349921960
+X :: https://x.com/agilemedias
+Instagram :: https://www.instagram.com/agile_media_solutions/
+LinkedIn :: https://www.linkedin.com/company/agile-mediasolutions/?viewAsMember=true
+YouTube :: https://www.youtube.com/@agilemediasolutions`;
 
 /** Shipped in frontend `public/videos/`; used to auto-repair Site Content when DB still points at missing files. */
 const BUNDLED_HERO_VIDEO_SRC = '/videos/home-hero-video.mp4';
@@ -179,15 +181,23 @@ const SITE_SECTION_SEEDS = [
     },
   },
   {
+    key: 'layout.preloader',
+    content: {
+      splashImage: '/images/opening-launch.webp',
+      displayDurationMs: '1200',
+    },
+  },
+  {
     key: 'layout.topBar',
     content: {
       email: 'info@agilemediasolutions.com',
       contactLabel: 'Phone / WhatsApp',
       contactHref: '/contact#contact',
-      facebookUrl: 'https://facebook.com',
-      twitterUrl: 'https://twitter.com',
-      linkedinUrl: 'https://linkedin.com',
-      instagramUrl: 'https://instagram.com',
+      facebookUrl: 'https://www.facebook.com/profile.php?id=61578349921960',
+      twitterUrl: 'https://x.com/agilemedias',
+      instagramUrl: 'https://www.instagram.com/agile_media_solutions/',
+      linkedinUrl: 'https://www.linkedin.com/company/agile-mediasolutions/?viewAsMember=true',
+      youtubeUrl: 'https://www.youtube.com/@agilemediasolutions',
     },
   },
   {
@@ -208,10 +218,11 @@ const SITE_SECTION_SEEDS = [
       col3Links: COL3_DEFAULT,
       col4Heading: 'Contact & legal',
       col4Links: COL4_DEFAULT,
-      facebookUrl: 'https://facebook.com',
-      instagramUrl: 'https://instagram.com',
-      xUrl: 'https://x.com',
-      linkedinUrl: 'https://linkedin.com',
+      facebookUrl: 'https://www.facebook.com/profile.php?id=61578349921960',
+      instagramUrl: 'https://www.instagram.com/agile_media_solutions/',
+      xUrl: 'https://x.com/agilemedias',
+      linkedinUrl: 'https://www.linkedin.com/company/agile-mediasolutions/?viewAsMember=true',
+      youtubeUrl: 'https://www.youtube.com/@agilemediasolutions',
     },
   },
 ];

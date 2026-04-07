@@ -2,6 +2,13 @@
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import Link from 'next/link';
+import {
+  DEFAULT_AGILE_INSTAGRAM_URL,
+  DEFAULT_AGILE_LINKEDIN_URL,
+  DEFAULT_AGILE_X_URL,
+  DEFAULT_AGILE_YOUTUBE_URL,
+  DEFAULT_FACEBOOK_URL,
+} from '@/lib/defaultSocialUrls';
 import { parseSiteContentPairs, useSiteSectionContent } from '@/lib/siteSectionCms';
 
 const FALLBACK_SLIDES = [
@@ -13,9 +20,11 @@ const FALLBACK_SLIDES = [
 ];
 
 const DEFAULT_SOCIAL = [
-  { left: 'Facebook', right: 'https://facebook.com' },
-  { left: 'Instagram', right: 'https://instagram.com' },
-  { left: 'X', right: 'https://x.com' },
+  { left: 'Facebook', right: DEFAULT_FACEBOOK_URL },
+  { left: 'X', right: DEFAULT_AGILE_X_URL },
+  { left: 'Instagram', right: DEFAULT_AGILE_INSTAGRAM_URL },
+  { left: 'LinkedIn', right: DEFAULT_AGILE_LINKEDIN_URL },
+  { left: 'YouTube', right: DEFAULT_AGILE_YOUTUBE_URL },
 ];
 
 const DEFAULT_HERO_VIDEO = '/videos/home-hero-video.mp4';
