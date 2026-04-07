@@ -34,12 +34,6 @@ function heroVideoPosterUrl(raw: string | undefined): string | undefined {
   return t;
 }
 
-function videoMimeTypeForSrc(src: string): string {
-  const pathOnly = src.split('?')[0].toLowerCase();
-  if (pathOnly.endsWith('.webm')) return 'video/webm';
-  return 'video/mp4';
-}
-
 export default function Hero() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -100,7 +94,6 @@ export default function Hero() {
   const videoSrc =
     heroVideoFallback && cmsVideoSrc !== DEFAULT_HERO_VIDEO ? DEFAULT_HERO_VIDEO : cmsVideoSrc;
   const poster = heroVideoPosterUrl(heroChrome.videoPoster);
-  const videoType = videoMimeTypeForSrc(videoSrc);
   const videoKey = `${videoSrc}\0${poster ?? ''}`;
 
   const onVideoError = useCallback(() => {
@@ -117,6 +110,9 @@ export default function Hero() {
     v.muted = true;
     v.setAttribute('muted', '');
     v.playsInline = true;
+    // Safari (especially iOS) expects these attributes on the element, not only JSX props.
+    v.setAttribute('playsinline', '');
+    v.setAttribute('webkit-playsinline', '');
     void v.play().catch(() => {});
   }, []);
 
@@ -128,12 +124,14 @@ export default function Hero() {
     const v = videoRef.current;
     if (!v) return;
     const onLifecycle = () => kickPlayback();
+    v.addEventListener('loadedmetadata', onLifecycle);
     v.addEventListener('loadeddata', onLifecycle);
     v.addEventListener('canplay', onLifecycle);
     v.addEventListener('canplaythrough', onLifecycle);
     v.addEventListener('stalled', onLifecycle);
     v.addEventListener('suspend', onLifecycle);
     return () => {
+      v.removeEventListener('loadedmetadata', onLifecycle);
       v.removeEventListener('loadeddata', onLifecycle);
       v.removeEventListener('canplay', onLifecycle);
       v.removeEventListener('canplaythrough', onLifecycle);
@@ -161,6 +159,7 @@ export default function Hero() {
         <video
           ref={videoRef}
           className="hero-video-el"
+          src={videoSrc}
           autoPlay
           loop
           muted
@@ -172,9 +171,7 @@ export default function Hero() {
           disablePictureInPicture
           disableRemotePlayback
           controls={false}
-        >
-          <source src={videoSrc} type={videoType} />
-        </video>
+        />
       </div>
       <div className="hero-overlay"></div>
       <div className="hero-noise" aria-hidden="true"></div>

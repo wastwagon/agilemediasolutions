@@ -1793,13 +1793,17 @@ app.get('/api/pages', authenticateToken, async (req, res) => {
 app.get('/api/pages/:slug', async (req, res) => {
   if (!pgPool) return res.status(503).json({ error: 'Database not available' });
   try {
+    await ensureCoreSchema();
     const user = getAuthUserFromRequest(req);
     const result = user
       ? await pgPool.query('SELECT * FROM pages WHERE slug = $1', [req.params.slug])
       : await pgPool.query("SELECT * FROM pages WHERE slug = $1 AND status = 'published'", [req.params.slug]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'Page not found' });
     res.json(pageRowWithSanitizedContent(result.rows[0]));
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    if (IS_PRODUCTION) console.error('GET /api/pages/:slug', err?.message || err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.post('/api/pages', authenticateToken, async (req, res) => {

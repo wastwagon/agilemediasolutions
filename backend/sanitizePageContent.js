@@ -43,8 +43,16 @@ function normalizePageBlocks(blocks) {
 }
 
 function sanitizePageContentJson(contentJson) {
-  if (!contentJson || typeof contentJson !== 'object') return contentJson || {};
-  const out = { ...contentJson };
+  let parsed = contentJson;
+  if (typeof parsed === 'string') {
+    try {
+      parsed = JSON.parse(parsed);
+    } catch {
+      return {};
+    }
+  }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {};
+  const out = { ...parsed };
   if (Array.isArray(out.blocks)) {
     out.blocks = normalizePageBlocks(out.blocks);
   }
