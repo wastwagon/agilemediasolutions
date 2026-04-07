@@ -8,6 +8,7 @@ import AdminImageUpload from '@/components/AdminImageUpload';
 import AdminVideoUpload from '@/components/AdminVideoUpload';
 import MediaLibraryPicker from '@/components/MediaLibraryPicker';
 import { SITE_SECTION_DEFINITIONS, type SiteSectionField } from '@/lib/siteSectionCms';
+import { mergeSiteSectionCodeDefaults } from '@/lib/siteSectionCodeDefaults';
 
 type SectionContentMap = Record<string, Record<string, string>>;
 type PairRow = { left: string; right: string };
@@ -200,8 +201,9 @@ export default function AdminSiteContentPage() {
             };
           });
         }
-        setFormByKey(next);
-        setInitialFormByKey(next);
+        const withCodeDefaults = mergeSiteSectionCodeDefaults(next);
+        setFormByKey(withCodeDefaults);
+        setInitialFormByKey(withCodeDefaults);
         setExpandedKeys(SITE_SECTION_DEFINITIONS.map((s) => s.key));
       } catch (e: any) {
         setError(e?.message || 'Could not load site content sections.');
