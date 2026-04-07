@@ -22,8 +22,18 @@ export function validateAdminImageFile(file: File): string | null {
   return null;
 }
 
+/** Some browsers / Finder report empty type or octet-stream for MP4. */
+function effectiveVideoMime(file: File): string {
+  if (file.type && ALLOWED_VIDEO_MIME_TYPES.has(file.type)) return file.type;
+  const ext = file.name.split('.').pop()?.toLowerCase();
+  if (ext === 'mp4') return 'video/mp4';
+  if (ext === 'webm') return 'video/webm';
+  return file.type || '';
+}
+
 export function validateAdminVideoFile(file: File): string | null {
-  if (!ALLOWED_VIDEO_MIME_TYPES.has(file.type)) {
+  const t = effectiveVideoMime(file);
+  if (!ALLOWED_VIDEO_MIME_TYPES.has(t)) {
     return 'Unsupported file type. Please upload MP4 or WebM.';
   }
   if (file.size > ADMIN_MAX_VIDEO_UPLOAD_BYTES) {

@@ -2,7 +2,14 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { adminAuthHeaders, adminFetch, handleAdminSessionExpired, parseApiError } from '@/lib/adminApi';
-import { ADMIN_MAX_UPLOAD_BYTES, uploadAdminImage, validateAdminImageFile } from '@/lib/adminUpload';
+import {
+  ADMIN_MAX_UPLOAD_BYTES,
+  ADMIN_MAX_VIDEO_UPLOAD_BYTES,
+  uploadAdminImage,
+  uploadAdminVideo,
+  validateAdminImageFile,
+  validateAdminVideoFile,
+} from '@/lib/adminUpload';
 import { AdminNotice, type AdminNoticeTone } from '@/components/admin/AdminNotice';
 
 type MediaAsset = {
@@ -77,9 +84,16 @@ export default function AdminMediaPage() {
     return () => window.clearTimeout(timer);
   }, [notice]);
 
+  const isVideoFile = (file: File) => {
+    if (file.type.startsWith('video/')) return true;
+    if (!file.type && /\.(mp4|webm)$/i.test(file.name)) return true;
+    return false;
+  };
+
   const handleUpload = async (file: File) => {
     if (!file) return;
-    const validationError = validateAdminImageFile(file);
+    const video = isVideoFile(file);
+    const validationError = video ? validateAdminVideoFile(file) : validateAdminImageFile(file);
     if (validationError) {
       setNotice({ tone: 'error', message: validationError });
       if (fileRef.current) fileRef.current.value = '';
@@ -88,9 +102,13 @@ export default function AdminMediaPage() {
     setUploading(true);
     setNotice(null);
     try {
-      await uploadAdminImage(file);
+      if (video) {
+        await uploadAdminVideo(file);
+      } else {
+        await uploadAdminImage(file);
+      }
       await fetchAssets(q);
-      setNotice({ tone: 'success', message: 'Image uploaded successfully.' });
+      setNotice({ tone: 'success', message: video ? 'Video uploaded successfully.' : 'Image uploaded successfully.' });
     } catch (e: any) {
       setNotice({ tone: 'error', message: e?.message || 'Upload failed.' });
     } finally {
@@ -153,7 +171,7 @@ export default function AdminMediaPage() {
         <div>
           <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '2.5rem', margin: 0, color: '#0D213B' }}>Media library</h1>
           <p style={{ margin: '0.5rem 0 0', color: '#6B7280' }}>
-            Upload once. Reuse everywhere. Copy URLs into Brands, Events, Case Studies, and Pages.
+            Upload images or hero videos (MP4/WebM). Reuse everywhere — copy URLs into Site Content, Brands, Events, and Pages.
           </p>
         </div>
 
@@ -189,7 +207,7 @@ export default function AdminMediaPage() {
             <input
               ref={fileRef}
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm"
               onChange={(e) => {
                 const f = e.target.files?.[0];
                 if (f) handleUpload(f);
@@ -201,9 +219,9 @@ export default function AdminMediaPage() {
               onClick={() => fileRef.current?.click()}
               disabled={uploading}
               style={compactPrimaryBtnStyle}
-              title={`Allowed: JPG, PNG, WEBP, GIF (max ${Math.floor(ADMIN_MAX_UPLOAD_BYTES / (1024 * 1024))}MB)`}
+              title={`Images: JPG, PNG, WEBP, GIF (max ${Math.floor(ADMIN_MAX_UPLOAD_BYTES / (1024 * 1024))}MB). Videos: MP4, WebM (max ${Math.floor(ADMIN_MAX_VIDEO_UPLOAD_BYTES / (1024 * 1024))}MB).`}
             >
-              {uploading ? 'Uploading…' : 'Upload image'}
+              {uploading ? 'Uploading…' : 'Upload media'}
             </button>
           </div>
         </div>
@@ -221,10 +239,13 @@ export default function AdminMediaPage() {
         {loading ? (
           <p style={{ margin: 0, color: '#6B7280' }}>Loading…</p>
         ) : assets.length === 0 ? (
-          <p style={{ margin: 0, color: '#6B7280' }}>No media yet. Upload an image to get started.</p>
+          <p style={{ margin: 0, color: '#6B7280' }}>No media yet. Upload an image or video to get started.</p>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '0.9rem' }}>
-            {assets.map((a) => (
+            {assets.map((a) => {
+              const isVideo =
+                (a.mime_type || '').startsWith('video/') || /\.(mp4|webm)(\?|$)/i.test(a.url || '');
+              return (
               <div
                 key={a.id}
                 style={{
@@ -237,9 +258,18 @@ export default function AdminMediaPage() {
                   flexDirection: 'column',
                 }}
               >
-                <div style={{ aspectRatio: '4 / 3', background: '#F3F4F6' }}>
-                  {/* backend serves /uploads */}
-                  <img src={a.url} alt={a.alt_text || a.original_name || a.filename} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                <div style={{ aspectRatio: '4 / 3', background: '#111827' }}>
+                  {isVideo ? (
+                    <video
+                      src={a.url}
+                      muted
+                      playsInline
+                      preload="metadata"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                    />
+                  ) : (
+                    <img src={a.url} alt={a.alt_text || a.original_name || a.filename} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  )}
                 </div>
                 <div style={{ padding: '0.75rem 0.75rem 0.85rem', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
                   <div
@@ -259,8 +289,8 @@ export default function AdminMediaPage() {
                     {a.original_name || a.filename}
                   </div>
                   <div style={{ fontSize: '0.74rem', color: '#6B7280', display: 'flex', justifyContent: 'space-between', gap: '0.5rem' }}>
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={a.mime_type || 'image'}>
-                      {a.mime_type || 'image'}
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={a.mime_type || (isVideo ? 'video' : 'image')}>
+                      {a.mime_type || (isVideo ? 'video' : 'image')}
                     </span>
                     <span>{formatBytes(a.size_bytes)}</span>
                   </div>
@@ -311,7 +341,8 @@ export default function AdminMediaPage() {
                   </div>
                 </div>
               </div>
-            ))}
+            );
+            })}
           </div>
         )}
       </div>

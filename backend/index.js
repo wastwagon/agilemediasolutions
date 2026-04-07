@@ -419,6 +419,12 @@ const uploadVideo = multer({
       cb(null, true);
       return;
     }
+    const ext = path.extname(file.originalname || '').toLowerCase();
+    const loose = !file.mimetype || file.mimetype === 'application/octet-stream';
+    if (loose && (ext === '.mp4' || ext === '.webm')) {
+      cb(null, true);
+      return;
+    }
     cb(new Error('Unsupported file type. Please upload MP4 or WebM.'));
   },
 });
