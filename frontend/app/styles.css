@@ -2226,13 +2226,29 @@ main {
 .creative-home .hero {
   min-height: 100vh;
   min-height: 100svh;
+  align-items: flex-start;
+  justify-content: center;
+  padding-left: clamp(1rem, 4vw, 3rem);
+  padding-right: clamp(1rem, 4vw, 3rem);
 }
 
-.hero-content {
+.creative-home .hero-content {
+  position: relative;
   z-index: 4;
-  max-width: 1020px;
+  width: min(100%, 38rem);
+  max-width: min(100%, 38rem);
   text-align: left;
-  margin-left: clamp(1.2rem, 5vw, 5rem);
+  margin-left: 0;
+  margin-right: auto;
+  padding: clamp(1.35rem, 3.2vw, 2.15rem) clamp(1.35rem, 3.6vw, 2.5rem);
+  border-radius: 1.125rem;
+  background: linear-gradient(155deg, rgba(7, 14, 26, 0.78) 0%, rgba(5, 11, 22, 0.62) 55%, rgba(6, 18, 28, 0.52) 100%);
+  backdrop-filter: blur(16px) saturate(1.15);
+  -webkit-backdrop-filter: blur(16px) saturate(1.15);
+  box-shadow:
+    0 28px 56px -18px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+  border: 1px solid rgba(153, 246, 228, 0.12);
 }
 
 .hero-kicker {
@@ -2268,7 +2284,9 @@ main {
   color: rgba(248, 250, 252, 0.94);
   max-width: 58ch;
   font-size: 1.02rem;
-  text-shadow: 0 1px 18px rgba(2, 6, 14, 0.65), 0 2px 8px rgba(2, 6, 14, 0.4);
+  margin-left: 0;
+  margin-right: 0;
+  text-shadow: 0 1px 12px rgba(2, 6, 14, 0.45), 0 1px 4px rgba(2, 6, 14, 0.35);
 }
 
 .hero-social-rail {
@@ -2293,6 +2311,10 @@ main {
 
 .hero-social-rail a:hover {
   color: #99f6e4;
+}
+
+.creative-home .hero-cta {
+  justify-content: flex-start;
 }
 
 .creative-home .btn-hero-secondary {
@@ -3181,10 +3203,16 @@ main {
     min-height: 200px;
   }
 
-  .hero-content {
-    margin-left: 0;
-    text-align: center;
-    padding-inline: 1rem;
+  .creative-home .hero {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .creative-home .hero-content {
+    width: 100%;
+    max-width: none;
+    padding: 1.2rem 1.15rem;
+    border-radius: 1rem;
   }
 
   .hero-social-rail {
@@ -3822,10 +3850,6 @@ main {
 .page-hero-tagline {
   max-width: 720px;
   line-height: 1.82;
-}
-
-.hero-content {
-  max-width: 900px;
 }
 
 .hero-description {

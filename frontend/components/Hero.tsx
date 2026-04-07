@@ -197,7 +197,7 @@ export default function Hero() {
           ))}
         </h1>
         <p className="hero-description">{subtitle}</p>
-        <div className="hero-cta" style={{ flexWrap: 'wrap', gap: '0.75rem', justifyContent: 'center' }}>
+        <div className="hero-cta">
           <Link href={heroChrome.primaryCtaHref?.trim() || '/brands'} className="btn btn-hero-secondary">
             {heroChrome.primaryCtaLabel}
           </Link>
