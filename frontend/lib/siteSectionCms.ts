@@ -9,6 +9,7 @@ export type SiteSectionFieldKind =
   | 'pairs'
   | 'url'
   | 'image'
+  | 'video'
   | 'select';
 
 export type SiteSectionField = {
@@ -162,10 +163,14 @@ export const SITE_SECTION_DEFINITIONS: SiteSectionDefinition[] = [
     key: 'home.hero',
     title: 'Homepage — Hero (video & chrome)',
     description:
-      'Hero slides (rotating headlines) stay under Admin → Pages → Home. Configure kicker, video, poster, main CTA, and social links here.',
+      'Hero slides (rotating headlines) stay under Admin → Pages → Home. Configure kicker, background video (upload or URL), poster frame, main CTA, and social links here.',
     fields: [
       { id: 'kicker', label: 'Kicker line (small text above headline)' },
-      { id: 'videoSrc', label: 'Background video URL', kind: 'url' },
+      {
+        id: 'videoSrc',
+        label: 'Background video',
+        kind: 'video',
+      },
       { id: 'videoPoster', label: 'Video poster image', kind: 'image' },
       { id: 'primaryCtaLabel', label: 'Primary button text' },
       { id: 'primaryCtaHref', label: 'Primary button URL', kind: 'url' },

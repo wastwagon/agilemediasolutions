@@ -5,6 +5,7 @@ import { adminAuthHeaders, adminFetch, parseApiError } from '@/lib/adminApi';
 import { AdminErrorBanner, AdminLoadingState, AdminPageHeader } from '@/components/admin/AdminPageUi';
 import { AdminEditorCard } from '@/components/admin/AdminFormUi';
 import AdminImageUpload from '@/components/AdminImageUpload';
+import AdminVideoUpload from '@/components/AdminVideoUpload';
 import MediaLibraryPicker from '@/components/MediaLibraryPicker';
 import { SITE_SECTION_DEFINITIONS, type SiteSectionField } from '@/lib/siteSectionCms';
 
@@ -49,7 +50,7 @@ function toPairList(rows: PairRow[]): string {
 
 function getFieldEditorKind(
   field: SiteSectionField
-): 'text' | 'textarea' | 'list' | 'pairs' | 'url' | 'image' | 'select' {
+): 'text' | 'textarea' | 'list' | 'pairs' | 'url' | 'image' | 'video' | 'select' {
   if (field.kind) return field.kind;
   const id = field.id.toLowerCase();
   const l = field.label.toLowerCase();
@@ -114,12 +115,13 @@ function getFriendlyFieldLabel(label: string): string {
 }
 
 function getFriendlyHint(
-  kind: 'text' | 'textarea' | 'list' | 'pairs' | 'url' | 'image' | 'select',
+  kind: 'text' | 'textarea' | 'list' | 'pairs' | 'url' | 'image' | 'video' | 'select',
   fieldMultiline: boolean
 ): string {
   if (kind === 'pairs') return 'Add cards with a title and supporting description.';
   if (kind === 'list') return 'Add and reorder talking points as separate items.';
   if (kind === 'url') return 'Paste a URL, or pick an uploaded file from the library if applicable.';
+  if (kind === 'video') return 'Upload MP4/WebM, pick from the media library, or paste a path (/videos/…) or full URL.';
   if (kind === 'image') return 'Upload, pick from the media library, or paste an image URL.';
   if (kind === 'select') return 'Choose a preset.';
   if (fieldMultiline) return 'Write a longer paragraph for this section.';
@@ -127,7 +129,7 @@ function getFriendlyHint(
 }
 
 function getFieldPlaceholder(
-  kind: 'text' | 'textarea' | 'list' | 'pairs' | 'url' | 'image' | 'select',
+  kind: 'text' | 'textarea' | 'list' | 'pairs' | 'url' | 'image' | 'video' | 'select',
   friendlyLabel: string
 ): string {
   const label = friendlyLabel.toLowerCase();
@@ -135,6 +137,7 @@ function getFieldPlaceholder(
   if (kind === 'list') return 'Add one key point';
   if (kind === 'pairs') return '';
   if (kind === 'url') return 'https://…';
+  if (kind === 'video') return '/videos/… or https://…';
   if (kind === 'image') return '/uploads/… or https://…';
   if (kind === 'select') return '';
   if (label.includes('button text')) return 'e.g. Learn more';
@@ -603,6 +606,32 @@ export default function AdminSiteContentPage() {
                               <MediaLibraryPicker
                                 buttonLabel="Choose file URL from library"
                                 onSelect={(url) => setField(section.key, field.id, url)}
+                              />
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      if (kind === 'video') {
+                        return (
+                          <div style={{ display: 'grid', gap: '0.5rem' }}>
+                            <input
+                              type="text"
+                              value={data[field.id] || ''}
+                              onChange={(e) => setField(section.key, field.id, e.target.value)}
+                              placeholder={placeholder}
+                              style={{ width: '100%', borderRadius: 10, border: '1px solid var(--color-border)', padding: '0.64rem 0.78rem' }}
+                            />
+                            <AdminVideoUpload
+                              currentUrl={data[field.id] || ''}
+                              onUploadSuccess={(url) => setField(section.key, field.id, url)}
+                              label="Upload background video"
+                            />
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
+                              <MediaLibraryPicker
+                                buttonLabel="Choose video URL from library"
+                                onSelect={(url) => setField(section.key, field.id, url)}
+                                preferVideo
                               />
                             </div>
                           </div>

@@ -25,7 +25,7 @@ export default function Preloader() {
           style={{
             position: 'fixed',
             inset: 0,
-            backgroundImage: "linear-gradient(rgba(13, 33, 59, 0.58), rgba(13, 33, 59, 0.58)), url('/images/opening-launch.webp')",
+            backgroundImage: "url('/images/opening-launch.webp')",
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat',

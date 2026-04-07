@@ -400,6 +400,25 @@ const upload = multer({
   },
 });
 
+const MAX_VIDEO_UPLOAD_SIZE_BYTES = parseInt(process.env.MAX_VIDEO_UPLOAD_SIZE_BYTES || '52428800', 10); // 50MB default
+const ALLOWED_VIDEO_MIME_TYPES = new Set(['video/mp4', 'video/webm']);
+const uploadVideo = multer({
+  storage,
+  limits: {
+    fileSize:
+      Number.isFinite(MAX_VIDEO_UPLOAD_SIZE_BYTES) && MAX_VIDEO_UPLOAD_SIZE_BYTES > 0
+        ? MAX_VIDEO_UPLOAD_SIZE_BYTES
+        : 52428800,
+  },
+  fileFilter: (req, file, cb) => {
+    if (ALLOWED_VIDEO_MIME_TYPES.has(file.mimetype)) {
+      cb(null, true);
+      return;
+    }
+    cb(new Error('Unsupported file type. Please upload MP4 or WebM.'));
+  },
+});
+
 const ensureCoreSchema = async () => {
   if (!pgPool) return;
   await pgPool.query(`
@@ -848,6 +867,43 @@ app.post('/api/upload', authenticateToken, (req, res) => {
        RETURNING *`,
       [fileUrl, req.file.filename, req.file.originalname, req.file.mimetype, req.file.size]
     ))
+      .then((result) => res.status(201).json({ url: fileUrl, asset: result.rows[0] }))
+      .catch(() => res.status(201).json({ url: fileUrl }));
+  });
+});
+
+// Upload hero / CMS video (MP4, WebM)
+app.post('/api/upload-video', authenticateToken, (req, res) => {
+  uploadVideo.single('video')(req, res, (err) => {
+    if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({
+        error: `File too large. Maximum allowed size is ${Math.floor(MAX_VIDEO_UPLOAD_SIZE_BYTES / (1024 * 1024))}MB.`,
+      });
+    }
+    if (err) {
+      return res.status(400).json({ error: err.message || 'Invalid upload request.' });
+    }
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+    const fileUrl = `/uploads/${req.file.filename}`;
+    if (!pgPool) {
+      return res.status(201).json({ url: fileUrl });
+    }
+
+    ensureMediaAssetsTable()
+      .then(() =>
+        pgPool.query(
+          `INSERT INTO media_assets (url, filename, original_name, mime_type, size_bytes)
+           VALUES ($1, $2, $3, $4, $5)
+           ON CONFLICT (url) DO UPDATE SET
+             original_name = EXCLUDED.original_name,
+             mime_type = EXCLUDED.mime_type,
+             size_bytes = EXCLUDED.size_bytes
+           RETURNING *`,
+          [fileUrl, req.file.filename, req.file.originalname, req.file.mimetype, req.file.size]
+        )
+      )
       .then((result) => res.status(201).json({ url: fileUrl, asset: result.rows[0] }))
       .catch(() => res.status(201).json({ url: fileUrl }));
   });

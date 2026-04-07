@@ -125,7 +125,7 @@ const SITE_SECTION_SEEDS = [
     key: 'home.hero',
     content: {
       kicker: 'Creative Communications Studio',
-      videoSrc: '/videos/herobannervideo.mp4',
+      videoSrc: '/videos/home-hero-video.mp4',
       videoPoster: '/images/hero-politics.jpg',
       primaryCtaLabel: 'Explore Our Brands',
       primaryCtaHref: '/brands',

@@ -18,13 +18,21 @@ const DEFAULT_SOCIAL = [
   { left: 'X', right: 'https://x.com' },
 ];
 
+const DEFAULT_HERO_VIDEO = '/videos/home-hero-video.mp4';
+
+function videoMimeTypeForSrc(src: string): string {
+  const pathOnly = src.split('?')[0].toLowerCase();
+  if (pathOnly.endsWith('.webm')) return 'video/webm';
+  return 'video/mp4';
+}
+
 export default function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [slides, setSlides] = useState<{ title?: string; subtitle?: string }[]>([]);
 
   const heroChrome = useSiteSectionContent('home.hero', {
     kicker: 'Creative Communications Studio',
-    videoSrc: '/videos/herobannervideo.mp4',
+    videoSrc: DEFAULT_HERO_VIDEO,
     videoPoster: '/images/hero-politics.jpg',
     primaryCtaLabel: 'Explore Our Brands',
     primaryCtaHref: '/brands',
@@ -67,8 +75,9 @@ export default function Hero() {
   const title = currentData?.title || FALLBACK_SLIDES[0].title;
   const subtitle = currentData?.subtitle || FALLBACK_SLIDES[0].subtitle;
 
-  const videoSrc = heroChrome.videoSrc?.trim() || '/videos/herobannervideo.mp4';
+  const videoSrc = heroChrome.videoSrc?.trim() || DEFAULT_HERO_VIDEO;
   const poster = heroChrome.videoPoster?.trim() || '/images/hero-politics.jpg';
+  const videoType = videoMimeTypeForSrc(videoSrc);
 
   return (
     <section className="hero" id="home">
@@ -83,7 +92,7 @@ export default function Hero() {
           poster={poster}
           key={videoSrc + poster}
         >
-          <source src={videoSrc} type="video/mp4" />
+          <source src={videoSrc} type={videoType} />
         </video>
       </div>
       <div className="hero-overlay"></div>

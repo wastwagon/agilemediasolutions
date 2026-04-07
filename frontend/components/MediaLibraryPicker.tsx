@@ -8,14 +8,22 @@ type MediaAsset = {
   url: string;
   filename: string;
   original_name?: string | null;
+  mime_type?: string | null;
 };
+
+function isVideoMime(mime?: string | null) {
+  return Boolean(mime && mime.startsWith('video/'));
+}
 
 export default function MediaLibraryPicker({
   onSelect,
   buttonLabel = 'Choose from library',
+  preferVideo = false,
 }: {
   onSelect: (url: string) => void;
   buttonLabel?: string;
+  /** When true, show video-first thumbnails and search hint (still lists all assets). */
+  preferVideo?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -59,7 +67,7 @@ export default function MediaLibraryPicker({
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search images..."
+              placeholder={preferVideo ? 'Search media…' : 'Search images…'}
               style={{ flex: 1, border: '1px solid var(--color-border)', borderRadius: 8, padding: '0.5rem 0.65rem' }}
             />
             <button type="button" className="btn btn-outline" onClick={() => loadAssets(query)} style={{ border: 'none' }}>
@@ -93,7 +101,17 @@ export default function MediaLibraryPicker({
                   }}
                 >
                   <div style={{ width: '100%', aspectRatio: '1 / 1', background: '#F7F7F7', borderRadius: 8, overflow: 'hidden', marginBottom: '0.35rem' }}>
-                    <img src={asset.url} alt={asset.original_name || asset.filename} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    {isVideoMime(asset.mime_type) ? (
+                      <video
+                        src={asset.url}
+                        muted
+                        playsInline
+                        preload="metadata"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                    ) : (
+                      <img src={asset.url} alt={asset.original_name || asset.filename} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    )}
                   </div>
                   <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {asset.original_name || asset.filename}
