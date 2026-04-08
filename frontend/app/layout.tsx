@@ -7,6 +7,7 @@ import React from 'react';
 import type { Metadata } from 'next';
 import AppShell from '../components/AppShell';
 import OrganizationJsonLd from '../components/OrganizationJsonLd';
+import SafariBfcacheGuard from '../components/SafariBfcacheGuard';
 import { publicSiteUrl } from '@/lib/publicSite';
 
 const siteUrl = publicSiteUrl();
@@ -73,6 +74,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <OrganizationJsonLd />
+        <SafariBfcacheGuard />
         <AppShell>{children}</AppShell>
       </body>
     </html>

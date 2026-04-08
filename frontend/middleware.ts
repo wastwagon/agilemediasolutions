@@ -13,9 +13,13 @@ function isStaticPath(pathname: string) {
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  /** Helps Safari and other clients revalidate HTML after deploys (pair with hard refresh if needed). */
+  /** Harden HTML caching behavior (especially Safari bfcache/history cache edge cases). */
   function withHtmlCacheHeaders(res: NextResponse) {
-    res.headers.set('Cache-Control', 'private, max-age=0, must-revalidate');
+    res.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+    res.headers.set('Pragma', 'no-cache');
+    res.headers.set('Expires', '0');
+    // Locale and cookie-dependent pages should never be shared under one cached variant.
+    res.headers.set('Vary', 'Accept-Language, Cookie');
     return res;
   }
 
