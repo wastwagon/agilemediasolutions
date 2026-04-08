@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { getLocaleFromPathname, stripLocalePrefix, withLocalePrefix } from '@/lib/locale';
+import { t } from '@/lib/i18n';
 import { useSiteSectionContent } from '@/lib/siteSectionCms';
 import { DEFAULT_PHONE_WHATSAPP_HREF, DEFAULT_PHONE_WHATSAPP_LABEL } from '@/lib/defaultPhoneChannel';
 import {
@@ -13,46 +15,49 @@ import {
   DEFAULT_FACEBOOK_URL,
 } from '@/lib/defaultSocialUrls';
 import './Header.css';
-
-const navItems = [
-  { label: 'Home', href: '/' },
-  { 
-    label: 'About', 
-    href: '/about',
-    subItems: [
-      { label: 'About us', href: '/about' },
-      { label: 'Sectors', href: '/sectors' },
-      { label: 'Partnerships', href: '/partnerships' }
-    ]
-  },
-  { 
-    label: 'Services', 
-    href: '/services',
-    subItems: [
-      { label: 'All services', href: '/services' },
-      { label: 'Digital engagement', href: '/digital-engagement' },
-      { label: 'Studio', href: '/studio' }
-    ]
-  },
-  { label: 'Media & brands', href: '/brands' },
-  { 
-    label: 'Insights', 
-    href: '/insights',
-    subItems: [
-      { label: 'Press room', href: '/insights' },
-      { label: 'Agile Press Group', href: '/agile-press-group' },
-      { label: 'Case studies', href: '/case-studies' }
-    ]
-  },
-  { label: 'Events', href: '/signature-events' },
-  { label: 'Careers', href: '/careers' },
-  { label: 'Contact', href: '/contact' }
-];
+import LanguageSwitcher from './LanguageSwitcher';
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
+  const locale = getLocaleFromPathname(pathname);
+  const plainPathname = stripLocalePrefix(pathname || '/');
+  const contactCtaHref = `${withLocalePrefix('/contact', locale)}#contact`;
+  const navItems = [
+    { label: t(locale, 'navHome'), href: '/' },
+    {
+      label: t(locale, 'navAbout'),
+      href: '/about',
+      subItems: [
+        { label: t(locale, 'navAboutUs'), href: '/about' },
+        { label: t(locale, 'navSectors'), href: '/sectors' },
+        { label: t(locale, 'navPartnerships'), href: '/partnerships' },
+      ],
+    },
+    {
+      label: t(locale, 'navServices'),
+      href: '/services',
+      subItems: [
+        { label: t(locale, 'navAllServices'), href: '/services' },
+        { label: t(locale, 'navDigitalEngagement'), href: '/digital-engagement' },
+        { label: t(locale, 'navStudio'), href: '/studio' },
+      ],
+    },
+    { label: t(locale, 'navMediaBrands'), href: '/brands' },
+    {
+      label: t(locale, 'navInsights'),
+      href: '/insights',
+      subItems: [
+        { label: t(locale, 'navPressRoom'), href: '/insights' },
+        { label: t(locale, 'navAgilePressGroup'), href: '/agile-press-group' },
+        { label: t(locale, 'navCaseStudies'), href: '/case-studies' },
+      ],
+    },
+    { label: t(locale, 'navEvents'), href: '/signature-events' },
+    { label: t(locale, 'navCareers'), href: '/careers' },
+    { label: t(locale, 'navContact'), href: '/contact' },
+  ];
   const bar = useSiteSectionContent('layout.topBar', {
     email: 'info@agilemediasolutions.com',
     contactLabel: DEFAULT_PHONE_WHATSAPP_LABEL,
@@ -85,7 +90,7 @@ export default function Header() {
   return (
     <header className={`modern-header ${scrolled ? 'scrolled' : ''} ${isOpen ? 'menu-open' : ''}`}>
       <div className="header-container">
-        <Link href="/" className="modern-logo">
+        <Link href={withLocalePrefix('/', locale)} className="modern-logo">
           <img src="/images/agilemediasolutionslogo.png" alt="Agile Media Solutions" />
         </Link>
 
@@ -94,7 +99,7 @@ export default function Header() {
           <ul className="nav-links">
             {navItems.map((item) => (
               <li key={item.label} className={item.subItems ? 'has-dropdown' : ''}>
-                <Link href={item.href} className={pathname === item.href ? 'active' : ''}>
+                <Link href={withLocalePrefix(item.href, locale)} className={plainPathname === item.href ? 'active' : ''}>
                   {item.label} {item.subItems && <span className="dropdown-arrow"></span>}
                 </Link>
                 {item.subItems && (
@@ -102,7 +107,7 @@ export default function Header() {
                     <ul className="mega-links">
                       {item.subItems.map((sub) => (
                         <li key={sub.label}>
-                          <Link href={sub.href}>{sub.label}</Link>
+                          <Link href={withLocalePrefix(sub.href, locale)}>{sub.label}</Link>
                         </li>
                       ))}
                     </ul>
@@ -115,11 +120,12 @@ export default function Header() {
 
         {/* Action Right */}
         <div className="header-actions">
-          <Link href="/contact#contact" className="action-btn">Work With Us</Link>
+          <LanguageSwitcher />
+          <Link href={contactCtaHref} className="action-btn">{t(locale, 'workWithUs')}</Link>
           <button 
             className="hamburger-btn" 
             onClick={() => setIsOpen(!isOpen)}
-            aria-label="Toggle Menu"
+            aria-label={t(locale, 'toggleMenu')}
           >
             <div className={`burger ${isOpen ? 'active' : ''}`}>
               <span></span>
@@ -134,10 +140,10 @@ export default function Header() {
       <div className={`mobile-drawer ${isOpen ? 'open' : ''}`}>
         <div className="drawer-inner">
           <div className="drawer-header">
-            <Link href="/" onClick={() => setIsOpen(false)}>
+            <Link href={withLocalePrefix('/', locale)} onClick={() => setIsOpen(false)}>
               <img src="/images/agilemediasolutionslogo.png" alt="Agile Media Solutions" className="drawer-logo" />
             </Link>
-            <button className="drawer-close" onClick={() => setIsOpen(false)} aria-label="Close menu">
+            <button className="drawer-close" onClick={() => setIsOpen(false)} aria-label={t(locale, 'closeMenu')}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
           </div>
@@ -145,12 +151,12 @@ export default function Header() {
             <ul className="mobile-links">
               {navItems.map((item) => (
                 <li key={item.label} className="mobile-item">
-                  <Link href={item.href} className="mobile-main-link">{item.label}</Link>
+                  <Link href={withLocalePrefix(item.href, locale)} className="mobile-main-link">{item.label}</Link>
                   {item.subItems && (
                     <ul className="mobile-sublinks">
                       {item.subItems.map((sub) => (
                         <li key={sub.label}>
-                          <Link href={sub.href}>{sub.label}</Link>
+                          <Link href={withLocalePrefix(sub.href, locale)}>{sub.label}</Link>
                         </li>
                       ))}
                     </ul>

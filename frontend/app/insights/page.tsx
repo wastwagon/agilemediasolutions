@@ -1,19 +1,23 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import SectionHeader from '../../components/SectionHeader';
+import { getInsightsPageDefaults, getInsightsPageMetadata } from '@/lib/i18n/pageDefaults';
+import { localizeHref } from '@/lib/i18n';
+import { getLocaleFromCookies } from '@/lib/localeServer';
 import { getSiteSectionContent } from '@/lib/siteSectionCmsServer';
 import {
-  INSIGHTS_FEATURED_DEFAULTS,
+  getInsightsFeaturedDefaults,
   getInsightFeaturedReadCta,
   normalizeMediaClass,
   parseInsightFeatured,
 } from '@/lib/insightsFeatured';
 import { getPublicInsightPosts } from '@/lib/insightPostsServer';
 
-export const metadata = {
-  title: 'Insights & Press Room',
-  description: 'Read insights, press updates, and media resources from Agile Media Solutions and the Agile Press Group.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocaleFromCookies();
+  return getInsightsPageMetadata(locale);
+}
 
 function parseLineList(value: string): string[] {
   return value
@@ -23,42 +27,12 @@ function parseLineList(value: string): string[] {
 }
 
 export default async function Page() {
-  const copy = await getSiteSectionContent('insights.page', {
-    heroLabel: 'Insights & press room',
-    heroTitle: 'Where Strategy Meets Story. And Headlines Meet Meaning.',
-    heroTagline:
-      'This is where Agile Media Solutions shares bold ideas, sector intelligence, creative insights, and media highlights. From original commentary to campaign coverage, this section brings together our perspective and presence in the media landscape.',
-    sectionLabel: 'Editorial Desk',
-    sectionTitle: 'Insights & Press Room',
-    sectionLinkLabel: 'Visit press group',
-    insightsHeading: 'Insights',
-    insightsLead: 'Our voice. Our vision.',
-    insightsBody:
-      'We believe communication is a tool for shaping society-not just sharing news. Through essays, articles, and guest features, we share insights on:',
-    insightsBullets:
-      'Strategic communications trends across Africa and globally\nNarrative power in trade, policy, and governance\nBrand storytelling in complex or high-trust sectors\nCampaign design, media innovation, and impact communications\nLeadership messaging and institutional credibility',
-    insightsCtaPrimary: 'Read Our Latest Insights',
-    insightsCtaSecondary: 'Submit a Guest Article',
-    pressHeading: 'Press Room',
-    pressLead: 'News, launches, and media coverage.',
-    pressBody: 'Stay up to date with Agile Media Solutions in the news and on the record.',
-    pressBullets:
-      'Announcements and client wins\nEvent media kits and summit briefings\nPress releases and thought leader mentions\nExecutive op-eds and campaign launches\nAwards, partnerships, and public recognitions',
-    pressCtaPrimary: 'Browse Press Releases',
-    pressCtaSecondary: 'Access Media Kits',
-    pressCtaTertiary: 'Download Executive Photos and Bios',
-    supportHeading: 'Media Circulation Support',
-    supportBody:
-      'Agile Media Solutions also facilitates press release writing, distribution, and media engagement on behalf of select clients through our Corporate Communications & Circulation Service.',
-    supportCtaPrimary: 'Learn More About Media Support',
-    supportCtaSecondary: 'Request Distribution Assistance',
-    finalSubtitle: 'Want to be the first to receive our insights?',
-    finalCta: 'Subscribe to the Agile Brief',
-  });
+  const locale = await getLocaleFromCookies();
+  const copy = await getSiteSectionContent('insights.page', getInsightsPageDefaults(locale));
   const insightsBullets = parseLineList(copy.insightsBullets);
   const pressBullets = parseLineList(copy.pressBullets);
 
-  const featuredFlat = await getSiteSectionContent('insights.featured', INSIGHTS_FEATURED_DEFAULTS);
+  const featuredFlat = await getSiteSectionContent('insights.featured', getInsightsFeaturedDefaults(locale));
   const dbPosts = await getPublicInsightPosts();
   const featuredCards =
     dbPosts.length > 0
@@ -89,15 +63,15 @@ export default async function Page() {
           <div className="section-inner">
             <div className="insights-featured-preview-head">
               <span className="section-label" id="insights-featured-heading">
-                From the desk
+                {copy.featuredLabel}
               </span>
-              <h2 className="section-title">Featured briefings &amp; analysis</h2>
+              <h2 className="section-title">{copy.featuredTitle}</h2>
             </div>
             <div className="insights-featured-preview-grid">
               {featuredCards.map((item) => (
                 <Link
                   key={item.slug}
-                  href={`/insights/${item.slug}`}
+                  href={localizeHref(`/insights/${item.slug}`, locale)}
                   className="insights-featured-preview-card"
                 >
                   {item.imageUrl ? (
@@ -130,7 +104,7 @@ export default async function Page() {
             variant="inner"
             label={copy.sectionLabel}
             title={<>{copy.sectionTitle}</>}
-            linkHref="/agile-press-group"
+            linkHref={localizeHref('/agile-press-group', locale)}
             linkLabel={copy.sectionLinkLabel}
           />
           <div className="insights-grid">
@@ -146,10 +120,10 @@ export default async function Page() {
                 ))}
               </ul>
               <div className="section-cta-center" style={{ flexWrap: 'wrap', justifyContent: 'flex-start' }}>
-                <Link href="/contact#contact" className="btn btn-outline">
+                <Link href={localizeHref('/contact#contact', locale)} className="btn btn-outline">
                   {copy.insightsCtaPrimary}
                 </Link>
-                <Link href="/contact#contact" className="btn btn-outline">
+                <Link href={localizeHref('/contact#contact', locale)} className="btn btn-outline">
                   {copy.insightsCtaSecondary}
                 </Link>
               </div>
@@ -166,13 +140,13 @@ export default async function Page() {
                 ))}
               </ul>
               <div className="section-cta-center" style={{ flexWrap: 'wrap', justifyContent: 'flex-start' }}>
-                <Link href="/contact#contact" className="btn btn-outline">
+                <Link href={localizeHref('/contact#contact', locale)} className="btn btn-outline">
                   {copy.pressCtaPrimary}
                 </Link>
-                <Link href="/contact#contact" className="btn btn-outline">
+                <Link href={localizeHref('/contact#contact', locale)} className="btn btn-outline">
                   {copy.pressCtaSecondary}
                 </Link>
-                <Link href="/contact#contact" className="btn btn-outline">
+                <Link href={localizeHref('/contact#contact', locale)} className="btn btn-outline">
                   {copy.pressCtaTertiary}
                 </Link>
               </div>
@@ -183,10 +157,10 @@ export default async function Page() {
                 {copy.supportBody}
               </p>
               <div className="section-cta-center" style={{ flexWrap: 'wrap', justifyContent: 'flex-start' }}>
-                <Link href="/services" className="btn btn-outline">
+                <Link href={localizeHref('/services', locale)} className="btn btn-outline">
                   {copy.supportCtaPrimary}
                 </Link>
-                <Link href="/contact#contact" className="btn btn-outline">
+                <Link href={localizeHref('/contact#contact', locale)} className="btn btn-outline">
                   {copy.supportCtaSecondary}
                 </Link>
               </div>
@@ -196,7 +170,7 @@ export default async function Page() {
             {copy.finalSubtitle}
           </p>
           <div className="section-cta-center">
-            <Link href="/#newsletter" className="btn btn-primary">
+            <Link href={localizeHref('/#newsletter', locale)} className="btn btn-primary">
               {copy.finalCta}
             </Link>
           </div>

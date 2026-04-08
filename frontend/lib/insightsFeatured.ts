@@ -1,3 +1,5 @@
+import type { AppLocale } from '@/lib/locale';
+
 export type InsightFeaturedCard = {
   slug: string;
   meta: string;
@@ -50,6 +52,56 @@ We work with desks and editors to adapt tone and length for each outlet while pr
 
 If you are planning a launch, a policy milestone, or a sustained thought-leadership arc, start with the end readership in mind: where they read, who they trust, and what proof they need before they amplify your narrative.`,
 };
+
+const INSIGHTS_FEATURED_OVERRIDES: Partial<Record<Exclude<AppLocale, 'en'>, Partial<Record<string, string>>>> = {
+  fr: {
+    readCtaLabel: 'Lire plus →',
+    card1Meta: 'Briefing presse · T1 2026',
+    card1Title: 'Ce que nous retenons des rencontres commerce et politiques publiques',
+    card1Excerpt:
+      'Lecons clefs sur les recits du commerce intra-africain, la confiance institutionnelle et la circulation des briefings.',
+    card2Meta: 'Leadership d idee',
+    card2Title: 'Des recits de gouvernance qui captent l attention durablement',
+    card2Excerpt:
+      'Pourquoi clarte, cadence et preuve restent determinantes dans les secteurs sensibles.',
+    card3Title: 'Une syndication qui etend votre portee dans les medias africains',
+    card3Excerpt:
+      'Comment notre desk combine production originale et circulation licenciee pour toucher les audiences actives.',
+  },
+  pt: {
+    readCtaLabel: 'Ler mais →',
+    card1Meta: 'Briefing de imprensa · T1 2026',
+    card1Title: 'O que aprendemos ao reunir liderancas de comercio e politica',
+    card1Excerpt:
+      'Principais aprendizados sobre narrativas de comercio intra-africano e confianca institucional.',
+    card2Meta: 'Lideranca de pensamento',
+    card2Title: 'Narrativas de governanca que conquistam atencao e continuidade',
+    card2Excerpt:
+      'Por que clareza, cadencia e evidencia ainda superam o ruido em setores de alta exposicao.',
+    card3Title: 'Sindicacao que amplia seu alcance na midia africana',
+    card3Excerpt:
+      'Como combinamos conteudo original e circulacao licenciada para chegar onde o publico ja le.',
+  },
+  ar: {
+    readCtaLabel: 'اقرأ المزيد ←',
+    card1Meta: 'موجز صحفي · الربع الاول 2026',
+    card1Title: 'ما تعلمناه من جمع قادة التجارة والسياسات',
+    card1Excerpt:
+      'خلاصات حول سرد التجارة داخل افريقيا والثقة المؤسسية وانتقال الرسائل بين العواصم.',
+    card2Meta: 'قيادة فكرية',
+    card2Title: 'سرديات الحوكمة التي تجذب الانتباه وتحافظ عليه',
+    card2Excerpt:
+      'لماذا تبقى الوضوحية والنسق والادلة اقوى من الضجيج في القطاعات الحساسة.',
+    card3Title: 'نشر موسع يمد حضوركم عبر الاعلام الافريقي',
+    card3Excerpt:
+      'كيف يجمع فريقنا بين المحتوى الاصلي والتوزيع المرخّص للوصول الى جماهير قائمة بالفعل.',
+  },
+};
+
+export function getInsightsFeaturedDefaults(locale: AppLocale): Record<string, string> {
+  if (locale === 'en') return INSIGHTS_FEATURED_DEFAULTS;
+  return { ...INSIGHTS_FEATURED_DEFAULTS, ...(INSIGHTS_FEATURED_OVERRIDES[locale] ?? {}) };
+}
 
 export function normalizeMediaClass(raw: string): string {
   const t = raw.trim();

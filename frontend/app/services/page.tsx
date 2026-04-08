@@ -3,7 +3,11 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import SectionHeader from '../../components/SectionHeader';
+import { getLocaleFromPathname, type AppLocale } from '@/lib/locale';
+import { getServicesPageDefaults } from '@/lib/i18n/pageDefaults';
+import { localizeHref, t } from '@/lib/i18n';
 import { useSiteSectionContent } from '@/lib/siteSectionCms';
 
 type ServiceItem = {
@@ -108,16 +112,230 @@ const DOCUMENT_SERVICES: { icon: string; title: string; description: string }[] 
   },
 ];
 
+const SERVICE_TRANSLATIONS: Record<Exclude<AppLocale, 'en'>, Record<string, { title: string; description: string }>> = {
+  fr: {
+    strategic: {
+      title: 'Communication strategique et construction narrative',
+      description:
+        'Cadres de messages, storytelling et architecture narrative alignes sur vos objectifs institutionnels.',
+    },
+    'media-relations': {
+      title: 'Relations medias et gestion de reputation',
+      description: 'Visibilite, engagement presse, preparation des porte-paroles et reponse en situation sensible.',
+    },
+    campaigns: {
+      title: 'Campagnes, plaidoyer et mobilisation',
+      description: 'Conception de campagnes a fort impact pour mobiliser les publics et influencer les comportements.',
+    },
+    digital: {
+      title: 'Communication digitale, sociale et multimedia',
+      description: 'Strategie de contenu multi-plateformes, creation, analytics et animation de communaute.',
+    },
+    branding: {
+      title: 'Branding, design et systemes d identite',
+      description: 'Identites visuelles et narratives coherentes pour renforcer memorisation et confiance.',
+    },
+    events: {
+      title: 'Couverture media d evenements et sommets',
+      description: 'Accompagnement complet avant, pendant et apres evenement: presse, contenus et diffusion.',
+    },
+    esg: {
+      title: 'Communication investisseurs, bailleurs et ESG',
+      description: 'Recits d impact, transparence et argumentaires pour investisseurs et partenaires.',
+    },
+    insights: {
+      title: 'Veille, insights et mesure de performance',
+      description: 'Suivi media, analyse d audience, sentiment et tableaux de bord decisionnels.',
+    },
+    advisory: {
+      title: 'Conseil, formation et renforcement institutionnel',
+      description: 'Coaching dirigeants, formation equipes et audits strategiques de communication.',
+    },
+    diplomacy: {
+      title: 'Strategie d influence et diplomatie publique',
+      description: 'Narratifs internationaux, repositionnement et engagements multi-acteurs.',
+    },
+    ai: {
+      title: 'Laboratoire IA et innovation',
+      description: 'Automatisation de contenu, experimentation immersive et outils de production avances.',
+    },
+    policy: {
+      title: 'Communication des politiques publiques et legislation',
+      description: 'Traduction de sujets juridiques complexes en messages clairs et actionnables.',
+    },
+    market: {
+      title: 'Entree de marche et onboarding investisseurs',
+      description: 'Communication de deploiement adaptee aux contextes locaux et aux parties prenantes.',
+    },
+    corporate: {
+      title: 'Communication corporate et circulation media',
+      description: 'Messages institutionnels coherents pour canaux internes et externes.',
+    },
+    studio: {
+      title: 'Studio: production, design et creation de contenu',
+      description: 'Video, photo, design et contenus multimedia produits sur mesure pour vos audiences.',
+    },
+  },
+  pt: {
+    strategic: {
+      title: 'Comunicacao estrategica e construcao de narrativa',
+      description: 'Frameworks de mensagem, storytelling e arquitetura narrativa alinhados aos objetivos.',
+    },
+    'media-relations': {
+      title: 'Relacoes com a midia e gestao de reputacao',
+      description: 'Visibilidade, relacionamento com imprensa e preparo para momentos de escrutinio.',
+    },
+    campaigns: {
+      title: 'Campanhas, advocacy e engajamento',
+      description: 'Campanhas de alto impacto para mobilizar audiencias e influenciar comportamento.',
+    },
+    digital: {
+      title: 'Comunicacao digital, social e multimidia',
+      description: 'Estrategia de conteudo multiplataforma com criacao, distribuicao e analise.',
+    },
+    branding: {
+      title: 'Branding, design e sistemas de identidade',
+      description: 'Identidade visual e narrativa para fortalecer reconhecimento e confianca.',
+    },
+    events: {
+      title: 'Suporte de midia para eventos e cúpulas',
+      description: 'Gestao de imprensa, conteudo e cobertura ao vivo antes, durante e depois do evento.',
+    },
+    esg: {
+      title: 'Comunicacao para investidores, doadores e ESG',
+      description: 'Narrativas de impacto, transparencia e posicionamento para parceiros estrategicos.',
+    },
+    insights: {
+      title: 'Insights, monitoramento e medicao de desempenho',
+      description: 'Monitoramento de midia, analytics de audiencia e dashboards para tomada de decisao.',
+    },
+    advisory: {
+      title: 'Consultoria, treinamento e fortalecimento institucional',
+      description: 'Coaching executivo, formacao de equipes e planejamento estrategico.',
+    },
+    diplomacy: {
+      title: 'Estrategia de influencia e diplomacia publica',
+      description: 'Construcao de narrativas internacionais e engajamento multilateral.',
+    },
+    ai: {
+      title: 'Laboratorio de IA e inovacao',
+      description: 'Automacao de conteudo, experiencias imersivas e novos sistemas de producao.',
+    },
+    policy: {
+      title: 'Comunicacao de politicas e legislacao',
+      description: 'Transformamos conteudo tecnico em mensagens claras para publico e decisores.',
+    },
+    market: {
+      title: 'Entrada em mercado e onboarding de investidores',
+      description: 'Comunicacao adaptada ao contexto local para lancamentos e expansao.',
+    },
+    corporate: {
+      title: 'Comunicacao corporativa e circulacao de midia',
+      description: 'Mensagens institucionais consistentes em canais internos e externos.',
+    },
+    studio: {
+      title: 'Servicos de estudio: producao, design e conteudo',
+      description: 'Video, fotografia e criacao multimidia para campanhas e narrativas de marca.',
+    },
+  },
+  ar: {
+    strategic: {
+      title: 'الاتصال الاستراتيجي وبناء السرد',
+      description: 'نطور اطر الرسائل واستراتيجيات السرد بما يتماشى مع اهدافكم المؤسسية.',
+    },
+    'media-relations': {
+      title: 'العلاقات الاعلامية وادارة السمعة',
+      description: 'نعزز الثقة العامة عبر ادارة الظهور الاعلامي والاستعداد للحظات التدقيق.',
+    },
+    campaigns: {
+      title: 'الحملات والمناصرة واشراك الجهات المعنية',
+      description: 'نصمم حملات مؤثرة تحرك الجمهور وتدعم التغيير في السلوك والسياسات.',
+    },
+    digital: {
+      title: 'الاتصال الرقمي والاجتماعي ومتعدد الوسائط',
+      description: 'استراتيجية محتوى شاملة عبر المنصات مع تصميم وتحليل وتفاعل مجتمعي.',
+    },
+    branding: {
+      title: 'الهوية والعلامة والتصميم',
+      description: 'نبني هويات بصرية ورسائل علامة تعكس الرؤية وتتصل بالجمهور بوضوح.',
+    },
+    events: {
+      title: 'الدعم الاعلامي للفعاليات والقمم',
+      description: 'تغطية اعلامية متكاملة من التجهيز الصحفي حتى البث والترويج بعد الحدث.',
+    },
+    esg: {
+      title: 'اتصال المستثمرين والمانحين ومعايير ESG',
+      description: 'نقل القيمة والشفافية والاثر للممولين والشركاء الاستراتيجيين.',
+    },
+    insights: {
+      title: 'الرصد والتحليلات وقياس الاداء',
+      description: 'متابعة اعلامية وتحليل جمهور ومؤشرات اداء تدعم قرارات الاتصال.',
+    },
+    advisory: {
+      title: 'الاستشارات والتدريب وبناء القدرات المؤسسية',
+      description: 'تدريب الفرق وقياداتها وتعزيز الجاهزية المؤسسية في الاتصال.',
+    },
+    diplomacy: {
+      title: 'استراتيجية التأثير والدبلوماسية العامة',
+      description: 'دعم الحكومات والهيئات في صياغة روايات دولية وبناء قوة ناعمة.',
+    },
+    ai: {
+      title: 'مختبر الذكاء الاصطناعي والابتكار',
+      description: 'توظيف ادوات حديثة للأتمتة والتحليلات والتجارب الرقمية المتقدمة.',
+    },
+    policy: {
+      title: 'اتصال السياسات والتشريعات',
+      description: 'تبسيط المحتوى القانوني والسياساتي وتحويله الى رسائل عامة مؤثرة.',
+    },
+    market: {
+      title: 'اتصال دخول الاسواق وتهيئة المستثمرين',
+      description: 'استراتيجيات تواصل محلية الوقع لدعم التوسع وبناء الثقة في السوق.',
+    },
+    corporate: {
+      title: 'الاتصال المؤسسي وتوزيع المحتوى الاعلامي',
+      description: 'رسائل رسمية متسقة عبر القنوات الداخلية والخارجية.',
+    },
+    studio: {
+      title: 'خدمات الاستوديو: انتاج وتصميم وصناعة محتوى',
+      description: 'فيديو وتصوير وتصميم ومحتوى ابداعي مخصص للجمهور والهوية.',
+    },
+  },
+};
+
+function getDocumentServices(locale: AppLocale): { icon: string; title: string; description: string }[] {
+  if (locale === 'en') return DOCUMENT_SERVICES;
+  const copy = SERVICE_TRANSLATIONS[locale];
+  return DOCUMENT_SERVICES.map((service) => {
+    const translated = copy[service.icon];
+    if (!translated) return service;
+    return { ...service, title: translated.title, description: translated.description };
+  });
+}
+
+const INCLUDES_MARKERS = [
+  'Includes:',
+  'Inclut :',
+  'Inclut:',
+  'Inclui:',
+  'Inclui :',
+  'يشمل:',
+  'يتضمن:',
+] as const;
+
 function parseHighlightsFromIncludes(description?: string | null): string[] {
   if (!description) return [];
-  const idx = description.indexOf('Includes:');
-  if (idx < 0) return [];
-  return description
-    .slice(idx + 'Includes:'.length)
-    .split(',')
-    .map((item) => item.trim())
-    .filter(Boolean)
-    .slice(0, 3);
+  for (const marker of INCLUDES_MARKERS) {
+    const idx = description.indexOf(marker);
+    if (idx >= 0) {
+      return description
+        .slice(idx + marker.length)
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean)
+        .slice(0, 3);
+    }
+  }
+  return [];
 }
 
 function parseServiceHighlights(value?: string | null): string[] {
@@ -154,6 +372,8 @@ function resolveServiceImage(icon?: string | null) {
 }
 
 export default function Page() {
+  const pathname = usePathname();
+  const locale = getLocaleFromPathname(pathname ?? '/');
   const [services, setServices] = useState<ServiceItem[]>([]);
 
   useEffect(() => {
@@ -174,24 +394,14 @@ export default function Page() {
   const renderedServices: ServiceItem[] =
     services.length > 0
       ? services
-      : DOCUMENT_SERVICES.map((s, idx) => ({
+      : getDocumentServices(locale).map((s, idx) => ({
           id: -(idx + 1),
           title: s.title,
           description: s.description,
           icon: s.icon,
           order_index: idx,
         }));
-  const servicesCopy = useSiteSectionContent('services.page', {
-    heroLabel: 'Services',
-    heroTitle: 'Comprehensive Communications Solutions. Strategically Designed. Precisely Delivered.',
-    heroIntro:
-      'Agile Media Solutions offers a full suite of communications, media, and public relations services designed for governments, businesses, institutions, and mission-driven organizations. Our work blends strategic thinking, creative execution, and sectoral intelligence-ensuring our clients communicate with clarity, confidence, and purpose.',
-    heroSubIntro: '',
-    sectionLabel: 'Capabilities',
-    sectionTitle: 'Explore our integrated service offerings',
-    sectionSubtitle:
-      "Need help choosing the right mix? We'll assess your goals and recommend a package that delivers real-world outcomes.",
-  });
+  const servicesCopy = useSiteSectionContent('services.page', getServicesPageDefaults(locale));
 
   const heroContainer = {
     hidden: { opacity: 0 },
@@ -260,8 +470,8 @@ export default function Page() {
               variant="inner"
               label={servicesCopy.sectionLabel}
               title={servicesCopy.sectionTitle}
-              linkHref="/contact#contact"
-              linkLabel="Book strategy call"
+              linkHref={localizeHref('/contact#contact', locale)}
+              linkLabel={servicesCopy.sectionLinkLabel}
             />
           </motion.div>
           <motion.p
@@ -301,7 +511,7 @@ export default function Page() {
                 ></div>
                 <div className="service-card-body">
                   <h3 className="service-card-title">{s.title}</h3>
-                  <p className="service-card-desc">{s.description || 'Comprehensive communications support tailored to your mission and audience.'}</p>
+                  <p className="service-card-desc">{s.description || t(locale, 'servicesCardFallbackDesc')}</p>
                   {fallbackHighlights.length > 0 ? (
                     <ul className="service-card-bullets">
                       {fallbackHighlights.map((item) => (
@@ -321,11 +531,11 @@ export default function Page() {
             viewport={{ once: true, margin: '-50px' }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            <Link href="/contact#contact" className="btn btn-primary magnetic">
-              Request a Consultation
+            <Link href={localizeHref('/contact#contact', locale)} className="btn btn-primary magnetic">
+              {servicesCopy.ctaPrimary}
             </Link>
-            <Link href="/case-studies" className="btn btn-outline magnetic">
-              Browse Our Case Studies
+            <Link href={localizeHref('/case-studies', locale)} className="btn btn-outline magnetic">
+              {servicesCopy.ctaSecondary}
             </Link>
           </motion.div>
         </div>

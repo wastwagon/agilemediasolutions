@@ -1,0 +1,58 @@
+# Agile Media Solutions - Cursor Rules
+
+## Scope
+
+- Default focus: public site (`frontend/app`, `frontend/components`).
+- Admin/backend changes only when requested.
+
+## Stack truth
+
+- Current stack:
+  - Docker Compose
+  - Next.js frontend
+  - Node/Express backend
+  - PostgreSQL + Redis
+  - `pg` (no Prisma workflow in current repo)
+- Do not suggest Prisma commands unless Prisma is actually added.
+
+## Standard local commands
+
+- Startup from repo root:
+  - `docker compose up -d --build`
+- Hot reload:
+  - `scripts/dev-hot.sh` / `scripts/dev-hot.bat`
+
+## Environment safety
+
+- Never commit `.env` or secrets.
+- Use `.env.example` as source of truth for required variables.
+- Validate `POSTGRES_PASSWORD`, `JWT_SECRET`, `CORS_ORIGIN`, `DATABASE_URL` when troubleshooting.
+
+## Coding guidelines
+
+- Keep diffs small and task-focused.
+- Avoid broad rewrites unless explicitly requested.
+- Add concise comments only where logic is not obvious.
+- Update docs when workflows or commands change.
+
+## i18n guardrails (public site)
+
+- Supported locales:
+  - `en` (unprefixed)
+  - `/fr`
+  - `/pt`
+  - `/ar`
+- Use locale-aware link helpers for internal routes.
+- Respect RTL behavior for Arabic.
+
+## Validation expectations
+
+- After frontend edits, recommend:
+  - `cd frontend && npm run lint && npm run build`
+- If environment prevents execution, clearly state that and provide exact local verification steps.
+
+## Git safety
+
+- Never use destructive git commands unless explicitly requested.
+- Do not commit/push unless asked.
+- Keep commit messages concise and intent-first.

@@ -4,11 +4,15 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import ParallaxImage from '../../components/ParallaxImage';
 import Link from 'next/link';
-import { ABOUT_PAGE_CONTENT_DEFAULTS } from '@/lib/aboutPageContentDefaults';
+import { usePathname } from 'next/navigation';
+import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale';
+import { localizeHref } from '@/lib/i18n';
+import { getAboutPageDefaults } from '@/lib/i18n/pageDefaults';
 import { useSiteSectionContent } from '@/lib/siteSectionCms';
 
 export default function AboutPage() {
-  const aboutCopy = useSiteSectionContent('about.page', ABOUT_PAGE_CONTENT_DEFAULTS);
+  const locale = getLocaleFromPathname(usePathname());
+  const aboutCopy = useSiteSectionContent('about.page', getAboutPageDefaults(locale));
   const container = {
     hidden: { opacity: 0 },
     show: {
@@ -63,10 +67,10 @@ export default function AboutPage() {
                 {aboutCopy.identityP2}
               </p>
               <div className="section-cta-inline" style={{ marginTop: '1.5rem' }}>
-                <Link href="/services" className="btn btn-primary">
+                <Link href={withLocalePrefix('/services', locale)} className="btn btn-primary">
                   {aboutCopy.ctaPrimary}
                 </Link>
-                <Link href="/contact#contact" className="btn btn-outline">
+                <Link href={localizeHref('/contact#contact', locale)} className="btn btn-outline">
                   {aboutCopy.ctaSecondary}
                 </Link>
               </div>

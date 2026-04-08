@@ -2,7 +2,11 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import SectionHeader from '../../components/SectionHeader';
+import { getLocaleFromPathname, type AppLocale } from '@/lib/locale';
+import { getSectorsPageDefaults } from '@/lib/i18n/pageDefaults';
+import { localizeHref } from '@/lib/i18n';
 import { useSiteSectionContent } from '@/lib/siteSectionCms';
 
 type SectorItem = {
@@ -109,20 +113,211 @@ const DOCUMENT_SECTORS: SectorItem[] = [
   },
 ];
 
-export default function Page() {
-  const [sectors, setSectors] = useState<SectorItem[]>([]);
-  const copy = useSiteSectionContent('sectors.page', {
-    heroLabel: 'Sectors we serve',
-    heroTitle: 'Expert Communications Across Institutions, Industries, and Global Issues',
-    heroTagline:
-      'Agile Media Solutions delivers high-impact communications across key sectors shaping Africa and the world. We work with governments, corporations, development agencies, social investors, and cultural institutions to craft narratives that reflect their values, engage their audiences, and achieve lasting outcomes.',
-    sectionLabel: 'Coverage',
-    sectionTitle: 'Sectors we support',
-    sectionLinkLabel: 'Discuss your mandate',
-    sectionIntro: 'Our sector-specific approach ensures every message is aligned with context, policy, audience, and purpose.',
-    ctaPrimary: 'Talk to a Sector Advisor',
-    ctaSecondary: 'Explore Our Work',
+const SECTOR_TRANSLATIONS: Record<Exclude<AppLocale, 'en'>, Record<string, { name: string; description: string }>> = {
+  fr: {
+    'Government & Public Institutions': {
+      name: 'Gouvernement et institutions publiques',
+      description:
+        'Messaging strategique, visibilite des reformes et confiance publique pour ministeres, agences et entites publiques.',
+    },
+    'International Development & Multilaterals': {
+      name: 'Developpement international et multilateraux',
+      description: 'Communication bailleurs, engagement parties prenantes et campagnes pour agences et partenaires.',
+    },
+    'Finance, Investment & Trade': {
+      name: 'Finance, investissement et commerce',
+      description: 'Communication investisseurs, recits ESG et positionnement transfrontalier.',
+    },
+    'Infrastructure, Energy & Extractives': {
+      name: 'Infrastructures, energie et extractif',
+      description: 'Recits de projets, engagement communautaire et visibilite reglementaire.',
+    },
+    'Technology, Startups & Innovation': {
+      name: 'Technologie, startups et innovation',
+      description: 'Messages audacieux et campagnes digitales pour ecosystemes technologiques.',
+    },
+    'Health, Education & Social Development': {
+      name: 'Sante, education et developpement social',
+      description: 'Communication de changement comportemental et rayonnement institutionnel.',
+    },
+    'Climate, Environment & Sustainability': {
+      name: 'Climat, environnement et durabilite',
+      description: 'Strategies de contenu pour climat, biodiversite, transition energetique et finance verte.',
+    },
+    'Arts, Culture & Creative Industries': {
+      name: 'Arts, culture et industries creatives',
+      description: 'Publicite creative et recits culturels reliant artistes, institutions et publics.',
+    },
+    'Sports, Tourism & Nation Branding': {
+      name: 'Sport, tourisme et nation branding',
+      description: 'Campagnes RP pour destinations, athletes et image nationale.',
+    },
+    'Hospitality, Travel & Leisure': {
+      name: 'Hospitalite, voyage et loisirs',
+      description: 'Communication media et grand public pour marques hotellerie et tourisme.',
+    },
+    'Legal, Policy & Governance': {
+      name: 'Juridique, politiques publiques et gouvernance',
+      description: 'Visibilite des reformes et communication institutionnelle pour organes publics.',
+    },
+    'Migration, Diaspora & Global Mobility': {
+      name: 'Migration, diaspora et mobilite globale',
+      description: 'Campagnes diaspora, communication migrations et recits transnationaux.',
+    },
+    'Security, Peacebuilding & Conflict Communications': {
+      name: 'Securite, paix et communication en contexte de conflit',
+      description: 'Communication sensible pour contextes fragiles, paix et lutte contre la desinformation.',
+    },
+    'Philanthropy, Foundations & Social Investment': {
+      name: 'Philanthropie, fondations et investissement social',
+      description: 'Communication d impact, transparence et engagement des beneficiaires.',
+    },
+    'Media, Entertainment & Public Personalities': {
+      name: 'Medias, divertissement et personnalites publiques',
+      description: 'Visibilite strategique et protection de marque pour talents et medias.',
+    },
+  },
+  pt: {
+    'Government & Public Institutions': {
+      name: 'Governo e instituicoes publicas',
+      description: 'Mensageria estrategica e visibilidade de reformas para ministerios e agencias.',
+    },
+    'International Development & Multilaterals': {
+      name: 'Desenvolvimento internacional e multilaterais',
+      description: 'Comunicacao para doadores, parceiros e agencias multilaterais.',
+    },
+    'Finance, Investment & Trade': {
+      name: 'Financas, investimento e comercio',
+      description: 'Comunicacao para investidores, narrativas ESG e posicionamento internacional.',
+    },
+    'Infrastructure, Energy & Extractives': {
+      name: 'Infraestrutura, energia e extrativos',
+      description: 'Narrativas para grandes projetos, licenca social e visibilidade regulatoria.',
+    },
+    'Technology, Startups & Innovation': {
+      name: 'Tecnologia, startups e inovacao',
+      description: 'Campanhas digitais e mensagem para ecossistemas de inovacao.',
+    },
+    'Health, Education & Social Development': {
+      name: 'Saude, educacao e desenvolvimento social',
+      description: 'Comunicacao de mudanca de comportamento e alcance institucional.',
+    },
+    'Climate, Environment & Sustainability': {
+      name: 'Clima, meio ambiente e sustentabilidade',
+      description: 'Estrategias para clima, biodiversidade, transicao energetica e financas verdes.',
+    },
+    'Arts, Culture & Creative Industries': {
+      name: 'Artes, cultura e industrias criativas',
+      description: 'Publicidade criativa e storytelling cultural para alcance local e global.',
+    },
+    'Sports, Tourism & Nation Branding': {
+      name: 'Esportes, turismo e marca-pais',
+      description: 'Relacoes publicas para destinos, atletas e reputacao nacional.',
+    },
+    'Hospitality, Travel & Leisure': {
+      name: 'Hospitalidade, viagens e lazer',
+      description: 'Comunicacao para hotelaria, resorts e marcas de turismo.',
+    },
+    'Legal, Policy & Governance': {
+      name: 'Juridico, politicas publicas e governanca',
+      description: 'Comunicacao de reformas, instituicoes legais e orgaos reguladores.',
+    },
+    'Migration, Diaspora & Global Mobility': {
+      name: 'Migracao, diaspora e mobilidade global',
+      description: 'Campanhas para diaspora, comunicacao migratoria e narrativas transnacionais.',
+    },
+    'Security, Peacebuilding & Conflict Communications': {
+      name: 'Seguranca, paz e comunicacao em conflitos',
+      description: 'Suporte de comunicacao para contextos frageis e processos de paz.',
+    },
+    'Philanthropy, Foundations & Social Investment': {
+      name: 'Filantropia, fundacoes e investimento social',
+      description: 'Narrativas de impacto e transparencia para fundacoes e investidores sociais.',
+    },
+    'Media, Entertainment & Public Personalities': {
+      name: 'Midia, entretenimento e personalidades publicas',
+      description: 'Campanhas de visibilidade e protecao de marca para criadores e talentos.',
+    },
+  },
+  ar: {
+    'Government & Public Institutions': {
+      name: 'الحكومة والمؤسسات العامة',
+      description: 'رسائل استراتيجية وابراز للاصلاحات وبناء ثقة الجمهور للوزارات والهيئات.',
+    },
+    'International Development & Multilaterals': {
+      name: 'التنمية الدولية والمؤسسات متعددة الاطراف',
+      description: 'اتصال للمانحين واشراك الجهات المعنية وتصميم حملات للشركاء الدوليين.',
+    },
+    'Finance, Investment & Trade': {
+      name: 'التمويل والاستثمار والتجارة',
+      description: 'اتصال موجه للمستثمرين وسرد ESG وتموضع عابر للحدود.',
+    },
+    'Infrastructure, Energy & Extractives': {
+      name: 'البنية التحتية والطاقة والاستخراج',
+      description: 'سرد داعم للمشروعات الكبرى والمجتمعات المحلية والوضوح التنظيمي.',
+    },
+    'Technology, Startups & Innovation': {
+      name: 'التكنولوجيا والشركات الناشئة والابتكار',
+      description: 'رسائل جريئة وحملات رقمية لمنصات الابتكار والريادة.',
+    },
+    'Health, Education & Social Development': {
+      name: 'الصحة والتعليم والتنمية الاجتماعية',
+      description: 'اتصال للتغيير السلوكي والتوعية العامة وتعزيز الحضور المؤسسي.',
+    },
+    'Climate, Environment & Sustainability': {
+      name: 'المناخ والبيئة والاستدامة',
+      description: 'استراتيجيات محتوى للعمل المناخي والتنوع الحيوي والتحول الاخضر.',
+    },
+    'Arts, Culture & Creative Industries': {
+      name: 'الفنون والثقافة والصناعات الابداعية',
+      description: 'سرد ثقافي وترويج ابداعي يربط المبدعين بالجمهور محليا وعالميا.',
+    },
+    'Sports, Tourism & Nation Branding': {
+      name: 'الرياضة والسياحة وبناء الصورة الوطنية',
+      description: 'حملات علاقات عامة ترفع مكانة الوجهات والرياضيين والصورة الوطنية.',
+    },
+    'Hospitality, Travel & Leisure': {
+      name: 'الضيافة والسفر والترفيه',
+      description: 'اتصال استراتيجي لقطاعات الفنادق والمنتجعات وهيئات السياحة.',
+    },
+    'Legal, Policy & Governance': {
+      name: 'القانون والسياسات والحوكمة',
+      description: 'ابراز للاصلاحات القانونية واتصال مؤسسي للهيئات التنظيمية والقضائية.',
+    },
+    'Migration, Diaspora & Global Mobility': {
+      name: 'الهجرة والشتات والتنقل العالمي',
+      description: 'حملات للشتات واتصال سياسات الهجرة وروايات عابرة للحدود.',
+    },
+    'Security, Peacebuilding & Conflict Communications': {
+      name: 'الامن وبناء السلام واتصال النزاعات',
+      description: 'دعم اتصالي حساس للسياقات الهشة وعمليات السلام والتعافي.',
+    },
+    'Philanthropy, Foundations & Social Investment': {
+      name: 'العمل الخيري والمؤسسات والاستثمار الاجتماعي',
+      description: 'اتصال استراتيجي يبرز الاثر والشفافية ومشاركة المستفيدين.',
+    },
+    'Media, Entertainment & Public Personalities': {
+      name: 'الاعلام والترفيه والشخصيات العامة',
+      description: 'حملات ظهور وحماية علامة وترويج للشخصيات والمنصات الاعلامية.',
+    },
+  },
+};
+
+function getDocumentSectors(locale: AppLocale): SectorItem[] {
+  if (locale === 'en') return DOCUMENT_SECTORS;
+  const copy = SECTOR_TRANSLATIONS[locale];
+  return DOCUMENT_SECTORS.map((sector) => {
+    const translated = copy[sector.name];
+    if (!translated) return sector;
+    return { ...sector, name: translated.name, description: translated.description };
   });
+}
+
+export default function Page() {
+  const pathname = usePathname();
+  const locale = getLocaleFromPathname(pathname ?? '/');
+  const [sectors, setSectors] = useState<SectorItem[]>([]);
+  const copy = useSiteSectionContent('sectors.page', getSectorsPageDefaults(locale));
 
   useEffect(() => {
     const loadSectors = async () => {
@@ -139,7 +334,7 @@ export default function Page() {
     loadSectors();
   }, []);
 
-  const renderedSectors = sectors.length > 0 ? sectors : DOCUMENT_SECTORS;
+  const renderedSectors = sectors.length > 0 ? sectors : getDocumentSectors(locale);
 
   return (
     <main className="services-page-main creative-public-page">
@@ -160,7 +355,7 @@ export default function Page() {
             variant="inner"
             label={copy.sectionLabel}
             title={copy.sectionTitle}
-            linkHref="/contact#contact"
+            linkHref={localizeHref('/contact#contact', locale)}
             linkLabel={copy.sectionLinkLabel}
           />
           <div className="section-sectors-intro">
@@ -192,10 +387,10 @@ export default function Page() {
           </div>
 
           <div className="section-cta-center" style={{ marginTop: 'var(--space-3xl)', display: 'flex', justifyContent: 'center', gap: 'var(--space-lg)', flexWrap: 'wrap' }}>
-            <Link href="/contact#contact" className="btn btn-primary">
+            <Link href={localizeHref('/contact#contact', locale)} className="btn btn-primary">
               {copy.ctaPrimary}
             </Link>
-            <Link href="/case-studies" className="btn btn-outline">
+            <Link href={localizeHref('/case-studies', locale)} className="btn btn-outline">
               {copy.ctaSecondary}
             </Link>
           </div>

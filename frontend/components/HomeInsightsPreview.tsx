@@ -2,12 +2,15 @@
 
 import Link from 'next/link';
 import React, { useEffect, useMemo, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import {
-  INSIGHTS_FEATURED_DEFAULTS,
+  getInsightsFeaturedDefaults,
   getInsightFeaturedReadCta,
   normalizeMediaClass,
   parseInsightFeatured,
 } from '@/lib/insightsFeatured';
+import { getLocaleFromPathname } from '@/lib/locale';
+import { localizeHref } from '@/lib/i18n';
 import { useSiteSectionContent } from '@/lib/siteSectionCms';
 
 type InsightListRow = {
@@ -32,8 +35,10 @@ type PreviewCard = {
 };
 
 export default function HomeInsightsPreview() {
+  const pathname = usePathname();
+  const locale = getLocaleFromPathname(pathname ?? '/');
   const [apiPosts, setApiPosts] = useState<InsightListRow[] | null>(null);
-  const featured = useSiteSectionContent('insights.featured', INSIGHTS_FEATURED_DEFAULTS);
+  const featured = useSiteSectionContent('insights.featured', getInsightsFeaturedDefaults(locale));
   const readCta = useMemo(() => getInsightFeaturedReadCta(featured), [featured]);
 
   useEffect(() => {
@@ -72,7 +77,7 @@ export default function HomeInsightsPreview() {
       {cards.map((item) => (
         <Link
           key={item.slug}
-          href={`/insights/${item.slug}`}
+          href={localizeHref(`/insights/${item.slug}`, locale)}
           className="home-insights-preview-card animate-on-scroll"
         >
           {item.imageUrl ? (

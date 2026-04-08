@@ -8,8 +8,10 @@ import {
   metadataForInsightPost,
 } from '@/lib/insightArticleSeo';
 import { getSiteSectionContent } from '@/lib/siteSectionCmsServer';
-import { INSIGHTS_FEATURED_DEFAULTS, parseInsightFeatured } from '@/lib/insightsFeatured';
+import { getInsightsFeaturedDefaults, parseInsightFeatured } from '@/lib/insightsFeatured';
 import { getPublicInsightPostBySlug } from '@/lib/insightPostsServer';
+import { localizeHref } from '@/lib/i18n';
+import { getLocaleFromCookies } from '@/lib/localeServer';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,7 +29,8 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   if (post) {
     return metadataForInsightPost(slug, post);
   }
-  const flat = await getSiteSectionContent('insights.featured', INSIGHTS_FEATURED_DEFAULTS);
+  const locale = await getLocaleFromCookies();
+  const flat = await getSiteSectionContent('insights.featured', getInsightsFeaturedDefaults(locale));
   const card = parseInsightFeatured(flat).find((c) => c.slug === slug);
   if (!card) return { title: 'Insight' };
   return metadataForFeaturedInsightCard(slug, card);
@@ -42,6 +45,7 @@ function bodyParagraphs(body: string): string[] {
 
 export default async function InsightArticlePage(props: Props) {
   const { slug } = await props.params;
+  const locale = await getLocaleFromCookies();
   const post = await getPublicInsightPostBySlug(slug);
 
   if (post) {
@@ -88,10 +92,10 @@ export default async function InsightArticlePage(props: Props) {
               ))}
             </div>
             <div className="insight-article-footer">
-              <Link href="/insights" className="btn btn-outline">
+              <Link href={localizeHref('/insights', locale)} className="btn btn-outline">
                 ← All insights &amp; press room
               </Link>
-              <Link href="/agile-press-group" className="btn btn-primary">
+              <Link href={localizeHref('/agile-press-group', locale)} className="btn btn-primary">
                 Agile Press Group
               </Link>
             </div>
@@ -101,7 +105,7 @@ export default async function InsightArticlePage(props: Props) {
     );
   }
 
-  const flat = await getSiteSectionContent('insights.featured', INSIGHTS_FEATURED_DEFAULTS);
+  const flat = await getSiteSectionContent('insights.featured', getInsightsFeaturedDefaults(locale));
   const card = parseInsightFeatured(flat).find((c) => c.slug === slug);
   if (!card) notFound();
 
@@ -144,10 +148,10 @@ export default async function InsightArticlePage(props: Props) {
             ))}
           </div>
           <div className="insight-article-footer">
-            <Link href="/insights" className="btn btn-outline">
+            <Link href={localizeHref('/insights', locale)} className="btn btn-outline">
               ← All insights &amp; press room
             </Link>
-            <Link href="/agile-press-group" className="btn btn-primary">
+            <Link href={localizeHref('/agile-press-group', locale)} className="btn btn-primary">
               Agile Press Group
             </Link>
           </div>

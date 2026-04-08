@@ -2,6 +2,9 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { getLocaleFromPathname } from '@/lib/locale';
+import { localizeHref, t } from '@/lib/i18n';
 import { useSiteSectionContent } from '@/lib/siteSectionCms';
 import {
   DEFAULT_PHONE_WHATSAPP_HREF,
@@ -15,8 +18,11 @@ import {
   DEFAULT_AGILE_YOUTUBE_URL,
   DEFAULT_FACEBOOK_URL,
 } from '@/lib/defaultSocialUrls';
+import './TopBar.css';
 
 export default function TopBar() {
+  const pathname = usePathname();
+  const locale = getLocaleFromPathname(pathname);
   const bar = useSiteSectionContent('layout.topBar', {
     email: 'info@agilemediasolutions.com',
     contactLabel: DEFAULT_PHONE_WHATSAPP_LABEL,
@@ -46,49 +52,38 @@ export default function TopBar() {
   const li = bar.linkedinUrl?.trim() || DEFAULT_AGILE_LINKEDIN_URL;
   const yt = bar.youtubeUrl?.trim() || DEFAULT_AGILE_YOUTUBE_URL;
 
+  const phoneAria = `${t(locale, 'topBarPhoneAria')}: ${contactLabel.replace(/\s+/g, ' ').trim()}`;
+  const localizedContactHref = localizeHref(contactHref, locale);
+
   return (
-    <div
-      style={{
-        background: 'var(--color-dark-blue, #0F172A)',
-        color: '#ffffff',
-        padding: '0.4rem 2rem',
-        fontSize: '0.85rem',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        zIndex: 1000,
-        position: 'relative',
-      }}
-    >
-      <div style={{ display: 'flex', gap: '1.5rem' }}>
-        <a
-          href={mailHref}
-          style={{ color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-        >
+    <div className="top-bar">
+      <div className="top-bar__contact">
+        <a href={mailHref} aria-label={`${t(locale, 'topBarEmailAria')}: ${emailDisplay}`}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
             <polyline points="22,6 12,13 2,6"></polyline>
           </svg>
-          {emailDisplay}
+          <span className="top-bar__email-text">{emailDisplay}</span>
         </a>
         {contactIsHttp || contactIsTel ? (
           <a
             href={contactHref}
             {...(contactIsHttp ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
             style={phoneLinkStyle}
+            aria-label={phoneAria}
           >
             {phoneIcon}
-            {contactLabel}
+            <span className="top-bar__phone-text">{contactLabel}</span>
           </a>
         ) : (
-          <Link href={contactHref} style={phoneLinkStyle}>
+          <Link href={localizedContactHref} style={phoneLinkStyle} aria-label={phoneAria}>
             {phoneIcon}
-            {contactLabel}
+            <span className="top-bar__phone-text">{contactLabel}</span>
           </Link>
         )}
       </div>
 
-      <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+      <div className="top-bar__socials">
         <a href={fb} target="_blank" rel="noopener noreferrer" style={{ color: '#fff', opacity: 0.8 }} aria-label="Facebook">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
             <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import {
   DEFAULT_AGILE_INSTAGRAM_URL,
   DEFAULT_AGILE_LINKEDIN_URL,
@@ -10,14 +11,8 @@ import {
   DEFAULT_FACEBOOK_URL,
 } from '@/lib/defaultSocialUrls';
 import { parseSiteContentPairs, useSiteSectionContent } from '@/lib/siteSectionCms';
-
-const FALLBACK_SLIDES = [
-  {
-    title: 'Powering Narratives. Elevating Voices. Driving Impact.',
-    subtitle:
-      'Agile Media Solutions is an international media, PR, and communications firm helping governments, institutions, brands, and movements shape the messages that move nations, markets, and minds.',
-  },
-];
+import { getLocaleFromPathname } from '@/lib/locale';
+import { localizeHref, t } from '@/lib/i18n';
 
 const DEFAULT_SOCIAL = [
   { left: 'Facebook', right: DEFAULT_FACEBOOK_URL },
@@ -44,15 +39,27 @@ function heroVideoPosterUrl(raw: string | undefined): string | undefined {
 }
 
 export default function Hero() {
+  const pathname = usePathname();
+  const locale = getLocaleFromPathname(pathname);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [slides, setSlides] = useState<{ title?: string; subtitle?: string }[]>([]);
 
+  const fallbackSlides = useMemo(
+    () => [
+      {
+        title: t(locale, 'heroFallbackTitle'),
+        subtitle: t(locale, 'heroFallbackSubtitle'),
+      },
+    ],
+    [locale]
+  );
+
   const heroChrome = useSiteSectionContent('home.hero', {
-    kicker: 'Creative Communications Studio',
+    kicker: t(locale, 'heroKicker'),
     videoSrc: DEFAULT_HERO_VIDEO,
     videoPoster: '',
-    primaryCtaLabel: 'Explore Our Brands',
+    primaryCtaLabel: t(locale, 'heroExploreBrands'),
     primaryCtaHref: '/brands',
     socialLinks: DEFAULT_SOCIAL.map((r) => `${r.left} :: ${r.right}`).join('\n'),
   });
@@ -79,7 +86,7 @@ export default function Hero() {
     fetchHomeData();
   }, []);
 
-  const activeSlides = slides.length > 0 ? slides : FALLBACK_SLIDES;
+  const activeSlides = slides.length > 0 ? slides : fallbackSlides;
   const slidesCount = activeSlides.length;
 
   useEffect(() => {
@@ -90,8 +97,8 @@ export default function Hero() {
   }, [slidesCount]);
 
   const currentData = activeSlides[currentSlide] || activeSlides[0];
-  const title = currentData?.title || FALLBACK_SLIDES[0].title;
-  const subtitle = currentData?.subtitle || FALLBACK_SLIDES[0].subtitle;
+  const title = currentData?.title || fallbackSlides[0]?.title || '';
+  const subtitle = currentData?.subtitle || fallbackSlides[0]?.subtitle || '';
 
   const cmsVideoSrc = heroChrome.videoSrc?.trim() || DEFAULT_HERO_VIDEO;
   /** If Site Content points at a missing file (404), fall back to the bundled default. */
@@ -187,7 +194,7 @@ export default function Hero() {
       <div className="hero-content">
         <span className="hero-kicker">{heroChrome.kicker}</span>
         <h1 className="hero-headline">
-          {title.split('. ').map((line: string, idx: number, arr: string[]) => (
+          {(title.includes('. ') ? title.split('. ') : [title]).map((line: string, idx: number, arr: string[]) => (
             <span key={idx} className="hero-line-mask">
               <span className={`hero-line hero-line-${idx + 1}`}>
                 {line}
@@ -198,12 +205,12 @@ export default function Hero() {
         </h1>
         <p className="hero-description">{subtitle}</p>
         <div className="hero-cta">
-          <Link href={heroChrome.primaryCtaHref?.trim() || '/brands'} className="btn btn-hero-secondary">
+          <Link href={localizeHref(heroChrome.primaryCtaHref?.trim() || '/brands', locale)} className="btn btn-hero-secondary">
             {heroChrome.primaryCtaLabel}
           </Link>
         </div>
       </div>
-      <div className="hero-social-rail" aria-label="Social channels">
+      <div className="hero-social-rail" aria-label={t(locale, 'ariaSocialChannels')}>
         {socialRows.map((row, idx) => {
           const href = row.right?.trim();
           if (!href) return null;

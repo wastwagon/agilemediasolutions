@@ -9,7 +9,10 @@ import Header from './Header';
 import Preloader from './Preloader';
 import SiteAnalytics from './SiteAnalytics';
 import MobileTabBar from './MobileTabBar';
+import LocaleHtmlAttributes from './LocaleHtmlAttributes';
 import { useScrollAnimations } from '@/hooks/useScrollAnimations';
+import { getLocaleFromPathname, type AppLocale } from '@/lib/locale';
+import { localizeHref, t } from '@/lib/i18n';
 import { parseSiteContentPairs, useSiteSectionContent } from '@/lib/siteSectionCms';
 import {
   DEFAULT_AGILE_INSTAGRAM_URL,
@@ -43,9 +46,11 @@ Cookie notice :: /cookies`;
 function FooterLinkColumn({
   heading,
   pairsRaw,
+  locale,
 }: {
   heading: string;
   pairsRaw: string;
+  locale: AppLocale;
 }) {
   const rows = parseSiteContentPairs(pairsRaw);
   return (
@@ -54,7 +59,7 @@ function FooterLinkColumn({
       <ul>
         {rows.map((row, i) => (
           <li key={`${row.left}-${i}`}>
-            <Link href={row.right?.trim() || '#'}>{row.left || 'Link'}</Link>
+            <Link href={localizeHref(row.right?.trim() || '#', locale)}>{row.left || 'Link'}</Link>
           </li>
         ))}
       </ul>
@@ -64,22 +69,22 @@ function FooterLinkColumn({
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const locale = getLocaleFromPathname(pathname);
   const isAdminRoute = pathname?.startsWith('/admin');
 
   const footer = useSiteSectionContent('layout.footer', {
     impactText: 'Agile Media',
     brandingCopy: 'We shape narratives that move institutions, markets, and culture across Africa and beyond.',
-    newsletterHeading: 'Newsletter',
-    newsletterBody:
-      'Subscribe to the Agile Brief—our monthly roundup of ideas, strategy, and news. No spam.',
+    newsletterHeading: t(locale, 'newsletterHeading'),
+    newsletterBody: t(locale, 'newsletterBody'),
     copyrightEntity: 'Agile Media Solutions',
-    col1Heading: 'Company',
+    col1Heading: t(locale, 'footerCompany'),
     col1Links: COL1_DEFAULT,
     col2Heading: 'Agile Press Group',
     col2Links: COL2_DEFAULT,
-    col3Heading: 'Press room',
+    col3Heading: t(locale, 'footerPressRoom'),
     col3Links: COL3_DEFAULT,
-    col4Heading: 'Contact & legal',
+    col4Heading: t(locale, 'footerContactLegal'),
     col4Links: COL4_DEFAULT,
     facebookUrl: DEFAULT_FACEBOOK_URL,
     instagramUrl: DEFAULT_AGILE_INSTAGRAM_URL,
@@ -103,6 +108,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
+      <LocaleHtmlAttributes />
       <SiteAnalytics />
       <Preloader />
       <TopBar />
@@ -113,16 +119,16 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <div className="footer-top">
           <div className="footer-inner">
             <div className="footer-branding">
-              <Link href="/" className="footer-logo" aria-label="Agile Media Solutions home">
+              <Link href={localizeHref('/', locale)} className="footer-logo" aria-label="Agile Media Solutions home">
                 <img src="/images/agilemediasolutionslogo.png" alt="Agile Media Solutions" />
               </Link>
               <p className="footer-branding-copy">{footer.brandingCopy}</p>
             </div>
             <div className="footer-columns">
-              <FooterLinkColumn heading={footer.col1Heading} pairsRaw={footer.col1Links} />
-              <FooterLinkColumn heading={footer.col2Heading} pairsRaw={footer.col2Links} />
-              <FooterLinkColumn heading={footer.col3Heading} pairsRaw={footer.col3Links} />
-              <FooterLinkColumn heading={footer.col4Heading} pairsRaw={footer.col4Links} />
+              <FooterLinkColumn heading={footer.col1Heading} pairsRaw={footer.col1Links} locale={locale} />
+              <FooterLinkColumn heading={footer.col2Heading} pairsRaw={footer.col2Links} locale={locale} />
+              <FooterLinkColumn heading={footer.col3Heading} pairsRaw={footer.col3Links} locale={locale} />
+              <FooterLinkColumn heading={footer.col4Heading} pairsRaw={footer.col4Links} locale={locale} />
               <div className="footer-col footer-newsletter" id="newsletter">
                 <h4>{footer.newsletterHeading}</h4>
                 <p>{footer.newsletterBody}</p>
@@ -134,12 +140,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <div className="footer-bottom">
           <div className="footer-inner footer-bottom-inner">
             <p className="copyright">
-              © {year} {footer.copyrightEntity}. All rights reserved.
+              © {year} {footer.copyrightEntity}. {t(locale, 'rightsReserved')}
             </p>
             <div className="footer-legal">
-              <Link href="/privacy">Privacy</Link>
-              <Link href="/terms">Terms</Link>
-              <Link href="/cookies">Cookies</Link>
+              <Link href={localizeHref('/privacy', locale)}>{t(locale, 'privacy')}</Link>
+              <Link href={localizeHref('/terms', locale)}>{t(locale, 'terms')}</Link>
+              <Link href={localizeHref('/cookies', locale)}>{t(locale, 'cookies')}</Link>
             </div>
             <div className="footer-social" id="footer-social">
               <a href={fb} target="_blank" rel="noopener noreferrer" aria-label="Facebook">

@@ -1,0 +1,72 @@
+.top-bar {
+  background: var(--color-dark-blue, #0f172a);
+  color: #ffffff;
+  padding: 0.4rem 2rem;
+  font-size: 0.85rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  z-index: 1000;
+  position: relative;
+}
+
+.top-bar__contact {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.top-bar__contact a {
+  color: #fff;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.top-bar__phone-text {
+  white-space: nowrap;
+}
+
+.top-bar__socials {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+.top-bar__socials a {
+  color: #fff;
+  opacity: 0.85;
+}
+
+/* Mobile: keep the strip light — icons + short labels only; socials live in footer */
+@media (max-width: 767px) {
+  .top-bar {
+    padding: 0.35rem 0.85rem;
+    font-size: 0.8rem;
+  }
+
+  .top-bar__contact {
+    gap: 0.65rem;
+    flex: 1;
+    justify-content: flex-start;
+  }
+
+  .top-bar__email-text {
+    display: none;
+  }
+
+  .top-bar__phone-text {
+    display: none;
+  }
+
+  .top-bar__socials {
+    display: none;
+  }
+}

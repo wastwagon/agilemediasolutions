@@ -2,13 +2,15 @@ import React from 'react';
 import Link from 'next/link';
 import ContactForm from '../../components/ContactForm';
 import SectionHeader from '../../components/SectionHeader';
-import { DEFAULT_HEAD_OFFICE_LINE } from '@/lib/defaultAddress';
 import {
   DEFAULT_GENERAL_PHONE_DISPLAY,
   DEFAULT_GENERAL_PHONE_LABEL,
   DEFAULT_PHONE_WHATSAPP_HREF,
 } from '@/lib/defaultPhoneChannel';
 import { getSiteSectionContent } from '@/lib/siteSectionCmsServer';
+import { getLocaleFromCookies } from '@/lib/localeServer';
+import { getContactPageDefaults } from '@/lib/i18n/pageDefaults';
+import { localizeHref, t } from '@/lib/i18n';
 
 export const metadata = {
   title: 'Contact Agile Media Solutions',
@@ -16,39 +18,8 @@ export const metadata = {
 };
 
 export default async function Page() {
-  const copy = await getSiteSectionContent('contact.page', {
-    heroLabel: 'Contact',
-    heroTitle: "Let's Talk Strategy, Storytelling, and Solutions",
-    heroIntro:
-      "Whether you're ready to launch a campaign, partner on a project, or explore how Agile Media Solutions can support your brand or institution-we'd love to hear from you.",
-    heroSubIntro: 'We are available across time zones and channels to discuss ideas, opportunities, and collaborations.',
-    connectionsLabel: 'Connections',
-    connectionsTitle: 'Get In Touch',
-    connectionsLinkLabel: 'View services',
-    quickBriefLabel: 'Quick Brief',
-    quickBriefTitle: 'Send a message',
-    quickBriefSubtitle: 'Use the form for campaigns, partnerships, media enquiries, or general questions.',
-    generalCardTitle: 'General Inquiries',
-    generalEmail: 'info@agilemediasolutions.com',
-    generalPhoneLabel: DEFAULT_GENERAL_PHONE_LABEL,
-    generalPhoneDisplay: DEFAULT_GENERAL_PHONE_DISPLAY,
-    generalPhoneHref: DEFAULT_PHONE_WHATSAPP_HREF,
-    generalHours: 'Monday-Friday, 9:00 AM-6:00 PM (GMT)',
-    generalHeadOffice: DEFAULT_HEAD_OFFICE_LINE,
-    generalLocations: 'Nairobi | Johannesburg',
-    consultationCardTitle: 'Request a Consultation',
-    consultationCardBody: 'Interested in our services? Fill out the consultation form below and our team will reach out within 48 hours.',
-    pressCardTitle: 'Media & Press Inquiries',
-    pressCardBody:
-      'For interviews, speaker bookings, press releases, or story access, contact us from the email above and we will route you to the press desk.',
-    pressCardCta: 'Download Media Kit',
-    followTitle: 'Follow Us',
-    followSubtitle:
-      'Stay connected for insights, event updates, behind-the-scenes content, and stories that matter-Twitter, LinkedIn, Instagram, YouTube, and Facebook.',
-    socialCta: 'Social links',
-    finalSubtitle: "Let's build something meaningful-together.",
-    finalCta: 'Contact Us Now',
-  });
+  const locale = await getLocaleFromCookies();
+  const copy = await getSiteSectionContent('contact.page', getContactPageDefaults(locale));
 
   return (
     <main className="creative-public-page">
@@ -71,7 +42,7 @@ export default async function Page() {
             variant="inner"
             label={copy.connectionsLabel}
             title={copy.connectionsTitle}
-            linkHref="/services"
+            linkHref={localizeHref('/services', locale)}
             linkLabel={copy.connectionsLinkLabel}
           />
 
@@ -79,7 +50,7 @@ export default async function Page() {
             <article className="insight-card">
               <h3>{copy.generalCardTitle}</h3>
               <p>
-                <strong>Email:</strong>{' '}
+                <strong>{t(locale, 'contactFieldEmail')}:</strong>{' '}
                 <a href={`mailto:${copy.generalEmail}`}>{copy.generalEmail}</a>
               </p>
               {(copy.generalPhoneDisplay || '').trim() ? (
@@ -95,13 +66,13 @@ export default async function Page() {
                 </p>
               ) : null}
               <p>
-                <strong>Hours:</strong> {copy.generalHours}
+                <strong>{t(locale, 'contactFieldHours')}:</strong> {copy.generalHours}
               </p>
               <p>
-                <strong>Address:</strong> {copy.generalHeadOffice}
+                <strong>{t(locale, 'contactFieldAddress')}:</strong> {copy.generalHeadOffice}
               </p>
               <p>
-                <strong>Additional locations:</strong> {copy.generalLocations}
+                <strong>{t(locale, 'contactFieldLocations')}:</strong> {copy.generalLocations}
               </p>
             </article>
             <article className="insight-card">
@@ -142,7 +113,7 @@ export default async function Page() {
             {copy.finalSubtitle}
           </p>
           <div className="section-cta-center">
-            <Link href="/contact#contact" className="btn btn-outline">
+            <Link href={localizeHref('/contact#contact', locale)} className="btn btn-outline">
               {copy.finalCta}
             </Link>
           </div>
