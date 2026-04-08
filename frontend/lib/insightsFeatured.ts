@@ -100,7 +100,10 @@ const INSIGHTS_FEATURED_OVERRIDES: Partial<Record<Exclude<AppLocale, 'en'>, Part
 
 export function getInsightsFeaturedDefaults(locale: AppLocale): Record<string, string> {
   if (locale === 'en') return INSIGHTS_FEATURED_DEFAULTS;
-  return { ...INSIGHTS_FEATURED_DEFAULTS, ...(INSIGHTS_FEATURED_OVERRIDES[locale] ?? {}) };
+  const overrides = INSIGHTS_FEATURED_OVERRIDES[locale];
+  if (!overrides) return INSIGHTS_FEATURED_DEFAULTS;
+  // Partial overrides merged onto full EN defaults — every key remains a string at runtime.
+  return { ...INSIGHTS_FEATURED_DEFAULTS, ...overrides } as Record<string, string>;
 }
 
 export function normalizeMediaClass(raw: string): string {
