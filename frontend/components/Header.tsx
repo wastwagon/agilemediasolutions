@@ -25,6 +25,10 @@ export default function Header() {
   const locale = useLocale();
   const plainPathname = stripLocalePrefix(pathname || '/');
   const contactCtaHref = `${withLocalePrefix('/contact', locale)}#contact`;
+
+  const isNavSectionActive = (item: { href: string; subItems?: { href: string }[] }) =>
+    plainPathname === item.href || (item.subItems?.some((sub) => plainPathname === sub.href) ?? false);
+
   const navItems = [
     { label: t(locale, 'navHome'), href: '/' },
     {
@@ -34,6 +38,8 @@ export default function Header() {
         { label: t(locale, 'navAboutUs'), href: '/about' },
         { label: t(locale, 'navSectors'), href: '/sectors' },
         { label: t(locale, 'navPartnerships'), href: '/partnerships' },
+        { label: t(locale, 'navCareers'), href: '/careers' },
+        { label: t(locale, 'navContact'), href: '/contact' },
       ],
     },
     {
@@ -56,8 +62,6 @@ export default function Header() {
       ],
     },
     { label: t(locale, 'navEvents'), href: '/signature-events' },
-    { label: t(locale, 'navCareers'), href: '/careers' },
-    { label: t(locale, 'navContact'), href: '/contact' },
   ];
   const bar = useSiteSectionContent('layout.topBar', {
     email: 'info@agilemediasolutions.com',
@@ -103,7 +107,7 @@ export default function Header() {
           <ul className="nav-links">
             {navItems.map((item) => (
               <li key={item.label} className={item.subItems ? 'has-dropdown' : ''}>
-                <Link href={withLocalePrefix(item.href, locale)} className={plainPathname === item.href ? 'active' : ''}>
+                <Link href={withLocalePrefix(item.href, locale)} className={isNavSectionActive(item) ? 'active' : ''}>
                   {item.label} {item.subItems && <span className="dropdown-arrow"></span>}
                 </Link>
                 {item.subItems && (
@@ -111,7 +115,12 @@ export default function Header() {
                     <ul className="mega-links">
                       {item.subItems.map((sub) => (
                         <li key={sub.label}>
-                          <Link href={withLocalePrefix(sub.href, locale)}>{sub.label}</Link>
+                          <Link
+                            href={withLocalePrefix(sub.href, locale)}
+                            className={plainPathname === sub.href ? 'active' : ''}
+                          >
+                            {sub.label}
+                          </Link>
                         </li>
                       ))}
                     </ul>
@@ -155,12 +164,22 @@ export default function Header() {
             <ul className="mobile-links">
               {navItems.map((item) => (
                 <li key={item.label} className="mobile-item">
-                  <Link href={withLocalePrefix(item.href, locale)} className="mobile-main-link">{item.label}</Link>
+                  <Link
+                    href={withLocalePrefix(item.href, locale)}
+                    className={`mobile-main-link${isNavSectionActive(item) ? ' active' : ''}`}
+                  >
+                    {item.label}
+                  </Link>
                   {item.subItems && (
                     <ul className="mobile-sublinks">
                       {item.subItems.map((sub) => (
                         <li key={sub.label}>
-                          <Link href={withLocalePrefix(sub.href, locale)}>{sub.label}</Link>
+                          <Link
+                            href={withLocalePrefix(sub.href, locale)}
+                            className={plainPathname === sub.href ? 'active' : ''}
+                          >
+                            {sub.label}
+                          </Link>
                         </li>
                       ))}
                     </ul>

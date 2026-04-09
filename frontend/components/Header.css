@@ -184,6 +184,12 @@
   color: #2F6E66;
 }
 
+.mega-links a.active {
+  background: rgba(47, 110, 102, 0.12);
+  color: #2F6E66;
+  font-weight: 600;
+}
+
 /* Actions Right */
 .header-actions {
   display: flex;
@@ -324,6 +330,15 @@
 .mobile-sublinks { list-style: none; padding: 0 0 0 1rem; margin-top: 0.25rem; }
 .mobile-sublinks a { text-decoration: none; color: #666; font-size: 0.95rem; display: block; padding: 0.5rem 0; }
 
+.mobile-main-link.active {
+  color: #99f6e4;
+}
+
+.mobile-sublinks a.active {
+  color: #99f6e4;
+  font-weight: 600;
+}
+
 .drawer-footer { margin-top: 2rem; }
 .drawer-socials { display: flex; gap: 1rem; }
 .drawer-socials a { text-decoration: none; color: #111; font-weight: 600; font-size: 0.85rem; }
@@ -399,6 +414,12 @@
   color: #99f6e4;
 }
 
+.mega-links a.active {
+  background: rgba(153, 246, 228, 0.14);
+  color: #99f6e4;
+  font-weight: 600;
+}
+
 .action-btn {
   background: linear-gradient(135deg, #2F6E66, #1F4E46);
   border: 1px solid rgba(255, 255, 255, 0.14);
@@ -469,6 +490,10 @@
 
 .mega-links a:hover {
   border-color: rgba(153, 246, 228, 0.2);
+}
+
+.mega-links a.active {
+  border-color: rgba(153, 246, 228, 0.35);
 }
 
 .action-btn {
