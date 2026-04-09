@@ -2,8 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { getLocaleFromPathname } from '@/lib/locale';
+import { useLocale } from '@/components/LocaleProvider';
 import { localizeHref, t } from '@/lib/i18n';
 import { useSiteSectionContent } from '@/lib/siteSectionCms';
 import {
@@ -21,8 +20,7 @@ import {
 import './TopBar.css';
 
 export default function TopBar() {
-  const pathname = usePathname();
-  const locale = getLocaleFromPathname(pathname);
+  const locale = useLocale();
   const bar = useSiteSectionContent('layout.topBar', {
     email: 'info@agilemediasolutions.com',
     contactLabel: DEFAULT_PHONE_WHATSAPP_LABEL,

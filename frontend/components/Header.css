@@ -100,6 +100,7 @@
   align-items: center;
   gap: 0.35rem;
   position: relative;
+  white-space: nowrap;
 }
 .desktop-nav .nav-links > li > a::after {
   content: '';
@@ -445,6 +446,7 @@
 
 .desktop-nav .nav-links > li > a {
   border: 1px solid transparent;
+  white-space: nowrap;
 }
 
 .desktop-nav .nav-links > li > a:hover {
@@ -473,6 +475,7 @@
   letter-spacing: 0.01em;
   padding: 0.72rem 1.35rem;
   box-shadow: 0 10px 26px -16px rgba(153, 246, 228, 0.5);
+  white-space: nowrap;
 }
 
 .hamburger-btn {
@@ -500,4 +503,40 @@
 
 .drawer-socials a:hover {
   opacity: 1;
+}
+
+/* Longer nav labels (fr, pt, ar): avoid cramped desktop bar; use drawer until extra-wide. */
+@media (min-width: 1100px) and (max-width: 1379px) {
+  .modern-header.modern-header--wide-locale .desktop-nav {
+    display: none;
+  }
+
+  .modern-header.modern-header--wide-locale .hamburger-btn {
+    display: block;
+  }
+}
+
+@media (min-width: 1380px) {
+  .modern-header.modern-header--wide-locale .desktop-nav {
+    display: block;
+  }
+
+  .modern-header.modern-header--wide-locale .hamburger-btn {
+    display: none;
+  }
+
+  .modern-header.modern-header--wide-locale .desktop-nav .nav-links {
+    gap: 0.4rem;
+  }
+
+  .modern-header.modern-header--wide-locale .desktop-nav .nav-links > li > a {
+    padding: 0.55rem 0.72rem;
+    font-size: 0.88rem;
+  }
+
+  .modern-header.modern-header--wide-locale .action-btn {
+    white-space: nowrap;
+    font-size: 0.82rem;
+    padding: 0.65rem 1.1rem;
+  }
 }

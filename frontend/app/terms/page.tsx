@@ -2,10 +2,10 @@ import type { Metadata } from 'next';
 
 import LegalPageBody from '@/components/LegalPageBody';
 import { getTermsPageMetadata } from '@/lib/i18n/legalCopy';
-import { getLocaleFromCookies } from '@/lib/localeServer';
+import { getLocaleForRsc } from '@/lib/localeRequest';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const locale = await getLocaleFromCookies();
+  const locale = await getLocaleForRsc();
   return getTermsPageMetadata(locale);
 }
 

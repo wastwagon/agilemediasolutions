@@ -6,9 +6,17 @@ import './services.css';
 import React from 'react';
 import type { Metadata } from 'next';
 import AppShell from '../components/AppShell';
+import { LocaleProvider } from '../components/LocaleProvider';
 import OrganizationJsonLd from '../components/OrganizationJsonLd';
 import SafariBfcacheGuard from '../components/SafariBfcacheGuard';
+import { getLocaleForRsc } from '@/lib/localeRequest';
+import type { AppLocale } from '@/lib/locale';
 import { publicSiteUrl } from '@/lib/publicSite';
+
+function htmlLang(locale: AppLocale): string {
+  const map: Record<AppLocale, string> = { en: 'en', fr: 'fr', pt: 'pt', ar: 'ar' };
+  return map[locale] ?? 'en';
+}
 
 const siteUrl = publicSiteUrl();
 
@@ -66,16 +74,22 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const initialLocale = await getLocaleForRsc();
+  const lang = htmlLang(initialLocale);
+  const dir = initialLocale === 'ar' ? 'rtl' : 'ltr';
+
   return (
-    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
+    <html lang={lang} dir={dir} data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
         <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
       </head>
       <body>
         <OrganizationJsonLd />
         <SafariBfcacheGuard />
-        <AppShell>{children}</AppShell>
+        <LocaleProvider initialLocale={initialLocale}>
+          <AppShell>{children}</AppShell>
+        </LocaleProvider>
       </body>
     </html>
   );

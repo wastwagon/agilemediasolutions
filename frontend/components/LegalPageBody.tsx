@@ -2,10 +2,9 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 
 import type { AppLocale } from '@/lib/locale';
-import { getLocaleFromPathname } from '@/lib/locale';
+import { useLocale } from '@/components/LocaleProvider';
 import { getCookiesCopy, getPrivacyCopy, getTermsCopy, type LegalBlock } from '@/lib/i18n/legalCopy';
 import { localizeHref, t } from '@/lib/i18n';
 
@@ -78,8 +77,7 @@ function LegalSections({ block, locale }: { block: LegalBlock; locale: AppLocale
 export type LegalPageVariant = 'privacy' | 'terms' | 'cookies';
 
 export default function LegalPageBody({ variant }: { variant: LegalPageVariant }) {
-  const pathname = usePathname();
-  const locale = getLocaleFromPathname(pathname ?? '/');
+  const locale = useLocale();
   const block: LegalBlock =
     variant === 'privacy' ? getPrivacyCopy(locale) : variant === 'terms' ? getTermsCopy(locale) : getCookiesCopy(locale);
 

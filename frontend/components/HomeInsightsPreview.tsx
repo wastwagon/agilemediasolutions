@@ -2,14 +2,13 @@
 
 import Link from 'next/link';
 import React, { useEffect, useMemo, useState } from 'react';
-import { usePathname } from 'next/navigation';
 import {
   getInsightsFeaturedDefaults,
   getInsightFeaturedReadCta,
   normalizeMediaClass,
   parseInsightFeatured,
 } from '@/lib/insightsFeatured';
-import { getLocaleFromPathname } from '@/lib/locale';
+import { useLocale } from '@/components/LocaleProvider';
 import { localizeHref } from '@/lib/i18n';
 import { useSiteSectionContent } from '@/lib/siteSectionCms';
 
@@ -35,8 +34,7 @@ type PreviewCard = {
 };
 
 export default function HomeInsightsPreview() {
-  const pathname = usePathname();
-  const locale = getLocaleFromPathname(pathname ?? '/');
+  const locale = useLocale();
   const [apiPosts, setApiPosts] = useState<InsightListRow[] | null>(null);
   const featured = useSiteSectionContent('insights.featured', getInsightsFeaturedDefaults(locale));
   const readCta = useMemo(() => getInsightFeaturedReadCta(featured), [featured]);

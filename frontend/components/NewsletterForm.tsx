@@ -2,13 +2,12 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { trackAnalyticsEvent } from '@/lib/analyticsClient';
-import { getLocaleFromPathname } from '@/lib/locale';
+import { useLocale } from '@/components/LocaleProvider';
 import { localizeHref, t } from '@/lib/i18n';
 
 export default function NewsletterForm() {
-  const locale = getLocaleFromPathname(usePathname());
+  const locale = useLocale();
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import SectionHeader from '../../components/SectionHeader';
 import { getInsightsPageDefaults, getInsightsPageMetadata } from '@/lib/i18n/pageDefaults';
 import { localizeHref } from '@/lib/i18n';
-import { getLocaleFromCookies } from '@/lib/localeServer';
+import { getLocaleForRsc } from '@/lib/localeRequest';
 import { getSiteSectionContent } from '@/lib/siteSectionCmsServer';
 import {
   getInsightsFeaturedDefaults,
@@ -15,7 +15,7 @@ import {
 import { getPublicInsightPosts } from '@/lib/insightPostsServer';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const locale = await getLocaleFromCookies();
+  const locale = await getLocaleForRsc();
   return getInsightsPageMetadata(locale);
 }
 
@@ -27,7 +27,7 @@ function parseLineList(value: string): string[] {
 }
 
 export default async function Page() {
-  const locale = await getLocaleFromCookies();
+  const locale = await getLocaleForRsc();
   const copy = await getSiteSectionContent('insights.page', getInsightsPageDefaults(locale));
   const insightsBullets = parseLineList(copy.insightsBullets);
   const pressBullets = parseLineList(copy.pressBullets);

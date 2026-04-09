@@ -8,7 +8,7 @@ import {
   DEFAULT_PHONE_WHATSAPP_HREF,
 } from '@/lib/defaultPhoneChannel';
 import { getSiteSectionContent } from '@/lib/siteSectionCmsServer';
-import { getLocaleFromCookies } from '@/lib/localeServer';
+import { getLocaleForRsc } from '@/lib/localeRequest';
 import { getContactPageDefaults } from '@/lib/i18n/pageDefaults';
 import { localizeHref, t } from '@/lib/i18n';
 
@@ -18,7 +18,7 @@ export const metadata = {
 };
 
 export default async function Page() {
-  const locale = await getLocaleFromCookies();
+  const locale = await getLocaleForRsc();
   const copy = await getSiteSectionContent('contact.page', getContactPageDefaults(locale));
 
   return (

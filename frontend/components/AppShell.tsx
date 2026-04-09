@@ -11,7 +11,8 @@ import SiteAnalytics from './SiteAnalytics';
 import MobileTabBar from './MobileTabBar';
 import LocaleHtmlAttributes from './LocaleHtmlAttributes';
 import { useScrollAnimations } from '@/hooks/useScrollAnimations';
-import { getLocaleFromPathname, type AppLocale } from '@/lib/locale';
+import { type AppLocale } from '@/lib/locale';
+import { useLocale } from '@/components/LocaleProvider';
 import { localizeHref, t } from '@/lib/i18n';
 import { parseSiteContentPairs, useSiteSectionContent } from '@/lib/siteSectionCms';
 import {
@@ -69,7 +70,7 @@ function FooterLinkColumn({
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const locale = getLocaleFromPathname(pathname);
+  const locale = useLocale();
   const isAdminRoute = pathname?.startsWith('/admin');
 
   const footer = useSiteSectionContent('layout.footer', {

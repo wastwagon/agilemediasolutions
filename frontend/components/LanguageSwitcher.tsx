@@ -3,7 +3,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { getLocaleFromPathname, stripLocalePrefix, type AppLocale } from '@/lib/locale';
+import { stripLocalePrefix, type AppLocale } from '@/lib/locale';
+import { useLocale } from '@/components/LocaleProvider';
 import './LanguageSwitcher.css';
 
 const OPTIONS: { locale: AppLocale; label: string; native: string }[] = [
@@ -19,7 +20,7 @@ function clearLocaleCookie() {
 
 export default function LanguageSwitcher({ variant = 'header' }: { variant?: 'header' | 'compact' }) {
   const pathname = usePathname() || '/';
-  const active = getLocaleFromPathname(pathname);
+  const active = useLocale();
   const basePath = stripLocalePrefix(pathname);
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);

@@ -3,13 +3,14 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { getLocaleFromPathname, stripLocalePrefix, withLocalePrefix } from '@/lib/locale';
+import { stripLocalePrefix, withLocalePrefix } from '@/lib/locale';
+import { useLocale } from '@/components/LocaleProvider';
 import { t } from '@/lib/i18n';
 import './MobileTabBar.css';
 
 export default function MobileTabBar() {
   const pathname = usePathname();
-  const locale = getLocaleFromPathname(pathname);
+  const locale = useLocale();
   const plainPathname = stripLocalePrefix(pathname || '/');
   const tabItems = [
     { label: t(locale, 'navHome'), href: '/', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg> },

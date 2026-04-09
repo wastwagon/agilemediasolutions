@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { getLocaleFromPathname, stripLocalePrefix, withLocalePrefix } from '@/lib/locale';
+import { stripLocalePrefix, withLocalePrefix } from '@/lib/locale';
+import { useLocale } from '@/components/LocaleProvider';
 import { t } from '@/lib/i18n';
 import { useSiteSectionContent } from '@/lib/siteSectionCms';
 import { DEFAULT_PHONE_WHATSAPP_HREF, DEFAULT_PHONE_WHATSAPP_LABEL } from '@/lib/defaultPhoneChannel';
@@ -21,7 +22,7 @@ export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
-  const locale = getLocaleFromPathname(pathname);
+  const locale = useLocale();
   const plainPathname = stripLocalePrefix(pathname || '/');
   const contactCtaHref = `${withLocalePrefix('/contact', locale)}#contact`;
   const navItems = [
@@ -88,7 +89,10 @@ export default function Header() {
   }, [pathname]);
 
   return (
-    <header className={`modern-header ${scrolled ? 'scrolled' : ''} ${isOpen ? 'menu-open' : ''}`}>
+    <header
+      className={`modern-header ${scrolled ? 'scrolled' : ''} ${isOpen ? 'menu-open' : ''} ${locale !== 'en' ? 'modern-header--wide-locale' : ''}`}
+      data-locale={locale}
+    >
       <div className="header-container">
         <Link href={withLocalePrefix('/', locale)} className="modern-logo">
           <img src="/images/agilemediasolutionslogo.png" alt="Agile Media Solutions" />

@@ -11,7 +11,7 @@ import { getSiteSectionContent } from '@/lib/siteSectionCmsServer';
 import { getInsightsFeaturedDefaults, parseInsightFeatured } from '@/lib/insightsFeatured';
 import { getPublicInsightPostBySlug } from '@/lib/insightPostsServer';
 import { localizeHref } from '@/lib/i18n';
-import { getLocaleFromCookies } from '@/lib/localeServer';
+import { getLocaleForRsc } from '@/lib/localeRequest';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,7 +29,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   if (post) {
     return metadataForInsightPost(slug, post);
   }
-  const locale = await getLocaleFromCookies();
+  const locale = await getLocaleForRsc();
   const flat = await getSiteSectionContent('insights.featured', getInsightsFeaturedDefaults(locale));
   const card = parseInsightFeatured(flat).find((c) => c.slug === slug);
   if (!card) return { title: 'Insight' };
@@ -45,7 +45,7 @@ function bodyParagraphs(body: string): string[] {
 
 export default async function InsightArticlePage(props: Props) {
   const { slug } = await props.params;
-  const locale = await getLocaleFromCookies();
+  const locale = await getLocaleForRsc();
   const post = await getPublicInsightPostBySlug(slug);
 
   if (post) {

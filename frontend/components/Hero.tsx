@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import {
   DEFAULT_AGILE_INSTAGRAM_URL,
   DEFAULT_AGILE_LINKEDIN_URL,
@@ -11,7 +10,7 @@ import {
   DEFAULT_FACEBOOK_URL,
 } from '@/lib/defaultSocialUrls';
 import { parseSiteContentPairs, useSiteSectionContent } from '@/lib/siteSectionCms';
-import { getLocaleFromPathname } from '@/lib/locale';
+import { useLocale } from '@/components/LocaleProvider';
 import { localizeHref, t } from '@/lib/i18n';
 
 const DEFAULT_SOCIAL = [
@@ -22,7 +21,8 @@ const DEFAULT_SOCIAL = [
   { left: 'YouTube', right: DEFAULT_AGILE_YOUTUBE_URL },
 ];
 
-const DEFAULT_HERO_VIDEO = '/videos/homepage-hero-video.mp4';
+const DEFAULT_HERO_VIDEO = 'https://www.youtube.com/watch?v=avifcv-j3Ac&t=6s';
+const DEFAULT_HERO_VIDEO_FALLBACK = '/videos/homepage-hero-video.mp4';
 /** Preloader-only asset; using it as the video poster makes the hero look like a static image. */
 const OPENING_PRELOAD_ART = '/images/opening-launch.webp';
 /** Legacy CMS poster paths (removed files). */
@@ -38,9 +38,51 @@ function heroVideoPosterUrl(raw: string | undefined): string | undefined {
   return t;
 }
 
+function parseYoutubeId(raw: string): string | null {
+  const input = raw.trim();
+  if (!input) return null;
+  try {
+    const u = new URL(input);
+    const host = u.hostname.toLowerCase();
+    if (host.includes('youtu.be')) {
+      return u.pathname.replace(/^\/+/, '').split('/')[0] || null;
+    }
+    if (host.includes('youtube.com')) {
+      if (u.pathname.startsWith('/watch')) {
+        return u.searchParams.get('v');
+      }
+      if (u.pathname.startsWith('/embed/')) {
+        return u.pathname.split('/')[2] || null;
+      }
+      if (u.pathname.startsWith('/shorts/')) {
+        return u.pathname.split('/')[2] || null;
+      }
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+function parseYoutubeStartSeconds(raw: string): number | null {
+  try {
+    const u = new URL(raw.trim());
+    const t = u.searchParams.get('t') || u.searchParams.get('start');
+    if (!t) return null;
+    if (/^\d+$/.test(t)) return Number(t);
+    const m = /^((\d+)h)?((\d+)m)?((\d+)s)?$/.exec(t);
+    if (!m) return null;
+    const h = Number(m[2] || '0');
+    const min = Number(m[4] || '0');
+    const s = Number(m[6] || '0');
+    return h * 3600 + min * 60 + s;
+  } catch {
+    return null;
+  }
+}
+
 export default function Hero() {
-  const pathname = usePathname();
-  const locale = getLocaleFromPathname(pathname);
+  const locale = useLocale();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [slides, setSlides] = useState<{ title?: string; subtitle?: string }[]>([]);
@@ -108,14 +150,35 @@ export default function Hero() {
   }, [cmsVideoSrc]);
 
   const videoSrc =
-    heroVideoFallback && cmsVideoSrc !== DEFAULT_HERO_VIDEO ? DEFAULT_HERO_VIDEO : cmsVideoSrc;
+    heroVideoFallback && cmsVideoSrc !== DEFAULT_HERO_VIDEO_FALLBACK
+      ? DEFAULT_HERO_VIDEO_FALLBACK
+      : cmsVideoSrc;
+  const youtubeId = useMemo(() => parseYoutubeId(videoSrc), [videoSrc]);
+  const youtubeStart = useMemo(() => parseYoutubeStartSeconds(videoSrc), [videoSrc]);
+  const youtubeEmbedSrc = useMemo(() => {
+    if (!youtubeId) return '';
+    const params = new URLSearchParams({
+      autoplay: '1',
+      mute: '1',
+      controls: '0',
+      loop: '1',
+      playlist: youtubeId,
+      rel: '0',
+      modestbranding: '1',
+      playsinline: '1',
+      iv_load_policy: '3',
+      fs: '0',
+    });
+    if (youtubeStart && youtubeStart > 0) params.set('start', String(youtubeStart));
+    return `https://www.youtube-nocookie.com/embed/${youtubeId}?${params.toString()}`;
+  }, [youtubeId, youtubeStart]);
   const poster = heroVideoPosterUrl(heroChrome.videoPoster);
   const videoKey = `${videoSrc}\0${poster ?? ''}`;
 
   const onVideoError = useCallback(() => {
     setHeroVideoFallback((prev) => {
       if (prev) return prev;
-      return cmsVideoSrc !== DEFAULT_HERO_VIDEO;
+      return cmsVideoSrc !== DEFAULT_HERO_VIDEO_FALLBACK;
     });
   }, [cmsVideoSrc]);
 
@@ -133,10 +196,12 @@ export default function Hero() {
   }, []);
 
   useEffect(() => {
+    if (youtubeId) return;
     kickPlayback();
-  }, [videoSrc, poster, kickPlayback]);
+  }, [videoSrc, poster, kickPlayback, youtubeId]);
 
   useEffect(() => {
+    if (youtubeId) return;
     const v = videoRef.current;
     if (!v) return;
     const onLifecycle = () => kickPlayback();
@@ -154,9 +219,10 @@ export default function Hero() {
       v.removeEventListener('stalled', onLifecycle);
       v.removeEventListener('suspend', onLifecycle);
     };
-  }, [videoSrc, poster, kickPlayback]);
+  }, [videoSrc, poster, kickPlayback, youtubeId]);
 
   useEffect(() => {
+    if (youtubeId) return;
     const onVis = () => {
       if (document.visibilityState === 'visible') kickPlayback();
     };
@@ -167,27 +233,38 @@ export default function Hero() {
       document.removeEventListener('visibilitychange', onVis);
       window.removeEventListener('pageshow', onShow);
     };
-  }, [kickPlayback]);
+  }, [kickPlayback, youtubeId]);
 
   return (
     <section className="hero" id="home">
       <div className="hero-video" aria-hidden="true">
-        <video
-          ref={videoRef}
-          className="hero-video-el"
-          src={videoSrc}
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="auto"
-          {...(poster ? { poster } : {})}
-          key={videoKey}
-          onError={onVideoError}
-          disablePictureInPicture
-          disableRemotePlayback
-          controls={false}
-        />
+        {youtubeEmbedSrc ? (
+          <iframe
+            className="hero-video-el hero-video-el--embed"
+            src={youtubeEmbedSrc}
+            title="Hero background video"
+            allow="autoplay; encrypted-media; picture-in-picture"
+            referrerPolicy="strict-origin-when-cross-origin"
+            loading="eager"
+          />
+        ) : (
+          <video
+            ref={videoRef}
+            className="hero-video-el"
+            src={videoSrc}
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="auto"
+            {...(poster ? { poster } : {})}
+            key={videoKey}
+            onError={onVideoError}
+            disablePictureInPicture
+            disableRemotePlayback
+            controls={false}
+          />
+        )}
       </div>
       <div className="hero-overlay"></div>
       <div className="hero-noise" aria-hidden="true"></div>

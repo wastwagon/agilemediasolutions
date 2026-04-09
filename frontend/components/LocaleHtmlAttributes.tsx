@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { usePathname } from 'next/navigation';
-import { getLocaleFromPathname } from '@/lib/locale';
+import { useLocale } from '@/components/LocaleProvider';
 
 const LANG: Record<string, string> = {
   en: 'en',
@@ -12,8 +11,7 @@ const LANG: Record<string, string> = {
 };
 
 export default function LocaleHtmlAttributes() {
-  const pathname = usePathname() || '/';
-  const locale = getLocaleFromPathname(pathname);
+  const locale = useLocale();
 
   useEffect(() => {
     const html = document.documentElement;

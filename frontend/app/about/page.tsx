@@ -4,14 +4,14 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import ParallaxImage from '../../components/ParallaxImage';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { getLocaleFromPathname, withLocalePrefix } from '@/lib/locale';
+import { withLocalePrefix } from '@/lib/locale';
+import { useLocale } from '@/components/LocaleProvider';
 import { localizeHref } from '@/lib/i18n';
 import { getAboutPageDefaults } from '@/lib/i18n/pageDefaults';
 import { useSiteSectionContent } from '@/lib/siteSectionCms';
 
 export default function AboutPage() {
-  const locale = getLocaleFromPathname(usePathname());
+  const locale = useLocale();
   const aboutCopy = useSiteSectionContent('about.page', getAboutPageDefaults(locale));
   const container = {
     hidden: { opacity: 0 },

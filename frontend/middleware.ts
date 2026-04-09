@@ -10,8 +10,20 @@ function isStaticPath(pathname: string) {
   return /\.[a-zA-Z0-9]+$/.test(pathname);
 }
 
+import { AMS_PATHNAME_HEADER } from '@/lib/amsPathnameHeader';
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  function requestHeadersWithPath() {
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set(AMS_PATHNAME_HEADER, pathname);
+    return requestHeaders;
+  }
+
+  function nextWithPath() {
+    return NextResponse.next({ request: { headers: requestHeadersWithPath() } });
+  }
 
   /** Harden HTML caching behavior (especially Safari bfcache/history cache edge cases). */
   function withHtmlCacheHeaders(res: NextResponse) {
@@ -28,7 +40,7 @@ export function middleware(request: NextRequest) {
   }
 
   if (pathname.startsWith('/admin')) {
-    return withHtmlCacheHeaders(NextResponse.next());
+    return withHtmlCacheHeaders(nextWithPath());
   }
 
   const segments = pathname.split('/').filter(Boolean);
@@ -42,7 +54,9 @@ export function middleware(request: NextRequest) {
     }
     const url = request.nextUrl.clone();
     url.pathname = restPath;
-    const res = NextResponse.rewrite(url);
+    const res = NextResponse.rewrite(url, {
+      request: { headers: requestHeadersWithPath() },
+    });
     res.cookies.set('ams_locale', first, {
       path: '/',
       maxAge: 60 * 60 * 24 * 365,
@@ -58,7 +72,7 @@ export function middleware(request: NextRequest) {
     return withHtmlCacheHeaders(NextResponse.redirect(target));
   }
 
-  return withHtmlCacheHeaders(NextResponse.next());
+  return withHtmlCacheHeaders(nextWithPath());
 }
 
 export const config = {
