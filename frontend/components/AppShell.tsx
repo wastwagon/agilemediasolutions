@@ -68,8 +68,14 @@ function FooterLinkColumn({
   );
 }
 
+function stripTrailingSlash(p: string) {
+  if (p.length > 1 && p.endsWith('/')) return p.slice(0, -1);
+  return p;
+}
+
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const pathNorm = stripTrailingSlash(pathname ?? '') || '/';
   const locale = useLocale();
   const isAdminRoute = pathname?.startsWith('/admin');
 
@@ -94,13 +100,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     youtubeUrl: DEFAULT_AGILE_YOUTUBE_URL,
   });
 
-  useScrollAnimations(!isAdminRoute, pathname ?? '');
+  useScrollAnimations(!isAdminRoute && pathNorm !== '/newhomepage', pathname ?? '');
 
   if (isAdminRoute) {
     return <>{children}</>;
   }
 
   const year = new Date().getFullYear();
+  const skipGlobalPreloader = pathNorm === '/newhomepage';
   const fb = footer.facebookUrl?.trim() || DEFAULT_FACEBOOK_URL;
   const ig = footer.instagramUrl?.trim() || DEFAULT_AGILE_INSTAGRAM_URL;
   const x = footer.xUrl?.trim() || DEFAULT_AGILE_X_URL;
@@ -111,7 +118,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     <>
       <LocaleHtmlAttributes />
       <SiteAnalytics />
-      <Preloader />
+      {!skipGlobalPreloader ? <Preloader /> : null}
       <TopBar />
       <Header />
       <div className="public-shell">{children}</div>
