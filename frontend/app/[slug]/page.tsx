@@ -9,16 +9,21 @@ import reservedSlugList from '@/config/reserved-slugs.json';
 const RESERVED_SLUGS = new Set<string>(reservedSlugList as string[]);
 
 const fetchPage = cache(async (slug: string) => {
-  const res = await fetch(`${pagesApiOrigin()}/api/pages/${slug}`, {
-    cache: 'no-store',
-  });
-  if (!res.ok) return null;
-  return res.json();
+  try {
+    const res = await fetch(`${pagesApiOrigin()}/api/pages/${slug}`, {
+      cache: 'no-store',
+    });
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    /* RSC must not throw on backend/network hiccups — avoids opaque production digests */
+    return null;
+  }
 });
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  if (RESERVED_SLUGS.has(slug)) return {};
+  if (RESERVED_SLUGS.has(slug)) notFound();
 
   const page = await fetchPage(slug);
   if (!page) return {};
