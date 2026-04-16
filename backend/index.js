@@ -152,7 +152,9 @@ const readLoginAttemptStateUnified = async (attemptKey) => {
         return state;
       }
     } catch (err) {
-      console.error('Redis login read:', err.message);
+      const m = String(err?.message || err);
+      if (isRedisAuthFailureMessage(m)) disableRedisForAuthFailure(m);
+      else console.error('Redis login read:', m);
     }
   }
   return readLoginAttemptState(attemptKey);
@@ -173,7 +175,9 @@ const saveLoginAttemptStateUnified = async (attemptKey, state) => {
       );
       return;
     } catch (err) {
-      console.error('Redis login write:', err.message);
+      const m = String(err?.message || err);
+      if (isRedisAuthFailureMessage(m)) disableRedisForAuthFailure(m);
+      else console.error('Redis login write:', m);
     }
   }
   loginAttemptStore.set(attemptKey, state);
@@ -198,7 +202,9 @@ const clearLoginAttemptStateUnified = async (attemptKey) => {
       await redisClient.del(loginRedisKey(attemptKey));
       return;
     } catch (err) {
-      console.error('Redis login clear:', err.message);
+      const m = String(err?.message || err);
+      if (isRedisAuthFailureMessage(m)) disableRedisForAuthFailure(m);
+      else console.error('Redis login clear:', m);
     }
   }
   clearLoginAttemptState(attemptKey);
@@ -905,9 +911,38 @@ const ensureAppSchemaAndSeed = async () => {
 const pgPool = DATABASE_URL ? new Pool({ connectionString: DATABASE_URL }) : null;
 
 let redisClient = null;
+
+function isRedisAuthFailureMessage(msg) {
+  return /NOAUTH|WRONGPASS|Authentication required|ERR invalid password/i.test(String(msg || ''));
+}
+
+function disableRedisForAuthFailure(reason) {
+  const c = redisClient;
+  if (!c || !isRedisAuthFailureMessage(reason)) return;
+  console.warn(
+    '[redis] Server rejected credentials (NOAUTH/WRONGPASS). Disabling Redis for this process; rate limits and login lockout use in-memory state. Set REDIS_URL=redis://:PASSWORD@host:6379 if Redis requires a password.'
+  );
+  redisClient = null;
+  try {
+    if (typeof c.quit === 'function') void c.quit().catch(() => {});
+  } catch {
+    /* ignore */
+  }
+}
+
+function fixedWindowRedisCommandError(err, namespace) {
+  const m = String(err?.message || err);
+  if (isRedisAuthFailureMessage(m)) disableRedisForAuthFailure(m);
+  else console.error(`Rate limit Redis (${namespace}):`, m);
+}
+
 if (REDIS_URL) {
   redisClient = createClient({ url: REDIS_URL });
-  redisClient.on('error', (err) => console.error('Redis connection error:', err));
+  redisClient.on('error', (err) => {
+    const m = String(err?.message || err);
+    if (isRedisAuthFailureMessage(m)) disableRedisForAuthFailure(m);
+    else console.error('Redis connection error:', err);
+  });
   redisClient.connect().catch((err) => console.error('Redis initial connect failed:', err));
 }
 
@@ -943,6 +978,7 @@ const allowAnalyticsRequest = (ip) =>
     windowMs: ANALYTICS_RATE_WINDOW_MS,
     max: ANALYTICS_RATE_MAX,
     memoryBuckets: analyticsRateBuckets,
+    onRedisCommandError: fixedWindowRedisCommandError,
   });
 
 const allowNewsletterRequest = (ip) =>
@@ -953,6 +989,7 @@ const allowNewsletterRequest = (ip) =>
     windowMs: NEWSLETTER_RATE_WINDOW_MS,
     max: NEWSLETTER_RATE_MAX,
     memoryBuckets: newsletterRateBuckets,
+    onRedisCommandError: fixedWindowRedisCommandError,
   });
 
 const allowContactRequest = (ip) =>
@@ -963,6 +1000,7 @@ const allowContactRequest = (ip) =>
     windowMs: CONTACT_RATE_WINDOW_MS,
     max: CONTACT_RATE_MAX,
     memoryBuckets: contactRateBuckets,
+    onRedisCommandError: fixedWindowRedisCommandError,
   });
 
 setInterval(() => {

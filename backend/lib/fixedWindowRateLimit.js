@@ -4,7 +4,7 @@ const { sanitizeRateLimitKeyPart } = require('./sanitizeRateLimitKeyPart');
 
 /**
  * Fixed-window count per IP. Uses Redis INCR+EXPIRE when redisClient is truthy; otherwise in-memory Map.
- * @param {{ redisClient?: object | null, namespace: string, ip: string, windowMs: number, max: number, memoryBuckets: Map<string, { start: number, count: number }> }} opts
+ * @param {{ redisClient?: object | null, namespace: string, ip: string, windowMs: number, max: number, memoryBuckets: Map<string, { start: number, count: number }>, onRedisCommandError?: (err: unknown, namespace: string) => void }} opts
  * @returns {Promise<{ ok: boolean, retryAfterSec: number }>}
  */
 async function fixedWindowRateLimitAllow(opts) {
@@ -23,7 +23,11 @@ async function fixedWindowRateLimitAllow(opts) {
       }
       return { ok: true, retryAfterSec: 0 };
     } catch (err) {
-      console.error(`Rate limit Redis (${namespace}):`, err.message);
+      if (typeof opts.onRedisCommandError === 'function') {
+        opts.onRedisCommandError(err, namespace);
+      } else {
+        console.error(`Rate limit Redis (${namespace}):`, err.message);
+      }
     }
   }
   const now = Date.now();
