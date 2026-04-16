@@ -4,6 +4,7 @@
   "private": true,
   "main": "index.js",
   "scripts": {
+    "test": "node scripts/run-tests.cjs",
     "dev": "node --watch index.js",
     "start": "node index.js",
     "db:migrate-seed": "node scripts/migrate-and-seed.js",
@@ -15,6 +16,7 @@
     "cors": "^2.8.6",
     "dotenv": "^16.6.1",
     "express": "^4.22.1",
+    "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
     "morgan": "^1.10.1",
     "multer": "^2.1.1",
