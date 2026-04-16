@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
-import ContactForm from '../../components/ContactForm';
-import SectionHeader from '../../components/SectionHeader';
+import ContactForm from '@/components/ContactForm';
+import SectionHeader from '@/components/SectionHeader';
 import {
   DEFAULT_GENERAL_PHONE_DISPLAY,
   DEFAULT_GENERAL_PHONE_LABEL,

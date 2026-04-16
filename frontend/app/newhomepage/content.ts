@@ -1,149 +1,187 @@
-/** Static English copy for /newhomepage (no CMS). */
+/** Awsa template copy + structure for /newhomepage (no CMS). Wordmark stays AGILE for this concept. */
 
 export const nh = {
-  heroEyebrow: 'MEDIA · PR · INSTITUTIONS',
+  heroEyebrow: 'STUDIO BASED IN CALIFORNIA',
   heroMark: 'AGILE',
-  heroCta: 'Get started',
-  aboutLine:
-    'Agile Media Solutions shapes narratives for governments, institutions, and brands across Africa and beyond.',
+  heroCta: 'Get Started',
+  aboutLine: 'Powering Narratives.\nElevating Voices.\nDriving Impact.',
+  aboutBody:
+    'Agile Media Solutions is an international media, PR, and communications firm helping governments, institutions, brands, and movements shape the messages that move nations, markets, and minds.',
   sectionBlurb:
-    'Focused teams, clear process, and outcomes built for complex stakeholder environments.',
+    'Through years of hands-on experience, we’ve built strong expertise in digital projects, applying clear, efficient methods to deliver high-quality, reliable results at every stage.',
 
   projects: [
-    { title: 'Insights', tag: 'Editorial' },
-    { title: 'Studio', tag: 'Creative' },
-    { title: 'Brands', tag: 'Identity' },
-    { title: 'Signature events', tag: 'Experiences' },
+    { title: 'Unleay', tag: 'Branding', coverIndex: 0 },
+    { title: 'Natale', tag: 'Branding', coverIndex: 1 },
+    { title: 'Veauly', tag: 'Branding', coverIndex: 2 },
+    { title: 'Motion Studio', tag: 'Branding', coverIndex: 3 },
   ],
 
   services: [
     {
-      title: 'Strategic communications',
-      line: 'Positioning and narrative for high-stakes moments.',
-      bullets: ['Crisis-ready messaging', 'Stakeholder mapping', 'Executive counsel'],
+      iconIndex: 0,
+      title: 'Website Creation',
+      line: 'High-performance websites built to convert and scale.',
+      bullets: ['Responsive layouts', 'Landing pages', 'Custom visuals & layouts'],
     },
     {
-      title: 'Media relations',
-      line: 'Coverage that supports credibility and reach.',
-      bullets: ['Press office', 'Briefings', 'Desk-side relationships'],
+      iconIndex: 1,
+      title: 'Brand Identity',
+      line: 'Brands designed to stand out and stay memorable.',
+      bullets: ['Logo systems & visuals', 'Packaging & brand assets', 'Tone of voice & positioning'],
     },
     {
-      title: 'Digital engagement',
-      line: 'Channels that move audiences to action.',
-      bullets: ['Campaign architecture', 'Content systems', 'Measurement'],
+      iconIndex: 2,
+      title: 'Product Design',
+      line: 'Interfaces designed for clarity, usability, and flow.',
+      bullets: ['Intuitive user journeys', 'Wireframes & prototypes', 'Mobile-first experiences'],
     },
     {
-      title: 'Issues & policy',
-      line: 'Clear language for regulation and reform.',
-      bullets: ['White papers', 'Multilingual rollout', 'Coalition comms'],
+      iconIndex: 3,
+      title: 'Social Strategy',
+      line: 'Engaging content that builds trust and visibility.',
+      bullets: ['Content planning & strategy', 'Ads creatives', 'Profile Optimization'],
     },
     {
-      title: 'Events & staging',
-      line: 'Moments that land with press and partners.',
-      bullets: ['Run-of-show', 'Broadcast support', 'VIP programmes'],
+      iconIndex: 4,
+      title: 'Search Visibility',
+      line: 'Data-driven SEO to increase traffic and rankings.',
+      bullets: ['Keyword research', 'Technical optimization', 'Authority-building backlinks'],
     },
     {
-      title: 'Partnerships',
-      line: 'Align brands with trusted platforms.',
-      bullets: ['Sponsorship narrative', 'Co-marketing', 'Reporting'],
+      iconIndex: 5,
+      title: 'Marketing',
+      line: 'Story-focused content that drives real results.',
+      bullets: ['Promotional', 'Video Ads', 'Explainer content'],
     },
   ],
 
   testimonials: [
     {
-      quote: 'Clear, calm, and relentless on detail — exactly what we needed for a multi-country launch.',
-      name: 'Programme lead',
-      org: 'Regional institution',
+      photoIndex: 0,
+      quote:
+        'The team is efficient and reliable. They delivered everything they promised. I will definitely hire them again for future projects.',
+      attribution: 'Natale Founder',
     },
     {
-      quote: 'They turned a dense policy story into something journalists actually wanted to cover.',
-      name: 'Communications director',
-      org: 'Public agency',
+      photoIndex: 1,
+      quote:
+        'The team is efficient and reliable. They delivered everything they promised. I will definitely hire them again for future projects.',
+      attribution: 'Veauly Founder',
     },
     {
-      quote: 'Our leadership team finally had one coherent storyline across every channel.',
-      name: 'Chief of staff',
-      org: 'Corporate brand',
+      photoIndex: 2,
+      quote:
+        'The team is efficient and reliable. They delivered everything they promised. I will definitely hire them again for future projects.',
+      attribution: 'Unleay Founder',
     },
   ],
 
   whyUs: {
-    tagline: 'Communications built for complexity.',
+    tagline: 'webflow specialists',
     stats: [
-      { value: 25, suffix: '+', label: 'Markets engaged' },
-      { value: 120, suffix: '+', label: 'Campaigns delivered' },
-      { value: 40, suffix: '+', label: 'Specialists' },
+      { value: 120, suffix: '+', label: 'Clients worldwide' },
+      { value: 98, suffix: '+', label: 'projects delivered' },
+      { value: 74, suffix: '', label: 'employees' },
     ],
-    ctaTitle: 'Start a conversation',
-    ctaSub: 'Tell us what you are building next',
+    ctaTitle: 'Let’s build your next project',
+    ctaSub: 'click for contact us',
     ctaHover: 'HOVER CARD',
   },
 
   awards: [
-    { org: 'African PR', award: 'Campaign excellence', year: '2024' },
-    { org: 'Industry forum', award: 'Best stakeholder programme', year: '2023' },
-    { org: 'Press club', award: 'Issues communication', year: '2023' },
-    { org: 'Digital council', award: 'Integrated launch', year: '2022' },
-    { org: 'Civic awards', award: 'Public information', year: '2022' },
-    { org: 'Summit', award: 'Event of the year', year: '2021' },
+    { org: 'Pixelcraft Awards', award: 'Best User Experience', year: '2025' },
+    { org: 'Codeform Awards', award: 'Front-End Engineering', year: '2024' },
+    { org: 'Nexus Awards', award: 'Digital Innovation', year: '2023' },
+    { org: 'Lumen Awards', award: 'Excellence in UI/UX', year: '2022' },
+    { org: 'Atomic Honors', award: 'Best Performance', year: '2022' },
+    { org: 'Digital Awards', award: 'Site of the Year', year: '2020' },
   ],
 
+  teamBio:
+    'A designer who blends creativity and strategy to turn bold ideas into meaningful experiences, crafting visuals that not only look good but truly connect with people.',
+
   team: [
-    {
-      name: 'Lead strategist',
-      role: 'Founding partner',
-      bio: 'Builds narrative arcs for institutions under pressure — calm process, sharp outcomes.',
-    },
-    {
-      name: 'Editorial director',
-      role: 'Content & insights',
-      bio: 'Turns complex policy and data into stories editors and audiences trust.',
-    },
-    {
-      name: 'Studio head',
-      role: 'Creative & digital',
-      bio: 'Unifies film, stage, and digital so every touchpoint feels like one brand.',
-    },
+    { photoIndex: 0, name: 'Felipe motive', role: 'the founder' },
+    { photoIndex: 1, name: 'María motive', role: 'Creative Lead' },
+    { photoIndex: 2, name: 'mara sanchez', role: 'designer' },
   ],
 
   pricing: [
     {
-      name: 'Advisory sprint',
-      price: 'From $18k',
-      blurb: 'Two-week narrative + channel plan for a defined moment.',
-      features: ['Stakeholder interviews', 'Messaging house', '72h crisis sketch'],
+      theme: 'dark' as const,
+      title: 'Subscription',
+      price: '$4,899',
+      priceNote: '/Monthly',
+      blurb:
+        'For teams needing on-demand, fast design support. Unlimited requests. One flat fee.',
+      features: [
+        'One task handled at a time',
+        'Ongoing collaboration with expert designers',
+        'Quick delivery focused on quality',
+        'Endless design tasks as needed',
+        'Monthly workload scaled to your needs',
+        'Continuous creative oversight',
+        'Choose how you stay in touch',
+        'Webflow builds included at no cost',
+      ],
+      buttonClass: 'button whitebutton w-inline-block',
+      innerBtnClass: 'btn-76-text',
+      wrapClass: 'pricingbackground',
+      cardClass: 'card-pricing popular',
+      flexClass: 'flex-horizontal start-top dark',
+      titleClass: 'main-pricing-title white pop',
+      priceWrapClass: 'w-layout-vflex price-tag-under',
+      priceNumClass: 'pricingnumber color-white',
+      listClass: 'list-item-pricing white',
+      textTone: 'white' as const,
     },
     {
-      name: 'Campaign retainer',
-      price: 'From $35k / mo',
-      blurb: 'Embedded team for launches, issues, and press office rhythm.',
-      features: ['Weekly war-room', 'Desk outreach', 'Reporting pack'],
-      featured: true,
-    },
-    {
-      name: 'Signature build',
-      price: 'Scope-based',
-      blurb: 'Event + broadcast + digital for flagship moments.',
-      features: ['Run-of-show', 'Crew & staging', 'Content capture'],
+      theme: 'light' as const,
+      title: 'One page',
+      price: '$1,480',
+      priceNote: '/One Time',
+      blurb: 'For founders who need a full website launched in days, not months. Clear scope Pro.',
+      features: [
+        'Tailored page structures from scratch',
+        'Design aligned to your visual identity',
+        'Optimized layouts for every screen',
+        'Source files and design documentation',
+        'Fast feedback cycles under 48 hours',
+        'Refinements until final approval',
+        'Extra pages available on request (+$200)',
+        'Project-based email assistance',
+      ],
+      buttonClass: 'button blackbutton w-inline-block',
+      innerBtnClass: 'btn-76-text onetimeplan',
+      wrapClass: 'w-layout-vflex',
+      innerWrapClass: 'pricingbackground _2nd',
+      cardClass: 'card-pricing popular',
+      flexClass: 'flex-horizontal start-top light',
+      titleClass: 'main-pricing-title white pop light',
+      priceWrapClass: 'w-layout-vflex price-tag-under white',
+      priceNumClass: 'pricingnumber color-white non',
+      listClass: 'list-item-pricing',
+      textTone: 'dark' as const,
     },
   ],
 
   faq: [
     {
       q: 'What services do you offer?',
-      a: 'Strategic communications, media relations, digital engagement, issues work, events, and partnerships — as integrated programmes or focused sprints.',
+      a: 'We design and build custom websites focused on performance, usability, and visual impact. Our services include UI/UX design, front-end development, Webflow development, motion & interactions, and ongoing optimization.',
     },
     {
       q: 'How long does a typical project take?',
-      a: 'Sprints begin in days; sustained campaigns usually run 8–16 weeks depending on markets, approvals, and languages involved.',
+      a: 'Project timelines vary depending on scope and complexity, but most websites are completed within 4 to 8 weeks. Larger or more complex projects may require additional time.',
     },
     {
-      q: 'Do you work with custom programmes or templates?',
-      a: 'Every mandate is bespoke. We reuse proven frameworks internally, but external deliverables are tailored to your institution and risk profile.',
+      q: 'Do you work with custom designs or templates?',
+      a: 'We work exclusively with custom-designed solutions. Every project is built from scratch to align with the brand’s identity, goals, and technical needs—no generic templates.',
     },
     {
-      q: 'Will work be optimised for performance and clarity?',
-      a: 'Yes — we design for accessibility, fast publishing workflows, and measurable reach from day one.',
+      q: 'Will my website be optimized for performance and SEO?',
+      a: 'Yes. All our websites are built with performance, accessibility, and SEO best practices in mind, ensuring fast load times and strong search engine visibility from day one.',
     },
   ],
 } as const;
@@ -158,5 +196,3 @@ export const nhMarqueeLogos = [
   '/images/studio/offering-02.svg',
   '/images/sectors/sector-04.svg',
 ] as const;
-
-export const nhHeroImage = '/images/opening-launch.webp';

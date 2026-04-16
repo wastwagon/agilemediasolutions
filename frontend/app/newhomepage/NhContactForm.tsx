@@ -2,23 +2,14 @@
 
 import Link from 'next/link';
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useLocale } from '@/components/LocaleProvider';
+import { localizeHref } from '@/lib/i18n';
 import { trackAnalyticsEvent } from '@/lib/analyticsClient';
-
-const easeOut = [0.2, 0.8, 0.2, 1] as const;
-
-const reveal = {
-  hidden: { opacity: 0, y: 36 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.55, ease: easeOut },
-  },
-};
 
 const TOPIC = 'Concept home (/newhomepage)';
 
 export default function NhContactForm() {
+  const locale = useLocale();
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errors, setErrors] = useState({ name: '', email: '', message: '' });
@@ -82,109 +73,95 @@ export default function NhContactForm() {
   };
 
   return (
-    <div className="nh-contact-wrap">
-      <motion.form
-        className="nh-form"
-        onSubmit={onSubmit}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true }}
-        variants={reveal}
-        noValidate
-      >
-        {status === 'success' ? (
-          <div className="nh-form-success" role="status">
-            <p style={{ margin: 0, fontSize: '1.05rem', color: 'var(--nh-white)' }}>Message sent</p>
-            <p style={{ margin: '0.75rem 0 0', color: 'rgba(240,240,240,0.75)' }}>
-              Thanks for writing in. We will read your message and reply within about two working days.
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className="nh-field">
-              <label htmlFor="nh-name">Your name</label>
-              <input
-                id="nh-name"
-                name="name"
-                type="text"
-                autoComplete="name"
-                placeholder="Who are you?"
-                value={formData.name}
-                onChange={onChange}
-                disabled={status === 'loading'}
-                aria-invalid={!!errors.name}
-                aria-describedby={errors.name ? 'nh-name-err' : undefined}
-              />
-              {errors.name ? (
-                <p id="nh-name-err" className="nh-form-error" role="alert" style={{ marginTop: '0.35rem' }}>
-                  {errors.name}
-                </p>
-              ) : null}
-            </div>
-            <div className="nh-field">
-              <label htmlFor="nh-email">Your email</label>
-              <input
-                id="nh-email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                placeholder="For direct contact"
-                value={formData.email}
-                onChange={onChange}
-                disabled={status === 'loading'}
-                aria-invalid={!!errors.email}
-                aria-describedby={errors.email ? 'nh-email-err' : undefined}
-              />
-              {errors.email ? (
-                <p id="nh-email-err" className="nh-form-error" role="alert" style={{ marginTop: '0.35rem' }}>
-                  {errors.email}
-                </p>
-              ) : null}
-            </div>
-            <div className="nh-field">
-              <label htmlFor="nh-msg">Your message</label>
-              <textarea
-                id="nh-msg"
-                name="message"
-                placeholder="Goals, markets, or timing"
-                maxLength={5000}
-                value={formData.message}
-                onChange={onChange}
-                disabled={status === 'loading'}
-                aria-invalid={!!errors.message}
-                aria-describedby={errors.message ? 'nh-msg-err' : undefined}
-              />
-              {errors.message ? (
-                <p id="nh-msg-err" className="nh-form-error" role="alert" style={{ marginTop: '0.35rem' }}>
-                  {errors.message}
-                </p>
-              ) : null}
-            </div>
-            <div className="nh-form-actions">
-              <button type="submit" className="nh-btn" disabled={status === 'loading'}>
-                {status === 'loading' ? 'Sending…' : 'Submit'}
-              </button>
-            </div>
-            {status === 'error' ? (
-              <p className="nh-form-error" role="alert">
-                Something went wrong. Try again in a moment, or use the main{' '}
-                <Link href="/contact" style={{ color: 'var(--nh-green)' }}>
-                  contact page
-                </Link>
-                .
+    <div className="form-block w-form">
+      {status === 'success' ? (
+        <div className="w-form-done success-message is-visible" role="status">
+          <div>Message sent. We will reply within about two working days.</div>
+        </div>
+      ) : (
+        <form className="form-wrapper" onSubmit={onSubmit} noValidate>
+          <div className="field-item">
+            <label htmlFor="nh-name" className="field-label">
+              Name
+            </label>
+            <input
+              id="nh-name"
+              name="name"
+              type="text"
+              className="text-field-2 w-input"
+              autoComplete="name"
+              placeholder="Who are you?"
+              value={formData.name}
+              onChange={onChange}
+              disabled={status === 'loading'}
+              aria-invalid={!!errors.name}
+              aria-describedby={errors.name ? 'nh-name-err' : undefined}
+            />
+            {errors.name ? (
+              <p id="nh-name-err" className="paragraph20px" role="alert" style={{ marginTop: 8 }}>
+                {errors.name}
               </p>
             ) : null}
-          </>
-        )}
-      </motion.form>
-      <motion.div
-        className="nh-contact-deco"
-        initial={{ opacity: 0, scale: 0.98 }}
-        whileInView={{ opacity: 1, scale: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6, ease: easeOut }}
-        aria-hidden
-      />
+          </div>
+          <div className="field-item">
+            <label htmlFor="nh-email" className="field-label">
+              Email
+            </label>
+            <input
+              id="nh-email"
+              name="email"
+              type="email"
+              className="text-field-2 w-input"
+              autoComplete="email"
+              placeholder="For direct contact"
+              value={formData.email}
+              onChange={onChange}
+              disabled={status === 'loading'}
+              aria-invalid={!!errors.email}
+              aria-describedby={errors.email ? 'nh-email-err' : undefined}
+            />
+            {errors.email ? (
+              <p id="nh-email-err" className="paragraph20px" role="alert" style={{ marginTop: 8 }}>
+                {errors.email}
+              </p>
+            ) : null}
+          </div>
+          <div className="field-item">
+            <label htmlFor="nh-msg" className="field-label">
+              Message
+            </label>
+            <textarea
+              id="nh-msg"
+              name="message"
+              className="text-field-area w-input"
+              placeholder="Goals, markets, or timing"
+              maxLength={5000}
+              value={formData.message}
+              onChange={onChange}
+              disabled={status === 'loading'}
+              aria-invalid={!!errors.message}
+              aria-describedby={errors.message ? 'nh-msg-err' : undefined}
+            />
+            {errors.message ? (
+              <p id="nh-msg-err" className="paragraph20px" role="alert" style={{ marginTop: 8 }}>
+                {errors.message}
+              </p>
+            ) : null}
+          </div>
+          <button type="submit" className="button-wrapper is-white is-form w-inline-block" disabled={status === 'loading'}>
+            {status === 'loading' ? 'Sending…' : 'Submit'}
+          </button>
+          <div className={`w-form-fail${status === 'error' ? ' is-visible' : ''}`} role={status === 'error' ? 'alert' : undefined}>
+            <div>
+              Something went wrong. Try again in a moment, or use the main{' '}
+              <Link href={localizeHref('/contact', locale)} className="is-white">
+                contact page
+              </Link>
+              .
+            </div>
+          </div>
+        </form>
+      )}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { Inter } from 'next/font/google';
 import React from 'react';
 import './fonts.css';
+import './awsa.webflow.scoped.css';
 import './nh-page.css';
 
 const inter = Inter({
@@ -11,5 +12,9 @@ const inter = Inter({
 });
 
 export default function NewHomeLayout({ children }: { children: React.ReactNode }) {
-  return <div className={`${inter.variable} nh-root`}>{children}</div>;
+  return (
+    <div className={`${inter.variable} nh-root`}>
+      <div className="public-shell public-shell--newhomepage">{children}</div>
+    </div>
+  );
 }

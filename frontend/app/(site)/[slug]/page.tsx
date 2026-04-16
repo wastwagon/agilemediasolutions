@@ -1,7 +1,7 @@
 import React, { cache } from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import PageBlocksRenderer from '../../components/PageBlocksRenderer';
+import PageBlocksRenderer from '@/components/PageBlocksRenderer';
 import { pagesApiOrigin } from '@/lib/pagesApiOrigin';
 import { absPublicUrl, firstOgImageFromBlocks, publicSiteUrl } from '@/lib/publicSite';
 import reservedSlugList from '@/config/reserved-slugs.json';

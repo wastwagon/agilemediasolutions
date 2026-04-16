@@ -29,6 +29,31 @@ const nextConfig = {
   images: {
     remotePatterns: imageRemotePatterns(),
   },
+  async headers() {
+    // Reduce stale asset/page issues during Docker-based iteration.
+    return [
+      {
+        source: "/newhomepage",
+        headers: [
+          { key: "Cache-Control", value: "no-store, no-cache, must-revalidate, max-age=0" },
+          { key: "Pragma", value: "no-cache" },
+          { key: "Expires", value: "0" },
+        ],
+      },
+      {
+        source: "/newhomepage/:path*",
+        headers: [
+          { key: "Cache-Control", value: "no-store, no-cache, must-revalidate, max-age=0" },
+          { key: "Pragma", value: "no-cache" },
+          { key: "Expires", value: "0" },
+        ],
+      },
+      {
+        source: "/_next/static/:path*",
+        headers: [{ key: "Cache-Control", value: "no-store, no-cache, must-revalidate, max-age=0" }],
+      },
+    ];
+  },
   async rewrites() {
     return [
       {

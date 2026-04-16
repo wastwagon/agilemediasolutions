@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import SectionHeader from '../../components/SectionHeader';
+import SectionHeader from '@/components/SectionHeader';
 import { getInsightsPageDefaults, getInsightsPageMetadata } from '@/lib/i18n/pageDefaults';
 import { localizeHref } from '@/lib/i18n';
 import { getLocaleForRsc } from '@/lib/localeRequest';

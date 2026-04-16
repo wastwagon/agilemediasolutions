@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { getLocaleFromPathname, type AppLocale } from '@/lib/locale';
+import { getLocaleFromPathnameOrNewhomepageCookie, type AppLocale } from '@/lib/locale';
 
 const LocaleContext = createContext<AppLocale>('en');
 
@@ -17,7 +17,7 @@ export function LocaleProvider({
   const [locale, setLocale] = useState<AppLocale>(initialLocale);
 
   useEffect(() => {
-    setLocale(getLocaleFromPathname(pathname ?? '/'));
+    setLocale(getLocaleFromPathnameOrNewhomepageCookie(pathname ?? '/', typeof document !== 'undefined' ? document.cookie : null));
   }, [pathname]);
 
   return <LocaleContext.Provider value={locale}>{children}</LocaleContext.Provider>;

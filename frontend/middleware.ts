@@ -11,6 +11,7 @@ function isStaticPath(pathname: string) {
 }
 
 import { AMS_PATHNAME_HEADER } from '@/lib/amsPathnameHeader';
+import { NEWHOMEPAGE_PATH } from '@/lib/locale';
 
 function stripTrailingSlash(p: string) {
   if (p.length > 1 && p.endsWith('/')) return p.slice(0, -1);
@@ -55,9 +56,9 @@ export function middleware(request: NextRequest) {
   if (first && LOCALES.includes(first as (typeof LOCALES)[number])) {
     const restSegs = segments.slice(1);
     const restPath = restSegs.length ? `/${restSegs.join('/')}` : '/';
-    if (stripTrailingSlash(restPath) === '/newhomepage') {
+    if (stripTrailingSlash(restPath) === NEWHOMEPAGE_PATH) {
       const url = request.nextUrl.clone();
-      url.pathname = '/newhomepage';
+      url.pathname = NEWHOMEPAGE_PATH;
       return withHtmlCacheHeaders(NextResponse.redirect(url));
     }
     if (restPath.startsWith('/admin')) {
@@ -80,7 +81,7 @@ export function middleware(request: NextRequest) {
   if (
     cookieLocale &&
     LOCALES.includes(cookieLocale as (typeof LOCALES)[number]) &&
-    pathNorm !== '/newhomepage'
+    pathNorm !== NEWHOMEPAGE_PATH
   ) {
     const target = new URL(request.url);
     target.pathname = `/${cookieLocale}${pathname === '/' ? '' : pathname}`;

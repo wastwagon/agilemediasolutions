@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import SectionHeader from '../../components/SectionHeader';
+import SectionHeader from '@/components/SectionHeader';
 import { useSiteSectionContent } from '@/lib/siteSectionCms';
 
 type EventItem = {

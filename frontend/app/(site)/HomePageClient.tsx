@@ -2,11 +2,11 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import Hero from '../components/Hero';
-import CaseStudiesCarousel from '../components/CaseStudiesCarousel';
-import SectionHeader from '../components/SectionHeader';
-import HomeFeaturedWork, { type HomeFeaturedStudy } from '../components/HomeFeaturedWork';
-import HomeInsightsPreview from '../components/HomeInsightsPreview';
+import Hero from '@/components/Hero';
+import CaseStudiesCarousel from '@/components/CaseStudiesCarousel';
+import SectionHeader from '@/components/SectionHeader';
+import HomeFeaturedWork, { type HomeFeaturedStudy } from '@/components/HomeFeaturedWork';
+import HomeInsightsPreview from '@/components/HomeInsightsPreview';
 import { parseSiteContentLines, useSiteSectionContent } from '@/lib/siteSectionCms';
 import { withLocalePrefix, type AppLocale } from '@/lib/locale';
 import { useLocale } from '@/components/LocaleProvider';

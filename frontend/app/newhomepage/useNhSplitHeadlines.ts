@@ -37,9 +37,10 @@ export function useNhSplitHeadlines(rootRef: RefObject<HTMLElement | null>, redu
             const chars = split.chars;
             if (!chars?.length) return;
             gsap.set(chars, { opacity: 0, y: 26 });
+            const triggerEl = node.closest('h2') ?? node;
             gsap.to(chars, {
               scrollTrigger: {
-                trigger: node,
+                trigger: triggerEl,
                 start: 'top 88%',
                 toggleActions: 'play none none none',
               },

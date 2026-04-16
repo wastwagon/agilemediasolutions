@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import SectionHeader from '../../components/SectionHeader';
+import SectionHeader from '@/components/SectionHeader';
 import { type AppLocale } from '@/lib/locale';
 import { useLocale } from '@/components/LocaleProvider';
 import { getSectorsPageDefaults } from '@/lib/i18n/pageDefaults';

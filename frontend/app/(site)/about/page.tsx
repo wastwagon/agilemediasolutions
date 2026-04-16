@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import ParallaxImage from '../../components/ParallaxImage';
+import ParallaxImage from '@/components/ParallaxImage';
 import Link from 'next/link';
 import { withLocalePrefix } from '@/lib/locale';
 import { useLocale } from '@/components/LocaleProvider';
