@@ -783,7 +783,8 @@ const ensureInsightsSchema = async () => {
   );
 };
 
-const ensureAppSchemaAndSeed = async () => {
+/** CMS + public API DDL (idempotent). Does not run content seed — safe before public reads. */
+const ensureAppSchemaTables = async () => {
   if (!pgPool) return;
   await ensureCoreSchema();
   await pgPool.query(`
@@ -884,6 +885,11 @@ const ensureAppSchemaAndSeed = async () => {
   await ensurePageContentCardsTable();
   await ensureAdminAuditLogsTable();
   await ensureSiteAnalyticsTable();
+};
+
+const ensureAppSchemaAndSeed = async () => {
+  await ensureAppSchemaTables();
+  if (!pgPool) return;
   await seedAgileContent(pgPool);
 };
 
@@ -1354,6 +1360,7 @@ app.post('/api/newsletter', async (req, res) => {
 app.get('/api/brands', async (req, res) => {
   if (!pgPool) return res.status(503).json({ error: 'Database not available' });
   try {
+    await ensureAppSchemaTables();
     const result = await pgPool.query('SELECT * FROM brands ORDER BY order_index ASC');
     res.json(result.rows);
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -1384,6 +1391,7 @@ app.post('/api/brands', authenticateToken, async (req, res) => {
 app.get('/api/sectors', async (req, res) => {
   if (!pgPool) return res.status(503).json({ error: 'Database not available' });
   try {
+    await ensureAppSchemaTables();
     const result = await pgPool.query('SELECT * FROM sectors ORDER BY order_index ASC');
     res.json(result.rows);
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -1469,6 +1477,7 @@ app.delete('/api/brands/:id', authenticateToken, async (req, res) => {
 app.get('/api/services', async (req, res) => {
   if (!pgPool) return res.status(503).json({ error: 'Database not available' });
   try {
+    await ensureAppSchemaTables();
     const result = await pgPool.query('SELECT * FROM services ORDER BY order_index ASC');
     res.json(result.rows);
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -1856,6 +1865,7 @@ app.delete('/api/page-content-cards/:id', authenticateToken, async (req, res) =>
 app.get('/api/events', async (req, res) => {
   if (!pgPool) return res.status(503).json({ error: 'Database not available' });
   try {
+    await ensureAppSchemaTables();
     const result = await pgPool.query('SELECT * FROM events ORDER BY order_index ASC, created_at DESC');
     res.json(result.rows);
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -1920,6 +1930,7 @@ app.delete('/api/events/:id', authenticateToken, async (req, res) => {
 app.get('/api/case-studies', async (req, res) => {
   if (!pgPool) return res.status(503).json({ error: 'Database not available' });
   try {
+    await ensureAppSchemaTables();
     const result = await pgPool.query('SELECT * FROM case_studies ORDER BY order_index ASC, created_at DESC');
     res.json(result.rows);
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -1979,7 +1990,7 @@ app.delete('/api/case-studies/:id', authenticateToken, async (req, res) => {
 app.get('/api/pages', authenticateToken, async (req, res) => {
   if (!pgPool) return res.status(503).json({ error: 'Database not available' });
   try {
-    await ensureCoreSchema();
+    await ensureAppSchemaTables();
     const result = await pgPool.query('SELECT id, slug, title, description, status, published_at, created_at, updated_at FROM pages ORDER BY updated_at DESC');
     res.json(result.rows);
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -1988,7 +1999,7 @@ app.get('/api/pages', authenticateToken, async (req, res) => {
 app.get('/api/pages/:slug', async (req, res) => {
   if (!pgPool) return res.status(503).json({ error: 'Database not available' });
   try {
-    await ensureCoreSchema();
+    await ensureAppSchemaTables();
     const user = getAuthUserFromRequest(req);
     const result = user
       ? await pgPool.query('SELECT * FROM pages WHERE slug = $1', [req.params.slug])
@@ -2056,7 +2067,7 @@ app.delete('/api/pages/:id', authenticateToken, async (req, res) => {
 app.get('/api/public/published-cms-pages', async (req, res) => {
   if (!pgPool) return res.status(503).json({ error: 'Database not available' });
   try {
-    await ensureCoreSchema();
+    await ensureAppSchemaTables();
     const result = await pgPool.query(
       `SELECT slug, updated_at FROM pages
        WHERE status = 'published' AND NOT (slug = ANY($1::text[]))
