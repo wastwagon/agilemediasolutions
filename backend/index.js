@@ -553,6 +553,7 @@ const uploadVideo = multer({
 
 const ensureCoreSchema = async () => {
   if (!pgPool) return;
+  // One statement per round-trip (PgBouncer transaction mode, some proxies).
   await pgPool.query(`
     CREATE TABLE IF NOT EXISTS admin_users (
       id SERIAL PRIMARY KEY,
@@ -561,7 +562,8 @@ const ensureCoreSchema = async () => {
       email TEXT NOT NULL UNIQUE,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
-
+  `);
+  await pgPool.query(`
     CREATE TABLE IF NOT EXISTS pages (
       id SERIAL PRIMARY KEY,
       slug TEXT NOT NULL UNIQUE,
@@ -787,6 +789,7 @@ const ensureInsightsSchema = async () => {
 const ensureAppSchemaTables = async () => {
   if (!pgPool) return;
   await ensureCoreSchema();
+  // One CREATE per round-trip (same rationale as ensureSiteAnalyticsTable).
   await pgPool.query(`
     CREATE TABLE IF NOT EXISTS contact_messages (
       id SERIAL PRIMARY KEY,
@@ -797,13 +800,15 @@ const ensureAppSchemaTables = async () => {
       status TEXT DEFAULT 'new',
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
-
+  `);
+  await pgPool.query(`
     CREATE TABLE IF NOT EXISTS newsletter_subscribers (
       id SERIAL PRIMARY KEY,
       email TEXT NOT NULL UNIQUE,
       subscribed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
-
+  `);
+  await pgPool.query(`
     CREATE TABLE IF NOT EXISTS brands (
       id SERIAL PRIMARY KEY,
       name TEXT NOT NULL,
@@ -816,7 +821,8 @@ const ensureAppSchemaTables = async () => {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
-
+  `);
+  await pgPool.query(`
     CREATE TABLE IF NOT EXISTS services (
       id SERIAL PRIMARY KEY,
       title TEXT NOT NULL,
@@ -827,7 +833,8 @@ const ensureAppSchemaTables = async () => {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
-
+  `);
+  await pgPool.query(`
     CREATE TABLE IF NOT EXISTS events (
       id SERIAL PRIMARY KEY,
       title TEXT NOT NULL,
@@ -842,7 +849,8 @@ const ensureAppSchemaTables = async () => {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
-
+  `);
+  await pgPool.query(`
     CREATE TABLE IF NOT EXISTS case_studies (
       id SERIAL PRIMARY KEY,
       title TEXT NOT NULL,
@@ -854,7 +862,8 @@ const ensureAppSchemaTables = async () => {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
-
+  `);
+  await pgPool.query(`
     CREATE TABLE IF NOT EXISTS sectors (
       id SERIAL PRIMARY KEY,
       name TEXT NOT NULL,
