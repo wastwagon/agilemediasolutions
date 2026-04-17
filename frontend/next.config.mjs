@@ -1,9 +1,6 @@
 /** @type {import('next').NextConfig} */
-const rawBackendOrigin = process.env.BACKEND_INTERNAL_URL || "";
-const backendOrigin =
-  rawBackendOrigin.startsWith("http://backend:")
-    ? rawBackendOrigin
-    : "http://backend:4000";
+const rawBackendOrigin = (process.env.BACKEND_INTERNAL_URL || "").trim();
+const backendOrigin = rawBackendOrigin || "http://agile-backend:4000";
 
 function imageRemotePatterns() {
   /** @type {import('next/dist/shared/lib/image-config').RemotePattern[]} */
