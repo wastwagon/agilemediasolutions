@@ -12,6 +12,7 @@ export default function MobileTabBar() {
   const pathname = usePathname();
   const locale = useLocale();
   const plainPathname = stripLocalePrefix(pathname || '/');
+  const navDir = locale === 'ar' ? 'rtl' : 'ltr';
   const tabItems = [
     { label: t(locale, 'navHome'), href: '/', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg> },
     { label: t(locale, 'navSectors'), href: '/sectors', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg> },
@@ -21,7 +22,13 @@ export default function MobileTabBar() {
   ];
 
   return (
-    <nav className="mobile-tab-bar" aria-label="Primary mobile navigation">
+    <nav
+      className="mobile-tab-bar notranslate"
+      aria-label="Primary mobile navigation"
+      translate="no"
+      lang={locale}
+      dir={navDir}
+    >
       {tabItems.map((item) => {
         const hrefBase = item.isContact ? withLocalePrefix('/contact', locale) : item.href;
         const href = item.isContact ? `${hrefBase}#contact` : hrefBase;
@@ -35,7 +42,7 @@ export default function MobileTabBar() {
           aria-current={isActive ? 'page' : undefined}
         >
           <div className="tab-icon">{item.icon}</div>
-          <span className="tab-label">{item.label}</span>
+          <span className="tab-label" lang={locale} dir={navDir}>{item.label}</span>
         </Link>
         );
       })}

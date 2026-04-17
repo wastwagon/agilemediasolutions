@@ -94,3 +94,14 @@ Use intent-first messages:
 
 - `main` deploys via Coolify.
 - If deploy fails, check Coolify logs first and share actionable errors.
+
+## 8) CMS translation-safe checklist
+
+When editing Site Content in admin:
+
+- Keep short labels short (menu/button/chrome fields should stay under ~80 chars).
+- Never paste raw JSON payloads into text fields.
+- For locale labels, keep language names canonical:
+  - English, Français, Português, العربية
+- For Arabic-facing UI text, use natural Arabic copy (avoid mixed placeholders or transliterated fragments).
+- If a field suddenly renders garbled text, clear that field and rely on code defaults before re-entering content.
