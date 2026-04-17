@@ -1064,22 +1064,42 @@ const getAuthUserFromRequest = (req) => {
   return getVerifiedAuthUser(req);
 };
 
-// Health Check
+// Liveness — HTTP 200 if the Node process responds (no database).
+app.get('/api/health/live', (_req, res) => {
+  res.status(200).json({ status: 'ok', check: 'liveness' });
+});
+
+// Readiness — HTTP 503 unless Postgres accepts a simple query (for proxies / Coolify / compose depends_on).
 app.get('/api/health', async (req, res) => {
-  const result = { status: 'ok' };
+  if (!pgPool) {
+    return res.status(503).json({
+      status: 'unhealthy',
+      postgres: 'not_configured',
+      hint: 'DATABASE_URL is missing or not loaded in this process.',
+    });
+  }
   try {
-    if (pgPool) {
-      await pgPool.query('SELECT 1');
-      result.postgres = 'up';
-    }
-    if (redisClient) {
+    await pgPool.query('SELECT 1');
+  } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    return res.status(503).json({
+      status: 'unhealthy',
+      postgres: 'down',
+      error: IS_PRODUCTION ? 'Database unreachable or query failed' : String(err?.message || err),
+    });
+  }
+
+  const result = { status: 'ok', postgres: 'up' };
+  if (redisClient) {
+    try {
       await redisClient.ping();
       result.redis = 'up';
+    } catch {
+      result.redis = 'down';
+      result.status = 'degraded';
     }
-  } catch (err) {
-    result.status = 'degraded';
   }
-  res.json(result);
+  res.status(200).json(result);
 });
 
 // Schema readiness check (useful for remote deploy debugging)
@@ -2463,7 +2483,7 @@ const start = async () => {
     console.error('Startup migration/seed failed:', err?.message || err);
     console.error(
       IS_PRODUCTION
-        ? 'Continuing anyway so /api/health can pass; fix DB connectivity or SQL errors and redeploy, or run Admin → Run migrations when the API is up.'
+        ? 'Continuing anyway; GET /api/health returns 503 until Postgres accepts connections. Use GET /api/health/live for process-only liveness. Fix DB connectivity or SQL errors and redeploy, or run Admin → Run migrations when the API is up.'
         : 'Dev mode: server still starting.'
     );
   }
