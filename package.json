@@ -1,0 +1,9 @@
+{
+  "name": "agile-media-solution",
+  "private": true,
+  "scripts": {
+    "sync:reserved-slugs": "node scripts/sync-reserved-slugs.js",
+    "verify:reserved-slugs": "node scripts/sync-reserved-slugs.js --check",
+    "db:sanitize-pages": "npm run db:sanitize-pages --prefix backend"
+  }
+}

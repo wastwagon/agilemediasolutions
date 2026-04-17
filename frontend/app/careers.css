@@ -1,0 +1,497 @@
+/* ============================================
+   Careers page — complete layout & design
+   Uses Agile Media design tokens from styles.css
+   ============================================ */
+
+/* ---- Page shell ---- */
+.careers-page-main {
+    min-height: 100vh;
+}
+
+.section-careers-page {
+  padding: 0;
+  background: var(--color-bg);
+}
+
+/* ---- Hero block (full-bleed dark) ---- */
+.careers-hero {
+  background: #111111;
+  color: #FFFFFF;
+  padding: clamp(3rem, 8vw, 5rem) var(--space-xl);
+}
+
+.careers-hero-inner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  text-align: center;
+}
+
+.careers-label {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--color-electric-blue);
+  margin-bottom: var(--space-md);
+}
+
+.careers-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 4.5vw, 2.75rem);
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0 0 var(--space-xl);
+  max-width: 20ch;
+  margin-left: auto;
+  margin-right: auto;
+  color: #FFFFFF;
+}
+
+.careers-tagline {
+  font-size: clamp(0.95rem, 1.8vw, 1.1rem);
+  line-height: 1.75;
+  color: rgba(255, 255, 255, 0.9);
+  max-width: 640px;
+  margin: 0 auto var(--space-lg);
+}
+
+.careers-intro {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.85);
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+/* ---- Content area ---- */
+.careers-content {
+  padding: var(--space-3xl) var(--space-xl);
+  background: var(--color-bg-alt);
+}
+
+.careers-grid {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-xl);
+}
+
+/* ---- Card blocks (Why Work With Us, Who We're Looking For, Culture) ---- */
+.careers-block.careers-card {
+  background: var(--color-bg);
+  border-radius: var(--radius-lg);
+  padding: var(--space-2xl);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--duration-normal) var(--ease-out), border-color var(--duration-normal);
+}
+
+.careers-block.careers-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: rgba(79, 143, 135, 0.2);
+}
+
+.careers-heading {
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 2.2vw, 1.5rem);
+  font-weight: 700;
+  color: var(--color-dark-blue);
+  margin: 0 0 var(--space-lg);
+  padding-bottom: var(--space-md);
+  border-bottom: 2px solid var(--color-electric-blue);
+  display: inline-block;
+}
+
+.careers-block .section-text {
+  margin-bottom: var(--space-md);
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
+}
+
+.careers-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.careers-list li {
+  position: relative;
+  padding-left: 1.5rem;
+  margin-bottom: var(--space-sm);
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: var(--color-text);
+}
+
+.careers-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.5em;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-electric-blue);
+}
+
+.careers-list li strong {
+  color: var(--color-dark-blue);
+  font-weight: 600;
+}
+
+/* ---- Opportunities (4-card grid) ---- */
+.careers-block.careers-opportunities {
+  grid-column: 1 / -1;
+  background: var(--color-bg);
+  border-radius: var(--radius-lg);
+  padding: var(--space-2xl);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.careers-block.careers-opportunities .careers-heading {
+  margin-bottom: var(--space-xl);
+}
+
+.careers-opportunities-grid {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-lg);
+}
+
+.careers-opportunity-card {
+  background: var(--color-bg-alt);
+  border-radius: var(--radius);
+  padding: var(--space-xl);
+  border: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  transition: transform var(--duration-fast) var(--ease-out), box-shadow var(--duration-normal), border-color var(--duration-normal);
+}
+
+.careers-opportunity-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-electric-blue);
+}
+
+.careers-opportunity-title {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--color-dark-blue);
+  display: block;
+}
+
+.careers-opportunity-desc {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+/* Culture block can span full width for emphasis */
+.careers-block.careers-culture {
+  grid-column: 1 / -1;
+}
+
+.careers-block.careers-culture .careers-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0 var(--space-2xl);
+}
+
+/* ---- CTA strip ---- */
+.careers-cta-strip {
+  background: #111111;
+  color: #FFFFFF;
+  padding: var(--space-3xl) var(--space-xl);
+  margin-top: var(--space-3xl);
+}
+
+.careers-cta-inner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  text-align: center;
+}
+
+.careers-cta-text {
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 2.5vw, 1.75rem);
+  font-weight: 600;
+  margin: 0 0 var(--space-xl);
+  color: #FFFFFF;
+}
+
+.careers-cta-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  justify-content: center;
+}
+
+.btn-careers-primary {
+  background: var(--color-electric-blue);
+  color: #FFFFFF;
+  padding: 0.85rem 1.75rem;
+  font-weight: 600;
+  border-radius: var(--radius);
+  text-decoration: none;
+  border: 2px solid var(--color-electric-blue);
+  transition: background var(--duration-normal), border-color var(--duration-normal), color var(--duration-normal);
+}
+
+.btn-careers-primary:hover {
+  background: var(--color-cyan);
+  border-color: var(--color-cyan);
+  color: #FFFFFF;
+}
+
+.btn-careers-outline {
+  background: transparent;
+  color: #FFFFFF;
+  padding: 0.85rem 1.75rem;
+  font-weight: 600;
+  border-radius: var(--radius);
+  text-decoration: none;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  transition: background var(--duration-normal), border-color var(--duration-normal), color var(--duration-normal);
+}
+
+.btn-careers-outline:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #FFFFFF;
+  color: #FFFFFF;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 900px) {
+  .careers-opportunities-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .careers-block.careers-culture .careers-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .careers-hero {
+    padding: var(--space-2xl) var(--space-lg);
+  }
+
+  .careers-content {
+    padding: var(--space-2xl) var(--space-lg);
+  }
+
+  .careers-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-lg);
+  }
+
+  .careers-block.careers-opportunities {
+    grid-column: 1;
+  }
+
+  .careers-block.careers-culture {
+    grid-column: 1;
+  }
+
+  .careers-opportunities-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .careers-cta-strip {
+    padding: var(--space-2xl) var(--space-lg);
+    margin-top: var(--space-2xl);
+  }
+
+  .careers-cta-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .careers-cta-buttons .btn {
+    display: block;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .careers-title {
+    max-width: none;
+  }
+}
+
+/* Careers page consistency pass: match inner-page dark theme. */
+.careers-page-main.creative-public-page .section-careers-page,
+.careers-page-main.creative-public-page .careers-content {
+  background: transparent;
+}
+
+.careers-page-main.creative-public-page .careers-hero {
+  background:
+    linear-gradient(125deg, rgba(8, 8, 10, 0.9), rgba(13, 33, 59, 0.55) 48%, rgba(17, 24, 39, 0.86)),
+    radial-gradient(40rem 22rem at 78% 16%, rgba(44, 80, 74, 0.26), transparent 72%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.careers-page-main.creative-public-page .careers-label {
+  color: #99f6e4;
+}
+
+.careers-page-main.creative-public-page .careers-title {
+  color: #f8fafc;
+  text-shadow: 0 10px 28px rgba(6, 11, 20, 0.22);
+}
+
+.careers-page-main.creative-public-page .careers-tagline,
+.careers-page-main.creative-public-page .careers-intro {
+  color: rgba(248, 250, 252, 0.86);
+}
+
+.careers-page-main.creative-public-page .careers-card,
+.careers-page-main.creative-public-page .careers-opportunities,
+.careers-page-main.creative-public-page .careers-opportunity-card {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 20px 36px -30px rgba(0, 0, 0, 0.62);
+}
+
+.careers-page-main.creative-public-page .careers-heading,
+.careers-page-main.creative-public-page .careers-opportunity-title {
+  color: #f8fafc;
+  border-bottom-color: rgba(153, 246, 228, 0.45);
+}
+
+.careers-page-main.creative-public-page .careers-list li,
+.careers-page-main.creative-public-page .careers-opportunity-desc,
+.careers-page-main.creative-public-page .careers-block .section-text {
+  color: rgba(248, 250, 252, 0.8);
+}
+
+.careers-page-main.creative-public-page .careers-list li::before {
+  background: #99f6e4;
+}
+
+.careers-page-main.creative-public-page .careers-cta-strip {
+  background: transparent;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* Premium layout refinement for careers main body. */
+.careers-page-main.creative-public-page .careers-content {
+  position: relative;
+}
+
+.careers-page-main.creative-public-page .careers-content::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(42rem 18rem at 8% 6%, rgba(153, 246, 228, 0.08), transparent 65%),
+    radial-gradient(40rem 20rem at 92% 92%, rgba(59, 130, 246, 0.08), transparent 68%);
+  pointer-events: none;
+}
+
+.careers-page-main.creative-public-page .careers-grid {
+  position: relative;
+  z-index: 1;
+  gap: clamp(1rem, 2.2vw, 1.4rem);
+}
+
+.careers-page-main.creative-public-page .careers-card,
+.careers-page-main.creative-public-page .careers-opportunities {
+  border-radius: 20px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 24px 42px -30px rgba(2, 6, 23, 0.72);
+}
+
+.careers-page-main.creative-public-page .careers-heading {
+  font-size: clamp(1.35rem, 2.2vw, 1.7rem);
+  margin-bottom: 1rem;
+  border-bottom: none;
+  display: block;
+  padding-bottom: 0;
+}
+
+.careers-page-main.creative-public-page .careers-heading::after {
+  content: '';
+  display: block;
+  width: 6rem;
+  height: 2px;
+  margin-top: 0.65rem;
+  background: linear-gradient(90deg, rgba(153, 246, 228, 0.95), rgba(153, 246, 228, 0.1));
+}
+
+.careers-page-main.creative-public-page .careers-intro-copy {
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+  color: rgba(226, 232, 240, 0.86);
+}
+
+.careers-page-main.creative-public-page .careers-list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.careers-page-main.creative-public-page .careers-list li {
+  margin-bottom: 0;
+  padding: 0.6rem 0.7rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: grid;
+  grid-template-columns: 2.3rem 1fr;
+  align-items: start;
+  gap: 0.5rem;
+  line-height: 1.52;
+}
+
+.careers-page-main.creative-public-page .careers-list li::before {
+  display: none;
+}
+
+.careers-page-main.creative-public-page .careers-list-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 1.3rem;
+  border-radius: 999px;
+  border: 1px solid rgba(153, 246, 228, 0.42);
+  color: rgba(153, 246, 228, 0.95);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  margin-top: 0.1rem;
+}
+
+.careers-page-main.creative-public-page .careers-list-text {
+  display: block;
+  color: rgba(248, 250, 252, 0.84);
+}
+
+.careers-page-main.creative-public-page .careers-opportunities-grid {
+  gap: 0.9rem;
+}
+
+.careers-page-main.creative-public-page .careers-opportunity-card {
+  border-radius: 14px;
+  padding: 1rem 1rem 0.95rem;
+}
+
+.careers-page-main.creative-public-page .careers-opportunity-kicker {
+  display: inline-flex;
+  width: fit-content;
+  font-size: 0.64rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: rgba(153, 246, 228, 0.9);
+  margin-bottom: 0.35rem;
+  font-weight: 700;
+}

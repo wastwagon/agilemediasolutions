@@ -1,0 +1,7 @@
+# Optional: run only the Next.js frontend from this folder.
+# For API + DB, use docker-compose.yml at the repository root.
+services:
+  web:
+    build: .
+    ports:
+      - "3000:3000"

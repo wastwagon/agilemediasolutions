@@ -1,0 +1,54 @@
+/* Template-aligned display fonts (self-host licensed copies in production). */
+@font-face {
+  font-family: 'Basementgrotesque V 1';
+  src: url('https://cdn.prod.website-files.com/696959e4ed1e5a9d6799a34f/69695a827eab0632c6b57fb9_BasementGrotesque-Black_v1.202.otf')
+    format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Basementgrotesque V 1';
+  src: url('https://cdn.prod.website-files.com/696959e4ed1e5a9d6799a34f/69695a827eab0632c6b57fb9_BasementGrotesque-Black_v1.202.otf')
+    format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Basementgrotesque V 1';
+  src: url('https://cdn.prod.website-files.com/696959e4ed1e5a9d6799a34f/69695a827eab0632c6b57fb9_BasementGrotesque-Black_v1.202.otf')
+    format('opentype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: Creatodisplay;
+  src: url('https://cdn.prod.website-files.com/696959e4ed1e5a9d6799a34f/69695af145c5b73713dd37bb_CreatoDisplay-Light.otf')
+    format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: Creatodisplay;
+  src: url('https://cdn.prod.website-files.com/696959e4ed1e5a9d6799a34f/69695b0387ab77336eb08471_CreatoDisplay-Bold.otf')
+    format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: Creatodisplay;
+  src: url('https://cdn.prod.website-files.com/696959e4ed1e5a9d6799a34f/69695b18b7ab2337edf98d10_CreatoDisplay-Medium.otf')
+    format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}

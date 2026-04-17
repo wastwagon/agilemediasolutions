@@ -1,0 +1,111 @@
+# Full stack in Docker with bind mounts + hot reload (frontend/backend).
+# From repo root: ./scripts/dev-docker.sh   OR   docker compose -f docker-compose.dev.yml --env-file .env up
+# Copy .env from .env.example first; dev defaults match .env.example ports.
+# Frontend: source from ./frontend is mounted — edits show without rebuilding an image.
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-agile_db}
+      POSTGRES_USER: ${POSTGRES_USER:-agile_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-agile_password}
+    ports:
+      - "${POSTGRES_EXT_PORT:-11200}:5432"
+    volumes:
+      - dev_postgres_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-agile_user} -d ${POSTGRES_DB:-agile_db}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+      start_period: 20s
+    networks:
+      - dev
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "${REDIS_EXT_PORT:-11201}:6379"
+    volumes:
+      - dev_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+      start_period: 20s
+    networks:
+      - dev
+
+  frontend:
+    image: node:20-alpine
+    working_dir: /app
+    command: sh -c "npm install && npm run dev -- --hostname 0.0.0.0 --port 3000"
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_SITE_NAME=${NEXT_PUBLIC_SITE_NAME:-Agile Media Solutions}
+      # Browser-visible URL for OG etc.; default matches FRONTEND_PORT mapping below.
+      - NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL:-http://localhost:8085}
+      - BACKEND_INTERNAL_URL=${BACKEND_INTERNAL_URL:-http://backend:4000}
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+    ports:
+      - "${FRONTEND_PORT:-8085}:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - dev
+
+  backend:
+    image: node:20-alpine
+    working_dir: /usr/src/app
+    command: sh -c "npm install && npm run dev"
+    healthcheck:
+      test: ["CMD", "node", "scripts/healthcheck.js"]
+      interval: 8s
+      timeout: 12s
+      retries: 12
+      start_period: 90s
+    environment:
+      - PORT=${BACKEND_PORT:-4000}
+      - NODE_ENV=development
+      - DATABASE_URL=postgres://${POSTGRES_USER:-agile_user}:${POSTGRES_PASSWORD:-agile_password}@postgres:5432/${POSTGRES_DB:-agile_db}
+      - REDIS_URL=redis://redis:6379
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:8085}
+      - JWT_SECRET=${JWT_SECRET:-agile_media_change_me_in_production}
+      - CHOKIDAR_USEPOLLING=true
+    volumes:
+      - ./backend:/usr/src/app
+      - backend_node_modules:/usr/src/app/node_modules
+      - ./backend/uploads:/usr/src/app/uploads
+    ports:
+      - "${BACKEND_EXT_PORT:-4005}:${BACKEND_PORT:-4000}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - dev
+
+volumes:
+  frontend_node_modules:
+  backend_node_modules:
+  dev_postgres_data:
+  dev_redis_data:
+
+networks:
+  dev:
+    driver: bridge

@@ -1,0 +1,121 @@
+# Multi-app VPS: set a unique COMPOSE_PROJECT_NAME per Coolify resource (or unique folder name)
+# so volume names stay distinct. Avoid duplicate host ports (FRONTEND_PORT, BACKEND_EXT_PORT, etc.).
+#
+# Frontend in this file is a production image (next build + standalone). Code edits do not appear
+# until you rebuild: docker compose --env-file .env build frontend && docker compose --env-file .env up -d frontend
+#
+# Local UI work without rebuilding the image — pick one:
+#   ./scripts/dev-hot.sh          Next hot reload on http://localhost:3000 + API/db in Docker
+#   ./scripts/dev-docker.sh       Full stack in Docker with bind-mounted next dev on FRONTEND_PORT (default 8085)
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_SITE_NAME=${NEXT_PUBLIC_SITE_NAME:-Agile Media Solutions}
+        - NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL:-https://agile-media.com}
+        - BACKEND_INTERNAL_URL=${BACKEND_INTERNAL_URL:-http://backend:4000}
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_SITE_NAME=${NEXT_PUBLIC_SITE_NAME:-Agile Media Solutions}
+      - NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL:-https://agile-media.com}
+    ports:
+      - "${FRONTEND_PORT:-8085}:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "scripts/healthcheck.js"]
+      interval: 15s
+      timeout: 12s
+      retries: 8
+      start_period: 60s
+    networks:
+      - coolify
+
+  # If deploy fails with "backend is unhealthy": check container logs — JWT_SECRET and CORS_ORIGIN must
+  # be set for production (not placeholders), and Postgres must accept connections. Migration errors no longer stop the server.
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      - PORT=${BACKEND_PORT:-4000}
+      - NODE_ENV=production
+      # If DATABASE_URL is unset, derive from the same POSTGRES_* as the postgres service (avoids password drift).
+      # Coolify: if you still see "password authentication failed", delete DATABASE_URL from the resource env so this default applies, or set it to match POSTGRES_PASSWORD exactly. External DB: set DATABASE_URL explicitly.
+      # Avoid raw @ : / ? # in POSTGRES_PASSWORD unless URL-encoded in DATABASE_URL.
+      - DATABASE_URL=${DATABASE_URL:-postgres://${POSTGRES_USER:-agile_user}:${POSTGRES_PASSWORD:-agile_password}@postgres:5432/${POSTGRES_DB:-agile_db}}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - CORS_ORIGIN=${CORS_ORIGIN:?Set CORS_ORIGIN to your public frontend URL}
+      - JWT_SECRET=${JWT_SECRET:?Set JWT_SECRET to a long random secret}
+    ports:
+      - "${BACKEND_EXT_PORT:-4005}:${BACKEND_PORT:-4000}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      # node:20-alpine has no wget; use Node (see backend/scripts/healthcheck.js)
+      test: ["CMD", "node", "scripts/healthcheck.js"]
+      interval: 15s
+      timeout: 12s
+      retries: 8
+      start_period: 120s
+    volumes:
+      - ./backend/uploads:/usr/src/app/uploads
+    networks:
+      - coolify
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-agile_db}
+      - POSTGRES_USER=${POSTGRES_USER:-agile_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-agile_password}
+    ports:
+      - "${POSTGRES_EXT_PORT:-11200}:5432"
+    volumes:
+      - modern_postgres_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-agile_user} -d ${POSTGRES_DB:-agile_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+      start_period: 20s
+    networks:
+      - coolify
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "${REDIS_EXT_PORT:-11201}:6379"
+    volumes:
+      - modern_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+      start_period: 20s
+    networks:
+      - coolify
+
+# Local Docker Desktop: bridge network is created automatically.
+# Coolify: services still resolve by compose service name on the project network; use an override only if your host must join an existing external network.
+networks:
+  coolify:
+    driver: bridge
+
+volumes:
+  modern_postgres_data:
+  modern_redis_data:
+
