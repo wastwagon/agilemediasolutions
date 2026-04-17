@@ -910,6 +910,38 @@ const ensureAppSchemaAndSeed = async () => {
 
 const pgPool = DATABASE_URL ? new Pool({ connectionString: DATABASE_URL }) : null;
 
+const isDatabaseConnectionOrAuthError = (err) => {
+  if (!err) return false;
+  const code = err.code;
+  const msg = String(err.message || err);
+  if (code === '28P01' || code === 'ECONNREFUSED' || code === 'ENOTFOUND' || code === 'ETIMEDOUT') return true;
+  if (/password authentication failed/i.test(msg)) return true;
+  if (/no pg_hba\.conf entry/i.test(msg)) return true;
+  if (/could not connect to server/i.test(msg)) return true;
+  return false;
+};
+
+let databaseMisconfigLogged = false;
+
+/** When Postgres rejects credentials or is unreachable, respond once with 503 and a safe hint. */
+function respondIfDatabaseConnectionFailure(res, err, req) {
+  if (!isDatabaseConnectionOrAuthError(err)) return false;
+  if (!databaseMisconfigLogged) {
+    databaseMisconfigLogged = true;
+    const ctx = req ? `${req.method} ${req.originalUrl || req.url || ''}`.slice(0, 160) : 'request';
+    console.error(
+      `[database] ${ctx} — ${err.code || 'ERR'}: ${err.message}. Verify DATABASE_URL matches Postgres (existing volumes keep the original role password).`
+    );
+  }
+  res.status(503).json({
+    error: 'Service temporarily unavailable',
+    code: 'database_unavailable',
+    hint:
+      'PostgreSQL rejected the connection or credentials. Set DATABASE_URL to match your database user password (see .env.example).',
+  });
+  return true;
+}
+
 let redisClient = null;
 
 function isRedisAuthFailureMessage(msg) {
@@ -1080,6 +1112,7 @@ app.get('/api/health/schema', async (req, res) => {
       },
     });
   } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ ok: false, error: err.message });
   }
 });
@@ -1121,6 +1154,7 @@ app.post('/api/auth/login', async (req, res) => {
     await recordLoginFailureUnified(attemptKey);
     res.status(401).json({ error: 'Invalid credentials' });
   } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     await recordLoginFailureUnified(attemptKey);
     res.status(500).json({ error: 'Server error' });
   }
@@ -1247,6 +1281,7 @@ app.get('/api/media', authenticateToken, async (req, res) => {
 
     res.json(result.rows);
   } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1266,6 +1301,7 @@ app.delete('/api/media/:id', authenticateToken, async (req, res) => {
     }
     res.json({ success: true });
   } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1282,6 +1318,7 @@ app.put('/api/media/:id', authenticateToken, async (req, res) => {
     if (result.rows.length === 0) return res.status(404).json({ error: 'Media asset not found' });
     res.json(result.rows[0]);
   } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1294,6 +1331,7 @@ app.get('/api/site-sections', authenticateToken, async (req, res) => {
     const result = await pgPool.query('SELECT section_key, content_json, updated_at FROM site_sections ORDER BY section_key ASC');
     res.json(result.rows);
   } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1324,6 +1362,7 @@ app.put('/api/site-sections/:key', authenticateToken, async (req, res) => {
     res.json(result.rows[0]);
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1339,6 +1378,7 @@ app.get('/api/public/site-sections', async (req, res) => {
     }
     res.json(map);
   } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1377,6 +1417,7 @@ app.post('/api/public/analytics', async (req, res) => {
     );
     res.status(201).json({ ok: true });
   } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: 'Could not record event' });
   }
 });
@@ -1399,6 +1440,7 @@ app.post('/api/newsletter', async (req, res) => {
     res.status(201).json({ success: true });
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: 'Internal error' });
   }
 });
@@ -1410,7 +1452,10 @@ app.get('/api/brands', async (req, res) => {
     await ensureAppSchemaTables();
     const result = await pgPool.query('SELECT * FROM brands ORDER BY order_index ASC');
     res.json(result.rows);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.post('/api/brands', authenticateToken, async (req, res) => {
@@ -1430,6 +1475,7 @@ app.post('/api/brands', authenticateToken, async (req, res) => {
     res.status(201).json(result.rows[0]);
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1441,7 +1487,10 @@ app.get('/api/sectors', async (req, res) => {
     await ensureAppSchemaTables();
     const result = await pgPool.query('SELECT * FROM sectors ORDER BY order_index ASC');
     res.json(result.rows);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.post('/api/sectors', authenticateToken, async (req, res) => {
@@ -1459,6 +1508,7 @@ app.post('/api/sectors', authenticateToken, async (req, res) => {
     res.status(201).json(result.rows[0]);
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1467,7 +1517,10 @@ app.delete('/api/sectors/:id', authenticateToken, async (req, res) => {
   try {
     await pgPool.query('DELETE FROM sectors WHERE id = $1', [req.params.id]);
     res.json({ success: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.put('/api/sectors/:id', authenticateToken, async (req, res) => {
@@ -1486,6 +1539,7 @@ app.put('/api/sectors/:id', authenticateToken, async (req, res) => {
     res.json(result.rows[0]);
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1508,6 +1562,7 @@ app.put('/api/brands/:id', authenticateToken, async (req, res) => {
     res.json(result.rows[0]);
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1517,7 +1572,10 @@ app.delete('/api/brands/:id', authenticateToken, async (req, res) => {
     const result = await pgPool.query('DELETE FROM brands WHERE id = $1 RETURNING *', [req.params.id]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'Brand not found' });
     res.json({ message: 'Brand deleted successfully' });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Services
@@ -1527,7 +1585,10 @@ app.get('/api/services', async (req, res) => {
     await ensureAppSchemaTables();
     const result = await pgPool.query('SELECT * FROM services ORDER BY order_index ASC');
     res.json(result.rows);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.post('/api/services', authenticateToken, async (req, res) => {
@@ -1545,6 +1606,7 @@ app.post('/api/services', authenticateToken, async (req, res) => {
     res.status(201).json(result.rows[0]);
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1565,6 +1627,7 @@ app.put('/api/services/:id', authenticateToken, async (req, res) => {
     res.json(result.rows[0]);
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1574,7 +1637,10 @@ app.delete('/api/services/:id', authenticateToken, async (req, res) => {
     const result = await pgPool.query('DELETE FROM services WHERE id = $1 RETURNING *', [req.params.id]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'Service not found' });
     res.json({ message: 'Service deleted successfully' });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Insight categories (admin CRUD; public GET for filters / display)
@@ -1587,6 +1653,7 @@ app.get('/api/insight-categories', async (req, res) => {
     );
     res.json(result.rows);
   } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1607,6 +1674,7 @@ app.post('/api/insight-categories', authenticateToken, async (req, res) => {
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
     if (err.code === '23505') return res.status(409).json({ error: 'Slug already in use' });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1628,6 +1696,7 @@ app.put('/api/insight-categories/:id', authenticateToken, async (req, res) => {
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
     if (err.code === '23505') return res.status(409).json({ error: 'Slug already in use' });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1642,6 +1711,7 @@ app.delete('/api/insight-categories/:id', authenticateToken, async (req, res) =>
     if (result.rows.length === 0) return res.status(404).json({ error: 'Category not found' });
     res.json({ message: 'Category deleted successfully' });
   } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1664,6 +1734,7 @@ app.get('/api/insight-posts', authenticateToken, async (req, res) => {
     );
     res.json(result.rows.map(shapeInsightPostRow));
   } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1683,6 +1754,7 @@ app.get('/api/public/insight-posts', async (req, res) => {
     );
     res.json(result.rows.map(shapeInsightPostRow));
   } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1700,6 +1772,7 @@ app.get('/api/public/insight-posts/:slug', async (req, res) => {
     res.json(shapeInsightPostRow(result.rows[0]));
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1742,6 +1815,7 @@ app.post('/api/insight-posts', authenticateToken, async (req, res) => {
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
     if (err.code === '23505') return res.status(409).json({ error: 'Slug already in use' });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1787,6 +1861,7 @@ app.put('/api/insight-posts/:id', authenticateToken, async (req, res) => {
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
     if (err.code === '23505') return res.status(409).json({ error: 'Slug already in use' });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1799,6 +1874,7 @@ app.delete('/api/insight-posts/:id', authenticateToken, async (req, res) => {
     if (result.rows.length === 0) return res.status(404).json({ error: 'Insight post not found' });
     res.json({ message: 'Insight post deleted successfully' });
   } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1820,6 +1896,7 @@ app.get('/api/page-content-cards', authenticateToken, async (req, res) => {
     res.json(result.rows.map(shapePageContentCardRow));
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1839,6 +1916,7 @@ app.get('/api/public/page-content-cards/:context', async (req, res) => {
     res.json(result.rows.map(shapePageContentCardRow));
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1865,6 +1943,7 @@ app.post('/api/page-content-cards', authenticateToken, async (req, res) => {
     res.status(201).json(shapePageContentCardRow(insert.rows[0]));
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1892,6 +1971,7 @@ app.put('/api/page-content-cards/:id', authenticateToken, async (req, res) => {
     res.json(shapePageContentCardRow(result.rows[0]));
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1904,6 +1984,7 @@ app.delete('/api/page-content-cards/:id', authenticateToken, async (req, res) =>
     if (result.rows.length === 0) return res.status(404).json({ error: 'Card not found' });
     res.json({ message: 'Card deleted successfully' });
   } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1915,7 +1996,10 @@ app.get('/api/events', async (req, res) => {
     await ensureAppSchemaTables();
     const result = await pgPool.query('SELECT * FROM events ORDER BY order_index ASC, created_at DESC');
     res.json(result.rows);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.post('/api/events', authenticateToken, async (req, res) => {
@@ -1937,6 +2021,7 @@ app.post('/api/events', authenticateToken, async (req, res) => {
     res.status(201).json(result.rows[0]);
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1961,6 +2046,7 @@ app.put('/api/events/:id', authenticateToken, async (req, res) => {
     res.json(result.rows[0]);
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1970,7 +2056,10 @@ app.delete('/api/events/:id', authenticateToken, async (req, res) => {
     const result = await pgPool.query('DELETE FROM events WHERE id = $1 RETURNING *', [req.params.id]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'Event not found' });
     res.json({ message: 'Event deleted successfully' });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Case Studies
@@ -1980,7 +2069,10 @@ app.get('/api/case-studies', async (req, res) => {
     await ensureAppSchemaTables();
     const result = await pgPool.query('SELECT * FROM case_studies ORDER BY order_index ASC, created_at DESC');
     res.json(result.rows);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.post('/api/case-studies', authenticateToken, async (req, res) => {
@@ -1999,6 +2091,7 @@ app.post('/api/case-studies', authenticateToken, async (req, res) => {
     res.status(201).json(result.rows[0]);
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -2021,6 +2114,7 @@ app.put('/api/case-studies/:id', authenticateToken, async (req, res) => {
     res.json(result.rows[0]);
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -2030,7 +2124,10 @@ app.delete('/api/case-studies/:id', authenticateToken, async (req, res) => {
     const result = await pgPool.query('DELETE FROM case_studies WHERE id = $1 RETURNING *', [req.params.id]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'Case study not found' });
     res.json({ message: 'Case study deleted successfully' });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Pages
@@ -2040,7 +2137,10 @@ app.get('/api/pages', authenticateToken, async (req, res) => {
     await ensureAppSchemaTables();
     const result = await pgPool.query('SELECT id, slug, title, description, status, published_at, created_at, updated_at FROM pages ORDER BY updated_at DESC');
     res.json(result.rows);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.get('/api/pages/:slug', async (req, res) => {
@@ -2054,6 +2154,7 @@ app.get('/api/pages/:slug', async (req, res) => {
     if (result.rows.length === 0) return res.status(404).json({ error: 'Page not found' });
     res.json(pageRowWithSanitizedContent(result.rows[0]));
   } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     if (IS_PRODUCTION) console.error('GET /api/pages/:slug', err?.message || err);
     res.status(500).json({ error: err.message });
   }
@@ -2076,6 +2177,7 @@ app.post('/api/pages', authenticateToken, async (req, res) => {
     res.status(201).json(pageRowWithSanitizedContent(result.rows[0]));
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -2098,6 +2200,7 @@ app.put('/api/pages/:slug', authenticateToken, async (req, res) => {
     res.json(pageRowWithSanitizedContent(result.rows[0]));
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -2107,7 +2210,10 @@ app.delete('/api/pages/:id', authenticateToken, async (req, res) => {
     const result = await pgPool.query('DELETE FROM pages WHERE id = $1 RETURNING *', [req.params.id]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'Page not found' });
     res.json({ message: 'Page deleted successfully' });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    res.status(500).json({ error: err.message });
+  }
 });
 
 /** Published CMS pages whose slugs are not taken by static Next routes (for sitemap, SEO). */
@@ -2123,6 +2229,7 @@ app.get('/api/public/published-cms-pages', async (req, res) => {
     );
     res.json(result.rows);
   } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -2151,6 +2258,7 @@ app.post('/api/contact', async (req, res) => {
     res.status(201).json({ success: true });
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: 'Internal error' });
   }
 });
@@ -2159,7 +2267,10 @@ app.get('/api/admin/contacts', authenticateToken, async (req, res) => {
   try {
     const result = await pgPool.query('SELECT * FROM contact_messages ORDER BY created_at DESC');
     res.json(result.rows);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.get('/api/admin/analytics/summary', authenticateToken, async (req, res) => {
@@ -2219,6 +2330,7 @@ app.get('/api/admin/analytics/summary', authenticateToken, async (req, res) => {
       byDay: (byDay.rows || []).map((r) => ({ day: r.d, count: r.c })),
     });
   } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -2251,6 +2363,7 @@ app.get('/api/admin/analytics/events', authenticateToken, async (req, res) => {
           );
     res.json(result.rows || []);
   } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -2298,6 +2411,7 @@ app.get('/api/admin/audit-logs', authenticateToken, async (req, res) => {
     );
     res.json(result.rows || []);
   } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message || 'Could not load audit logs' });
   }
 });
@@ -2312,7 +2426,10 @@ app.put('/api/admin/contacts/:id/status', authenticateToken, async (req, res) =>
     );
     if (result.rows.length === 0) return res.status(404).json({ error: 'Message not found' });
     res.json(result.rows[0]);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.delete('/api/admin/contacts/:id', authenticateToken, async (req, res) => {
@@ -2320,7 +2437,10 @@ app.delete('/api/admin/contacts/:id', authenticateToken, async (req, res) => {
     const result = await pgPool.query('DELETE FROM contact_messages WHERE id = $1 RETURNING *', [req.params.id]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'Message not found' });
     res.json({ success: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // System / Settings
@@ -2329,8 +2449,9 @@ app.post('/api/admin/run-migrations', authenticateToken, async (req, res) => {
   try {
     await ensureAppSchemaAndSeed();
     res.json({ success: true, message: 'Migration and seeding completed successfully.' });
-  } catch (err) { 
-    res.status(500).json({ error: err.message }); 
+  } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    res.status(500).json({ error: err.message });
   }
 });
 
