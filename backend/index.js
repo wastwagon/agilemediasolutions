@@ -2,6 +2,7 @@ require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 const morgan = require('morgan');
 const { Pool } = require('pg');
 const { createClient } = require('redis');
@@ -14,6 +15,7 @@ const path = require('path');
 const multer = require('multer');
 const { seedAgileContent } = require('./seedContent');
 const { sanitizePageContentJson, pageRowWithSanitizedContent } = require('./sanitizePageContent');
+const { fixedWindowRateLimitAllow } = require('./lib/fixedWindowRateLimit');
 const RESERVED_APP_SLUGS = require(path.join(__dirname, 'reserved-slugs.json'));
 
 const app = express();
@@ -66,8 +68,17 @@ const parsedCorsOrigins =
 if (IS_PRODUCTION) {
   app.set('trust proxy', 1);
 }
+app.use(
+  helmet({
+    // JSON API + admin uploads: avoid default CSP/COEP breaking embedded media or dev tooling.
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    strictTransportSecurity: IS_PRODUCTION ? { maxAge: 15552000, includeSubDomains: true } : false,
+  })
+);
 app.use(cors({ origin: parsedCorsOrigins, credentials: true }));
-app.use(express.json());
+app.use(express.json({ limit: '2mb' }));
 app.use(morgan('combined'));
 
 const loginAttemptStore = new Map();
@@ -118,6 +129,85 @@ const recordLoginFailure = (key) => {
 
 const clearLoginAttemptState = (key) => {
   loginAttemptStore.delete(key);
+};
+
+const loginRedisKey = (attemptKey) =>
+  `login:v1:${crypto.createHash('sha256').update(String(attemptKey), 'utf8').digest('hex')}`;
+
+const readLoginAttemptStateUnified = async (attemptKey) => {
+  const now = Date.now();
+  if (redisClient) {
+    try {
+      const raw = await redisClient.get(loginRedisKey(attemptKey));
+      if (raw) {
+        const o = JSON.parse(raw);
+        let state = {
+          count: Math.min(1000, Number(o.c) || 0),
+          windowStartedAt: Number(o.w) || now,
+          lockedUntil: Number(o.l) || 0,
+        };
+        if (now - state.windowStartedAt > LOGIN_WINDOW_MS) {
+          state = { count: 0, windowStartedAt: now, lockedUntil: state.lockedUntil || 0 };
+        }
+        return state;
+      }
+    } catch (err) {
+      const m = String(err?.message || err);
+      if (isRedisAuthFailureMessage(m)) disableRedisForAuthFailure(m);
+      else console.error('Redis login read:', m);
+    }
+  }
+  return readLoginAttemptState(attemptKey);
+};
+
+const saveLoginAttemptStateUnified = async (attemptKey, state) => {
+  if (redisClient) {
+    try {
+      const now = Date.now();
+      const ttl = Math.min(
+        86400,
+        Math.max(120, Math.ceil((Math.max(state.lockedUntil - now, 0) + LOGIN_WINDOW_MS * 2) / 1000))
+      );
+      await redisClient.set(
+        loginRedisKey(attemptKey),
+        JSON.stringify({ c: state.count, w: state.windowStartedAt, l: state.lockedUntil }),
+        { EX: ttl }
+      );
+      return;
+    } catch (err) {
+      const m = String(err?.message || err);
+      if (isRedisAuthFailureMessage(m)) disableRedisForAuthFailure(m);
+      else console.error('Redis login write:', m);
+    }
+  }
+  loginAttemptStore.set(attemptKey, state);
+};
+
+const recordLoginFailureUnified = async (attemptKey) => {
+  const now = Date.now();
+  const state = await readLoginAttemptStateUnified(attemptKey);
+  const nextCount = state.count + 1;
+  let next;
+  if (nextCount >= LOGIN_MAX_ATTEMPTS) {
+    next = { count: 0, windowStartedAt: now, lockedUntil: now + LOGIN_LOCK_MS };
+  } else {
+    next = { count: nextCount, windowStartedAt: state.windowStartedAt, lockedUntil: state.lockedUntil || 0 };
+  }
+  await saveLoginAttemptStateUnified(attemptKey, next);
+};
+
+const clearLoginAttemptStateUnified = async (attemptKey) => {
+  if (redisClient) {
+    try {
+      await redisClient.del(loginRedisKey(attemptKey));
+      return;
+    } catch (err) {
+      const m = String(err?.message || err);
+      if (isRedisAuthFailureMessage(m)) disableRedisForAuthFailure(m);
+      else console.error('Redis login clear:', m);
+    }
+  }
+  clearLoginAttemptState(attemptKey);
 };
 
 const parseCookies = (req) => {
@@ -316,6 +406,44 @@ const parseInsightSlug = (value) => {
   return raw;
 };
 
+/** CMS page URL segment (matches admin guidance: e.g. `about`). */
+const parseCmsPageSlug = (value) => {
+  const raw = parseRequiredText(value, 'slug', 120);
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(raw)) {
+    throw new ValidationError('slug must use lowercase letters, numbers, and hyphens only');
+  }
+  return raw;
+};
+
+const parsePageStatus = (value) => {
+  if (value === undefined || value === null || value === '') return 'draft';
+  const raw = typeof value === 'string' ? value.trim().toLowerCase() : String(value).trim().toLowerCase();
+  if (!raw) return 'draft';
+  if (raw !== 'draft' && raw !== 'published') {
+    throw new ValidationError("status must be 'draft' or 'published'");
+  }
+  return raw;
+};
+
+const parseOptionalPublishedAt = (value) => {
+  if (value === undefined || value === null || value === '') return null;
+  if (typeof value !== 'string') throw new ValidationError('published_at must be a string or empty');
+  const t = value.trim();
+  if (!t) return null;
+  const ms = Date.parse(t);
+  if (!Number.isFinite(ms)) throw new ValidationError('published_at must be a valid ISO date');
+  return new Date(ms).toISOString();
+};
+
+const parseFormEmail = (value, field = 'email') => {
+  const trimmed = parseRequiredText(value, field, 254);
+  const lower = trimmed.toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(lower)) {
+    throw new ValidationError(`Invalid ${field}`);
+  }
+  return lower;
+};
+
 const parsePublishedFlag = (value) => {
   if (value === true || value === 1) return true;
   if (value === false || value === 0) return false;
@@ -431,6 +559,7 @@ const uploadVideo = multer({
 
 const ensureCoreSchema = async () => {
   if (!pgPool) return;
+  // One statement per round-trip (PgBouncer transaction mode, some proxies).
   await pgPool.query(`
     CREATE TABLE IF NOT EXISTS admin_users (
       id SERIAL PRIMARY KEY,
@@ -439,7 +568,8 @@ const ensureCoreSchema = async () => {
       email TEXT NOT NULL UNIQUE,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
-
+  `);
+  await pgPool.query(`
     CREATE TABLE IF NOT EXISTS pages (
       id SERIAL PRIMARY KEY,
       slug TEXT NOT NULL UNIQUE,
@@ -661,9 +791,11 @@ const ensureInsightsSchema = async () => {
   );
 };
 
-const ensureAppSchemaAndSeed = async () => {
+/** CMS + public API DDL (idempotent). Does not run content seed — safe before public reads. */
+const ensureAppSchemaTables = async () => {
   if (!pgPool) return;
   await ensureCoreSchema();
+  // One CREATE per round-trip (same rationale as ensureSiteAnalyticsTable).
   await pgPool.query(`
     CREATE TABLE IF NOT EXISTS contact_messages (
       id SERIAL PRIMARY KEY,
@@ -674,13 +806,15 @@ const ensureAppSchemaAndSeed = async () => {
       status TEXT DEFAULT 'new',
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
-
+  `);
+  await pgPool.query(`
     CREATE TABLE IF NOT EXISTS newsletter_subscribers (
       id SERIAL PRIMARY KEY,
       email TEXT NOT NULL UNIQUE,
       subscribed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
-
+  `);
+  await pgPool.query(`
     CREATE TABLE IF NOT EXISTS brands (
       id SERIAL PRIMARY KEY,
       name TEXT NOT NULL,
@@ -693,7 +827,8 @@ const ensureAppSchemaAndSeed = async () => {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
-
+  `);
+  await pgPool.query(`
     CREATE TABLE IF NOT EXISTS services (
       id SERIAL PRIMARY KEY,
       title TEXT NOT NULL,
@@ -704,7 +839,8 @@ const ensureAppSchemaAndSeed = async () => {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
-
+  `);
+  await pgPool.query(`
     CREATE TABLE IF NOT EXISTS events (
       id SERIAL PRIMARY KEY,
       title TEXT NOT NULL,
@@ -719,7 +855,8 @@ const ensureAppSchemaAndSeed = async () => {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
-
+  `);
+  await pgPool.query(`
     CREATE TABLE IF NOT EXISTS case_studies (
       id SERIAL PRIMARY KEY,
       title TEXT NOT NULL,
@@ -731,7 +868,8 @@ const ensureAppSchemaAndSeed = async () => {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
-
+  `);
+  await pgPool.query(`
     CREATE TABLE IF NOT EXISTS sectors (
       id SERIAL PRIMARY KEY,
       name TEXT NOT NULL,
@@ -762,10 +900,83 @@ const ensureAppSchemaAndSeed = async () => {
   await ensurePageContentCardsTable();
   await ensureAdminAuditLogsTable();
   await ensureSiteAnalyticsTable();
+};
+
+const ensureAppSchemaAndSeed = async () => {
+  await ensureAppSchemaTables();
+  if (!pgPool) return;
   await seedAgileContent(pgPool);
 };
 
 const pgPool = DATABASE_URL ? new Pool({ connectionString: DATABASE_URL }) : null;
+
+const isDatabaseConnectionOrAuthError = (err) => {
+  if (!err) return false;
+  const code = err.code;
+  const msg = String(err.message || err);
+  if (code === '28P01' || code === 'ECONNREFUSED' || code === 'ENOTFOUND' || code === 'ETIMEDOUT') return true;
+  if (/password authentication failed/i.test(msg)) return true;
+  if (/no pg_hba\.conf entry/i.test(msg)) return true;
+  if (/could not connect to server/i.test(msg)) return true;
+  return false;
+};
+
+let databaseMisconfigLogged = false;
+
+/** When Postgres rejects credentials or is unreachable, respond once with 503 and a safe hint. */
+function respondIfDatabaseConnectionFailure(res, err, req) {
+  if (!isDatabaseConnectionOrAuthError(err)) return false;
+  if (!databaseMisconfigLogged) {
+    databaseMisconfigLogged = true;
+    const ctx = req ? `${req.method} ${req.originalUrl || req.url || ''}`.slice(0, 160) : 'request';
+    console.error(
+      `[database] ${ctx} — ${err.code || 'ERR'}: ${err.message}. Verify DATABASE_URL matches Postgres (existing volumes keep the original role password).`
+    );
+  }
+  res.status(503).json({
+    error: 'Service temporarily unavailable',
+    code: 'database_unavailable',
+    hint:
+      'PostgreSQL rejected the connection or credentials. Set DATABASE_URL to match your database user password (see .env.example).',
+  });
+  return true;
+}
+
+let redisClient = null;
+
+function isRedisAuthFailureMessage(msg) {
+  return /NOAUTH|WRONGPASS|Authentication required|ERR invalid password/i.test(String(msg || ''));
+}
+
+function disableRedisForAuthFailure(reason) {
+  const c = redisClient;
+  if (!c || !isRedisAuthFailureMessage(reason)) return;
+  console.warn(
+    '[redis] Server rejected credentials (NOAUTH/WRONGPASS). Disabling Redis for this process; rate limits and login lockout use in-memory state. Set REDIS_URL=redis://:PASSWORD@host:6379 if Redis requires a password.'
+  );
+  redisClient = null;
+  try {
+    if (typeof c.quit === 'function') void c.quit().catch(() => {});
+  } catch {
+    /* ignore */
+  }
+}
+
+function fixedWindowRedisCommandError(err, namespace) {
+  const m = String(err?.message || err);
+  if (isRedisAuthFailureMessage(m)) disableRedisForAuthFailure(m);
+  else console.error(`Rate limit Redis (${namespace}):`, m);
+}
+
+if (REDIS_URL) {
+  redisClient = createClient({ url: REDIS_URL });
+  redisClient.on('error', (err) => {
+    const m = String(err?.message || err);
+    if (isRedisAuthFailureMessage(m)) disableRedisForAuthFailure(m);
+    else console.error('Redis connection error:', err);
+  });
+  redisClient.connect().catch((err) => console.error('Redis initial connect failed:', err));
+}
 
 const ANALYTICS_ALLOWED_EVENTS = new Set([
   'page_view',
@@ -778,35 +989,64 @@ const ANALYTICS_RATE_WINDOW_MS = 60_000;
 const ANALYTICS_RATE_MAX = 100;
 const analyticsRateBuckets = new Map();
 
+const NEWSLETTER_RATE_WINDOW_MS = 60_000;
+const NEWSLETTER_RATE_MAX = 25;
+const newsletterRateBuckets = new Map();
+
+const CONTACT_RATE_WINDOW_MS = 60_000;
+const CONTACT_RATE_MAX = 12;
+const contactRateBuckets = new Map();
+
 const getClientIp = (req) => {
   const fwd = (req.headers['x-forwarded-for'] || '').toString().split(',')[0].trim();
   return fwd || req.socket?.remoteAddress || 'unknown';
 };
 
-const allowAnalyticsRequest = (ip) => {
-  const now = Date.now();
-  let b = analyticsRateBuckets.get(ip);
-  if (!b || now - b.start > ANALYTICS_RATE_WINDOW_MS) {
-    b = { start: now, count: 0 };
-    analyticsRateBuckets.set(ip, b);
-  }
-  b.count += 1;
-  return b.count <= ANALYTICS_RATE_MAX;
-};
+const allowAnalyticsRequest = (ip) =>
+  fixedWindowRateLimitAllow({
+    redisClient,
+    namespace: 'analytics',
+    ip,
+    windowMs: ANALYTICS_RATE_WINDOW_MS,
+    max: ANALYTICS_RATE_MAX,
+    memoryBuckets: analyticsRateBuckets,
+    onRedisCommandError: fixedWindowRedisCommandError,
+  });
+
+const allowNewsletterRequest = (ip) =>
+  fixedWindowRateLimitAllow({
+    redisClient,
+    namespace: 'newsletter',
+    ip,
+    windowMs: NEWSLETTER_RATE_WINDOW_MS,
+    max: NEWSLETTER_RATE_MAX,
+    memoryBuckets: newsletterRateBuckets,
+    onRedisCommandError: fixedWindowRedisCommandError,
+  });
+
+const allowContactRequest = (ip) =>
+  fixedWindowRateLimitAllow({
+    redisClient,
+    namespace: 'contact',
+    ip,
+    windowMs: CONTACT_RATE_WINDOW_MS,
+    max: CONTACT_RATE_MAX,
+    memoryBuckets: contactRateBuckets,
+    onRedisCommandError: fixedWindowRedisCommandError,
+  });
 
 setInterval(() => {
   const now = Date.now();
   for (const [ip, b] of analyticsRateBuckets.entries()) {
     if (now - b.start > ANALYTICS_RATE_WINDOW_MS * 2) analyticsRateBuckets.delete(ip);
   }
+  for (const [ip, b] of newsletterRateBuckets.entries()) {
+    if (now - b.start > NEWSLETTER_RATE_WINDOW_MS * 2) newsletterRateBuckets.delete(ip);
+  }
+  for (const [ip, b] of contactRateBuckets.entries()) {
+    if (now - b.start > CONTACT_RATE_WINDOW_MS * 2) contactRateBuckets.delete(ip);
+  }
 }, 120_000).unref?.();
-
-let redisClient = null;
-if (REDIS_URL) {
-  redisClient = createClient({ url: REDIS_URL });
-  redisClient.on('error', (err) => console.error('Redis connection error:', err));
-  redisClient.connect().catch((err) => console.error('Redis initial connect failed:', err));
-}
 
 // Auth Middleware
 const authenticateToken = (req, res, next) => {
@@ -824,22 +1064,42 @@ const getAuthUserFromRequest = (req) => {
   return getVerifiedAuthUser(req);
 };
 
-// Health Check
+// Liveness — HTTP 200 if the Node process responds (no database).
+app.get('/api/health/live', (_req, res) => {
+  res.status(200).json({ status: 'ok', check: 'liveness' });
+});
+
+// Readiness — HTTP 503 unless Postgres accepts a simple query (for proxies / Coolify / compose depends_on).
 app.get('/api/health', async (req, res) => {
-  const result = { status: 'ok' };
+  if (!pgPool) {
+    return res.status(503).json({
+      status: 'unhealthy',
+      postgres: 'not_configured',
+      hint: 'DATABASE_URL is missing or not loaded in this process.',
+    });
+  }
   try {
-    if (pgPool) {
-      await pgPool.query('SELECT 1');
-      result.postgres = 'up';
-    }
-    if (redisClient) {
+    await pgPool.query('SELECT 1');
+  } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    return res.status(503).json({
+      status: 'unhealthy',
+      postgres: 'down',
+      error: IS_PRODUCTION ? 'Database unreachable or query failed' : String(err?.message || err),
+    });
+  }
+
+  const result = { status: 'ok', postgres: 'up' };
+  if (redisClient) {
+    try {
       await redisClient.ping();
       result.redis = 'up';
+    } catch {
+      result.redis = 'down';
+      result.status = 'degraded';
     }
-  } catch (err) {
-    result.status = 'degraded';
   }
-  res.json(result);
+  res.status(200).json(result);
 });
 
 // Schema readiness check (useful for remote deploy debugging)
@@ -872,6 +1132,7 @@ app.get('/api/health/schema', async (req, res) => {
       },
     });
   } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ ok: false, error: err.message });
   }
 });
@@ -881,7 +1142,7 @@ app.post('/api/auth/login', async (req, res) => {
   const { username, password } = req.body;
   if (!pgPool) return res.status(500).json({ error: 'Database not available' });
   const attemptKey = getLoginAttemptKey(req);
-  const attemptState = readLoginAttemptState(attemptKey);
+  const attemptState = await readLoginAttemptStateUnified(attemptKey);
   const now = Date.now();
   if (attemptState.lockedUntil && now < attemptState.lockedUntil) {
     const retryAfter = Math.ceil((attemptState.lockedUntil - now) / 1000);
@@ -897,7 +1158,7 @@ app.post('/api/auth/login', async (req, res) => {
     // Seed password 'admin123' if first time / hashed comparison
     // In db init we seeded a hash. For this test let's accept admin/admin123
     if (user && (await bcrypt.compare(password, user.password_hash))) {
-      clearLoginAttemptState(attemptKey);
+      await clearLoginAttemptStateUnified(attemptKey);
       const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '8h' });
       const csrfToken = createCsrfToken();
       res.cookie(ADMIN_SESSION_COOKIE, token, {
@@ -910,10 +1171,11 @@ app.post('/api/auth/login', async (req, res) => {
       setCsrfCookie(res, csrfToken);
       return res.json({ username: user.username, csrfToken });
     }
-    recordLoginFailure(attemptKey);
+    await recordLoginFailureUnified(attemptKey);
     res.status(401).json({ error: 'Invalid credentials' });
   } catch (err) {
-    recordLoginFailure(attemptKey);
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    await recordLoginFailureUnified(attemptKey);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -1039,6 +1301,7 @@ app.get('/api/media', authenticateToken, async (req, res) => {
 
     res.json(result.rows);
   } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1058,6 +1321,7 @@ app.delete('/api/media/:id', authenticateToken, async (req, res) => {
     }
     res.json({ success: true });
   } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1074,6 +1338,7 @@ app.put('/api/media/:id', authenticateToken, async (req, res) => {
     if (result.rows.length === 0) return res.status(404).json({ error: 'Media asset not found' });
     res.json(result.rows[0]);
   } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1086,6 +1351,7 @@ app.get('/api/site-sections', authenticateToken, async (req, res) => {
     const result = await pgPool.query('SELECT section_key, content_json, updated_at FROM site_sections ORDER BY section_key ASC');
     res.json(result.rows);
   } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1116,6 +1382,7 @@ app.put('/api/site-sections/:key', authenticateToken, async (req, res) => {
     res.json(result.rows[0]);
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1131,6 +1398,7 @@ app.get('/api/public/site-sections', async (req, res) => {
     }
     res.json(map);
   } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1139,7 +1407,9 @@ app.get('/api/public/site-sections', async (req, res) => {
 app.post('/api/public/analytics', async (req, res) => {
   if (!pgPool) return res.status(503).json({ error: 'Analytics unavailable' });
   const ip = getClientIp(req);
-  if (!allowAnalyticsRequest(ip)) {
+  const rate = await allowAnalyticsRequest(ip);
+  if (!rate.ok) {
+    res.setHeader('Retry-After', String(rate.retryAfterSec));
     return res.status(429).json({ error: 'Too many requests' });
   }
   const body = req.body || {};
@@ -1167,20 +1437,30 @@ app.post('/api/public/analytics', async (req, res) => {
     );
     res.status(201).json({ ok: true });
   } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: 'Could not record event' });
   }
 });
 
 // Newsletter
 app.post('/api/newsletter', async (req, res) => {
-  const { email } = req.body;
-  if (!email) return res.status(400).json({ error: 'Email is required' });
-  if (!pgPool) return res.status(500).json({ error: 'Database not available' });
-
+  if (!pgPool) return res.status(503).json({ error: 'Database not available' });
+  const ip = getClientIp(req);
+  const rate = await allowNewsletterRequest(ip);
+  if (!rate.ok) {
+    res.setHeader('Retry-After', String(rate.retryAfterSec));
+    return res.status(429).json({ error: 'Too many requests' });
+  }
+  const { email } = req.body || {};
   try {
-    await pgPool.query('INSERT INTO newsletter_subscribers (email) VALUES ($1) ON CONFLICT (email) DO NOTHING', [email]);
+    const safeEmail = parseFormEmail(email, 'email');
+    await pgPool.query('INSERT INTO newsletter_subscribers (email) VALUES ($1) ON CONFLICT (email) DO NOTHING', [
+      safeEmail,
+    ]);
     res.status(201).json({ success: true });
   } catch (err) {
+    if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: 'Internal error' });
   }
 });
@@ -1189,9 +1469,13 @@ app.post('/api/newsletter', async (req, res) => {
 app.get('/api/brands', async (req, res) => {
   if (!pgPool) return res.status(503).json({ error: 'Database not available' });
   try {
+    await ensureAppSchemaTables();
     const result = await pgPool.query('SELECT * FROM brands ORDER BY order_index ASC');
     res.json(result.rows);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.post('/api/brands', authenticateToken, async (req, res) => {
@@ -1211,6 +1495,7 @@ app.post('/api/brands', authenticateToken, async (req, res) => {
     res.status(201).json(result.rows[0]);
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1219,9 +1504,13 @@ app.post('/api/brands', authenticateToken, async (req, res) => {
 app.get('/api/sectors', async (req, res) => {
   if (!pgPool) return res.status(503).json({ error: 'Database not available' });
   try {
+    await ensureAppSchemaTables();
     const result = await pgPool.query('SELECT * FROM sectors ORDER BY order_index ASC');
     res.json(result.rows);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.post('/api/sectors', authenticateToken, async (req, res) => {
@@ -1239,6 +1528,7 @@ app.post('/api/sectors', authenticateToken, async (req, res) => {
     res.status(201).json(result.rows[0]);
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1247,7 +1537,10 @@ app.delete('/api/sectors/:id', authenticateToken, async (req, res) => {
   try {
     await pgPool.query('DELETE FROM sectors WHERE id = $1', [req.params.id]);
     res.json({ success: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.put('/api/sectors/:id', authenticateToken, async (req, res) => {
@@ -1266,6 +1559,7 @@ app.put('/api/sectors/:id', authenticateToken, async (req, res) => {
     res.json(result.rows[0]);
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1288,6 +1582,7 @@ app.put('/api/brands/:id', authenticateToken, async (req, res) => {
     res.json(result.rows[0]);
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1297,16 +1592,23 @@ app.delete('/api/brands/:id', authenticateToken, async (req, res) => {
     const result = await pgPool.query('DELETE FROM brands WHERE id = $1 RETURNING *', [req.params.id]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'Brand not found' });
     res.json({ message: 'Brand deleted successfully' });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Services
 app.get('/api/services', async (req, res) => {
   if (!pgPool) return res.status(503).json({ error: 'Database not available' });
   try {
+    await ensureAppSchemaTables();
     const result = await pgPool.query('SELECT * FROM services ORDER BY order_index ASC');
     res.json(result.rows);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.post('/api/services', authenticateToken, async (req, res) => {
@@ -1324,6 +1626,7 @@ app.post('/api/services', authenticateToken, async (req, res) => {
     res.status(201).json(result.rows[0]);
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1344,6 +1647,7 @@ app.put('/api/services/:id', authenticateToken, async (req, res) => {
     res.json(result.rows[0]);
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1353,7 +1657,10 @@ app.delete('/api/services/:id', authenticateToken, async (req, res) => {
     const result = await pgPool.query('DELETE FROM services WHERE id = $1 RETURNING *', [req.params.id]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'Service not found' });
     res.json({ message: 'Service deleted successfully' });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Insight categories (admin CRUD; public GET for filters / display)
@@ -1366,6 +1673,7 @@ app.get('/api/insight-categories', async (req, res) => {
     );
     res.json(result.rows);
   } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1386,6 +1694,7 @@ app.post('/api/insight-categories', authenticateToken, async (req, res) => {
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
     if (err.code === '23505') return res.status(409).json({ error: 'Slug already in use' });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1407,6 +1716,7 @@ app.put('/api/insight-categories/:id', authenticateToken, async (req, res) => {
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
     if (err.code === '23505') return res.status(409).json({ error: 'Slug already in use' });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1421,6 +1731,7 @@ app.delete('/api/insight-categories/:id', authenticateToken, async (req, res) =>
     if (result.rows.length === 0) return res.status(404).json({ error: 'Category not found' });
     res.json({ message: 'Category deleted successfully' });
   } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1443,6 +1754,7 @@ app.get('/api/insight-posts', authenticateToken, async (req, res) => {
     );
     res.json(result.rows.map(shapeInsightPostRow));
   } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1462,6 +1774,7 @@ app.get('/api/public/insight-posts', async (req, res) => {
     );
     res.json(result.rows.map(shapeInsightPostRow));
   } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1479,6 +1792,7 @@ app.get('/api/public/insight-posts/:slug', async (req, res) => {
     res.json(shapeInsightPostRow(result.rows[0]));
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1521,6 +1835,7 @@ app.post('/api/insight-posts', authenticateToken, async (req, res) => {
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
     if (err.code === '23505') return res.status(409).json({ error: 'Slug already in use' });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1566,6 +1881,7 @@ app.put('/api/insight-posts/:id', authenticateToken, async (req, res) => {
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
     if (err.code === '23505') return res.status(409).json({ error: 'Slug already in use' });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1578,6 +1894,7 @@ app.delete('/api/insight-posts/:id', authenticateToken, async (req, res) => {
     if (result.rows.length === 0) return res.status(404).json({ error: 'Insight post not found' });
     res.json({ message: 'Insight post deleted successfully' });
   } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1599,6 +1916,7 @@ app.get('/api/page-content-cards', authenticateToken, async (req, res) => {
     res.json(result.rows.map(shapePageContentCardRow));
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1618,6 +1936,7 @@ app.get('/api/public/page-content-cards/:context', async (req, res) => {
     res.json(result.rows.map(shapePageContentCardRow));
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1644,6 +1963,7 @@ app.post('/api/page-content-cards', authenticateToken, async (req, res) => {
     res.status(201).json(shapePageContentCardRow(insert.rows[0]));
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1671,6 +1991,7 @@ app.put('/api/page-content-cards/:id', authenticateToken, async (req, res) => {
     res.json(shapePageContentCardRow(result.rows[0]));
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1683,6 +2004,7 @@ app.delete('/api/page-content-cards/:id', authenticateToken, async (req, res) =>
     if (result.rows.length === 0) return res.status(404).json({ error: 'Card not found' });
     res.json({ message: 'Card deleted successfully' });
   } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1691,9 +2013,13 @@ app.delete('/api/page-content-cards/:id', authenticateToken, async (req, res) =>
 app.get('/api/events', async (req, res) => {
   if (!pgPool) return res.status(503).json({ error: 'Database not available' });
   try {
+    await ensureAppSchemaTables();
     const result = await pgPool.query('SELECT * FROM events ORDER BY order_index ASC, created_at DESC');
     res.json(result.rows);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.post('/api/events', authenticateToken, async (req, res) => {
@@ -1715,6 +2041,7 @@ app.post('/api/events', authenticateToken, async (req, res) => {
     res.status(201).json(result.rows[0]);
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1739,6 +2066,7 @@ app.put('/api/events/:id', authenticateToken, async (req, res) => {
     res.json(result.rows[0]);
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1748,16 +2076,23 @@ app.delete('/api/events/:id', authenticateToken, async (req, res) => {
     const result = await pgPool.query('DELETE FROM events WHERE id = $1 RETURNING *', [req.params.id]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'Event not found' });
     res.json({ message: 'Event deleted successfully' });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Case Studies
 app.get('/api/case-studies', async (req, res) => {
   if (!pgPool) return res.status(503).json({ error: 'Database not available' });
   try {
+    await ensureAppSchemaTables();
     const result = await pgPool.query('SELECT * FROM case_studies ORDER BY order_index ASC, created_at DESC');
     res.json(result.rows);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.post('/api/case-studies', authenticateToken, async (req, res) => {
@@ -1776,6 +2111,7 @@ app.post('/api/case-studies', authenticateToken, async (req, res) => {
     res.status(201).json(result.rows[0]);
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1798,6 +2134,7 @@ app.put('/api/case-studies/:id', authenticateToken, async (req, res) => {
     res.json(result.rows[0]);
   } catch (err) {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1807,23 +2144,29 @@ app.delete('/api/case-studies/:id', authenticateToken, async (req, res) => {
     const result = await pgPool.query('DELETE FROM case_studies WHERE id = $1 RETURNING *', [req.params.id]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'Case study not found' });
     res.json({ message: 'Case study deleted successfully' });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Pages
 app.get('/api/pages', authenticateToken, async (req, res) => {
   if (!pgPool) return res.status(503).json({ error: 'Database not available' });
   try {
-    await ensureCoreSchema();
+    await ensureAppSchemaTables();
     const result = await pgPool.query('SELECT id, slug, title, description, status, published_at, created_at, updated_at FROM pages ORDER BY updated_at DESC');
     res.json(result.rows);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.get('/api/pages/:slug', async (req, res) => {
   if (!pgPool) return res.status(503).json({ error: 'Database not available' });
   try {
-    await ensureCoreSchema();
+    await ensureAppSchemaTables();
     const user = getAuthUserFromRequest(req);
     const result = user
       ? await pgPool.query('SELECT * FROM pages WHERE slug = $1', [req.params.slug])
@@ -1831,34 +2174,55 @@ app.get('/api/pages/:slug', async (req, res) => {
     if (result.rows.length === 0) return res.status(404).json({ error: 'Page not found' });
     res.json(pageRowWithSanitizedContent(result.rows[0]));
   } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     if (IS_PRODUCTION) console.error('GET /api/pages/:slug', err?.message || err);
     res.status(500).json({ error: err.message });
   }
 });
 
 app.post('/api/pages', authenticateToken, async (req, res) => {
-  const { slug, title, description, content_json, status, published_at } = req.body;
+  if (!pgPool) return res.status(503).json({ error: 'Database not available' });
+  const { slug, title, description, content_json, status, published_at } = req.body || {};
   const contentJson = sanitizePageContentJson(content_json);
   try {
+    const safeSlug = parseCmsPageSlug(slug);
+    const safeTitle = parseRequiredText(title, 'title', 300);
+    const safeDescription = parseOptionalText(description, 'description', 2000);
+    const safeStatus = parsePageStatus(status);
+    const safePublishedAt = parseOptionalPublishedAt(published_at);
     const result = await pgPool.query(
       'INSERT INTO pages (slug, title, description, content_json, status, published_at) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-      [slug, title, description, contentJson, status || 'draft', published_at || null]
+      [safeSlug, safeTitle, safeDescription, contentJson, safeStatus, safePublishedAt]
     );
     res.status(201).json(pageRowWithSanitizedContent(result.rows[0]));
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.put('/api/pages/:slug', authenticateToken, async (req, res) => {
-  const { title, description, content_json, status, published_at } = req.body;
+  if (!pgPool) return res.status(503).json({ error: 'Database not available' });
+  const { title, description, content_json, status, published_at } = req.body || {};
   const contentJson = sanitizePageContentJson(content_json);
   try {
+    const routeSlug = parseCmsPageSlug(String(req.params.slug || ''));
+    const safeTitle = parseRequiredText(title, 'title', 300);
+    const safeDescription = parseOptionalText(description, 'description', 2000);
+    const safeStatus = parsePageStatus(status);
+    const safePublishedAt = parseOptionalPublishedAt(published_at);
     const result = await pgPool.query(
       'UPDATE pages SET title = $1, description = $2, content_json = $3, status = $4, published_at = $5, updated_at = NOW() WHERE slug = $6 RETURNING *',
-      [title, description, contentJson, status || 'draft', published_at || null, req.params.slug]
+      [safeTitle, safeDescription, contentJson, safeStatus, safePublishedAt, routeSlug]
     );
     if (result.rows.length === 0) return res.status(404).json({ error: 'Page not found' });
     res.json(pageRowWithSanitizedContent(result.rows[0]));
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.delete('/api/pages/:id', authenticateToken, async (req, res) => {
@@ -1866,14 +2230,17 @@ app.delete('/api/pages/:id', authenticateToken, async (req, res) => {
     const result = await pgPool.query('DELETE FROM pages WHERE id = $1 RETURNING *', [req.params.id]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'Page not found' });
     res.json({ message: 'Page deleted successfully' });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    res.status(500).json({ error: err.message });
+  }
 });
 
 /** Published CMS pages whose slugs are not taken by static Next routes (for sitemap, SEO). */
 app.get('/api/public/published-cms-pages', async (req, res) => {
   if (!pgPool) return res.status(503).json({ error: 'Database not available' });
   try {
-    await ensureCoreSchema();
+    await ensureAppSchemaTables();
     const result = await pgPool.query(
       `SELECT slug, updated_at FROM pages
        WHERE status = 'published' AND NOT (slug = ANY($1::text[]))
@@ -1882,25 +2249,48 @@ app.get('/api/public/published-cms-pages', async (req, res) => {
     );
     res.json(result.rows);
   } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
 
 // Contact
 app.post('/api/contact', async (req, res) => {
+  if (!pgPool) return res.status(503).json({ error: 'Database not available' });
+  const ip = getClientIp(req);
+  const rate = await allowContactRequest(ip);
+  if (!rate.ok) {
+    res.setHeader('Retry-After', String(rate.retryAfterSec));
+    return res.status(429).json({ error: 'Too many requests' });
+  }
   const { name, email, message, topic } = req.body || {};
-  if (!name || !email || !message) return res.status(400).json({ error: 'Missing fields' });
   try {
-    await pgPool.query('INSERT INTO contact_messages (name, email, topic, message) VALUES ($1, $2, $3, $4)', [name, email, topic, message]);
+    const safeName = parseRequiredText(name, 'name', 200);
+    const safeEmail = parseFormEmail(email, 'email');
+    const safeMessage = parseRequiredText(message, 'message', 12000);
+    const safeTopic = parseOptionalText(topic, 'topic', 200);
+    await pgPool.query('INSERT INTO contact_messages (name, email, topic, message) VALUES ($1, $2, $3, $4)', [
+      safeName,
+      safeEmail,
+      safeTopic,
+      safeMessage,
+    ]);
     res.status(201).json({ success: true });
-  } catch (err) { res.status(500).json({ error: 'Internal error' }); }
+  } catch (err) {
+    if (err instanceof ValidationError) return res.status(400).json({ error: err.message });
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    res.status(500).json({ error: 'Internal error' });
+  }
 });
 
 app.get('/api/admin/contacts', authenticateToken, async (req, res) => {
   try {
     const result = await pgPool.query('SELECT * FROM contact_messages ORDER BY created_at DESC');
     res.json(result.rows);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.get('/api/admin/analytics/summary', authenticateToken, async (req, res) => {
@@ -1960,6 +2350,7 @@ app.get('/api/admin/analytics/summary', authenticateToken, async (req, res) => {
       byDay: (byDay.rows || []).map((r) => ({ day: r.d, count: r.c })),
     });
   } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -1992,6 +2383,7 @@ app.get('/api/admin/analytics/events', authenticateToken, async (req, res) => {
           );
     res.json(result.rows || []);
   } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message });
   }
 });
@@ -2039,6 +2431,7 @@ app.get('/api/admin/audit-logs', authenticateToken, async (req, res) => {
     );
     res.json(result.rows || []);
   } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
     res.status(500).json({ error: err.message || 'Could not load audit logs' });
   }
 });
@@ -2053,7 +2446,10 @@ app.put('/api/admin/contacts/:id/status', authenticateToken, async (req, res) =>
     );
     if (result.rows.length === 0) return res.status(404).json({ error: 'Message not found' });
     res.json(result.rows[0]);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.delete('/api/admin/contacts/:id', authenticateToken, async (req, res) => {
@@ -2061,7 +2457,10 @@ app.delete('/api/admin/contacts/:id', authenticateToken, async (req, res) => {
     const result = await pgPool.query('DELETE FROM contact_messages WHERE id = $1 RETURNING *', [req.params.id]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'Message not found' });
     res.json({ success: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // System / Settings
@@ -2070,8 +2469,9 @@ app.post('/api/admin/run-migrations', authenticateToken, async (req, res) => {
   try {
     await ensureAppSchemaAndSeed();
     res.json({ success: true, message: 'Migration and seeding completed successfully.' });
-  } catch (err) { 
-    res.status(500).json({ error: err.message }); 
+  } catch (err) {
+    if (respondIfDatabaseConnectionFailure(res, err, req)) return;
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -2083,7 +2483,7 @@ const start = async () => {
     console.error('Startup migration/seed failed:', err?.message || err);
     console.error(
       IS_PRODUCTION
-        ? 'Continuing anyway so /api/health can pass; fix DB connectivity or SQL errors and redeploy, or run Admin → Run migrations when the API is up.'
+        ? 'Continuing anyway; GET /api/health returns 503 until Postgres accepts connections. Use GET /api/health/live for process-only liveness. Fix DB connectivity or SQL errors and redeploy, or run Admin → Run migrations when the API is up.'
         : 'Dev mode: server still starting.'
     );
   }

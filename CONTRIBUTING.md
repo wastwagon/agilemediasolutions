@@ -58,10 +58,19 @@ npm run build
 Backend:
 
 ```bash
+cd backend
+npm ci
+npm test
+node --check index.js
+```
+
+Optional: watch API logs after changes:
+
+```bash
 docker compose logs -f backend
 ```
 
-Confirm healthy startup and no runtime errors.
+Confirm healthy startup and no runtime errors when using Docker.
 
 ## 5) Commit style
 
@@ -76,6 +85,7 @@ Use intent-first messages:
 - [ ] Branch up to date with `main`
 - [ ] Changes are focused and intentional
 - [ ] Frontend lint/build pass
+- [ ] Backend `npm test` and `node --check index.js` pass (when backend changed)
 - [ ] Manual checks completed
 - [ ] No secrets committed
 - [ ] PR description includes summary + test plan + risks

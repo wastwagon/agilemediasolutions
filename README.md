@@ -64,7 +64,16 @@ npm run lint
 npm run build
 ```
 
-Also verify backend logs are healthy:
+When you change the API or `backend/`:
+
+```bash
+cd backend
+npm ci
+npm test
+node --check index.js
+```
+
+Also verify backend logs are healthy when using Docker:
 
 ```bash
 docker compose logs -f backend

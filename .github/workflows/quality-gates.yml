@@ -28,6 +28,10 @@ jobs:
         run: node --check index.js
         working-directory: backend
 
+      - name: Backend unit smoke tests
+        run: npm test
+        working-directory: backend
+
   frontend-checks:
     runs-on: ubuntu-latest
     env:
@@ -48,6 +52,10 @@ jobs:
 
       - name: Install frontend dependencies
         run: npm ci
+        working-directory: frontend
+
+      - name: Frontend ESLint
+        run: npm run lint
         working-directory: frontend
 
       - name: TypeScript typecheck

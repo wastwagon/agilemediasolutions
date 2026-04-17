@@ -56,8 +56,6 @@ export function AdminNotice({
   message: string;
   onDismiss?: () => void;
 }) {
-  if (!message) return null;
-
   const [visible, setVisible] = React.useState(false);
   const dismissTimerRef = React.useRef<number | null>(null);
 
@@ -73,6 +71,8 @@ export function AdminNotice({
       }
     };
   }, []);
+
+  if (!message) return null;
 
   const handleDismiss = () => {
     if (!onDismiss) return;
