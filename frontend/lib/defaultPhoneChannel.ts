@@ -11,6 +11,15 @@ export const DEFAULT_PHONE_E164 = '+233505366200';
 /** Older Site Content rows used this label without the number; it overrides code defaults if left in the DB. */
 export const LEGACY_TOP_BAR_CONTACT_LABEL = 'Phone / WhatsApp';
 
+function looksCorruptedTopBarLabel(value: string): boolean {
+  const s = value.trim();
+  if (!s) return false;
+  if (s.length > 90) return true;
+  if ((s.startsWith('{') && s.endsWith('}')) || (s.startsWith('[') && s.endsWith(']'))) return true;
+  if (s.includes('":{"') || s.includes('","') || s.includes('":{')) return true;
+  return false;
+}
+
 /**
  * Top bar: show full number + WhatsApp link even when CMS still has the legacy short label or /contact link.
  */
@@ -27,6 +36,9 @@ export function resolveTopBarPhoneFromCms(
   }
   if (rawHref === '/contact#contact' || rawHref === '/contact') {
     href = DEFAULT_PHONE_WHATSAPP_HREF;
+  }
+  if (looksCorruptedTopBarLabel(label)) {
+    label = DEFAULT_PHONE_WHATSAPP_LABEL;
   }
   return { label, href };
 }

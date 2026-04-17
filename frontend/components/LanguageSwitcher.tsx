@@ -7,11 +7,11 @@ import { stripLocalePrefix, type AppLocale } from '@/lib/locale';
 import { useLocale } from '@/components/LocaleProvider';
 import './LanguageSwitcher.css';
 
-const OPTIONS: { locale: AppLocale; label: string; native: string }[] = [
-  { locale: 'en', label: 'English', native: 'English' },
-  { locale: 'fr', label: 'French', native: 'Français' },
-  { locale: 'pt', label: 'Portuguese', native: 'Português' },
-  { locale: 'ar', label: 'Arabic', native: 'العربية' },
+const OPTIONS: { locale: AppLocale; label: string; native: string; lang: string; dir?: 'ltr' | 'rtl' }[] = [
+  { locale: 'en', label: 'English', native: 'English', lang: 'en', dir: 'ltr' },
+  { locale: 'fr', label: 'French', native: 'Français', lang: 'fr', dir: 'ltr' },
+  { locale: 'pt', label: 'Portuguese', native: 'Português', lang: 'pt', dir: 'ltr' },
+  { locale: 'ar', label: 'Arabic', native: 'العربية', lang: 'ar', dir: 'rtl' },
 ];
 
 function clearLocaleCookie() {
@@ -42,7 +42,8 @@ export default function LanguageSwitcher({ variant = 'header' }: { variant?: 'he
   return (
     <div
       ref={rootRef}
-      className={`language-switcher language-switcher--${variant}`}
+      className={`language-switcher language-switcher--${variant} notranslate`}
+      translate="no"
     >
       <button
         type="button"
@@ -58,7 +59,9 @@ export default function LanguageSwitcher({ variant = 'header' }: { variant?: 'he
             <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
           </svg>
         </span>
-        <span className="language-switcher__current">{current.native}</span>
+        <span className="language-switcher__current" lang={current.lang} dir={current.dir || 'ltr'}>
+          {current.native}
+        </span>
         <span className={`language-switcher__chev ${open ? 'open' : ''}`} aria-hidden>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <path d="M6 9l6 6 6-6" />
@@ -87,7 +90,9 @@ export default function LanguageSwitcher({ variant = 'header' }: { variant?: 'he
                     setOpen(false);
                   }}
                 >
-                  <span className="language-switcher__native">{opt.native}</span>
+                  <span className="language-switcher__native" lang={opt.lang} dir={opt.dir || 'ltr'}>
+                    {opt.native}
+                  </span>
                   <span className="language-switcher__hint">{opt.label}</span>
                 </Link>
               </li>

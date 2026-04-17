@@ -47,6 +47,8 @@ export default function Header({ brandVariant = 'image', homeBasePath }: HeaderP
   const locale = useLocale();
   const plainPathname = stripLocalePrefix(pathname || '/');
   const contactCtaHref = `${withLocalePrefix('/contact', locale)}#contact`;
+  const chromeDir = locale === 'ar' ? 'rtl' : 'ltr';
+  const chromeLang = locale;
 
   const isNavSectionActive = (item: { href: string; subItems?: { href: string }[] }) =>
     plainPathname === item.href || (item.subItems?.some((sub) => plainPathname === sub.href) ?? false);
@@ -143,6 +145,8 @@ export default function Header({ brandVariant = 'image', homeBasePath }: HeaderP
     <header
       className={`modern-header ${scrolled ? 'scrolled' : ''} ${isOpen ? 'menu-open' : ''} ${locale !== 'en' ? 'modern-header--wide-locale' : ''}`}
       data-locale={locale}
+      lang={chromeLang}
+      dir={chromeDir}
     >
       <div className="header-container">
         <Link
@@ -156,7 +160,7 @@ export default function Header({ brandVariant = 'image', homeBasePath }: HeaderP
         </Link>
 
         {/* Desktop Nav */}
-        <nav className="desktop-nav">
+        <nav className="desktop-nav notranslate" translate="no" lang={chromeLang} dir={chromeDir}>
           <ul className="nav-links">
             {navModel.map((item) => (
               <li key={item.label} className={item.subItems ? 'has-dropdown' : ''}>
@@ -187,7 +191,9 @@ export default function Header({ brandVariant = 'image', homeBasePath }: HeaderP
         {/* Action Right */}
         <div className="header-actions">
           <LanguageSwitcher />
-          <Link href={contactCtaHref} className="action-btn">{t(locale, 'workWithUs')}</Link>
+          <Link href={contactCtaHref} className="action-btn notranslate" translate="no">
+            {t(locale, 'workWithUs')}
+          </Link>
           <button 
             className="hamburger-btn" 
             onClick={() => setIsOpen(!isOpen)}
@@ -221,7 +227,7 @@ export default function Header({ brandVariant = 'image', homeBasePath }: HeaderP
             </button>
           </div>
           <nav className="mobile-nav">
-            <ul className="mobile-links">
+            <ul className="mobile-links notranslate" translate="no" lang={chromeLang} dir={chromeDir}>
               {navModel.map((item) => (
                 <li key={item.label} className="mobile-item">
                   <Link

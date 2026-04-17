@@ -708,6 +708,31 @@ export function parseSiteContentPairs(value: string): SiteContentPairRow[] {
     .filter((row) => row.left || row.right);
 }
 
+function looksLikeSerializedPayload(value: string): boolean {
+  const s = value.trim();
+  if (!s) return false;
+  if ((s.startsWith('{') && s.endsWith('}')) || (s.startsWith('[') && s.endsWith(']'))) return true;
+  if (s.includes('":{"') || s.includes('","') || s.includes('":{')) return true;
+  return false;
+}
+
+function normalizeSiteSectionOverride(defaultValue: string, overrideValue: string): string | null {
+  const v = overrideValue.trim();
+  if (!v) return null;
+
+  const defaultIsMultiline = defaultValue.includes('\n');
+  const defaultLen = defaultValue.trim().length;
+  const shortLabelLikeDefault = !defaultIsMultiline && defaultLen > 0 && defaultLen <= 80;
+
+  // Guard small labels/buttons from accidental raw JSON dumps pasted into CMS text boxes.
+  if (shortLabelLikeDefault && looksLikeSerializedPayload(v)) return null;
+
+  // Keep single-line chrome labels concise; long blobs usually indicate malformed CMS content.
+  if (!defaultIsMultiline && v.length > 220) return null;
+
+  return v;
+}
+
 type SiteSectionsMap = Record<string, Record<string, string>>;
 
 /** Dedupe concurrent fetches only — do not cache the result, or CMS edits never show until a full reload. */
@@ -755,7 +780,9 @@ export function useSiteSectionContent<T extends Record<string, string>>(
     const next: Record<string, string> = { ...defaults };
     Object.keys(defaults).forEach((k) => {
       const v = overrides[k];
-      if (typeof v === 'string' && v.trim()) next[k] = v;
+      if (typeof v !== 'string') return;
+      const normalized = normalizeSiteSectionOverride(defaults[k], v);
+      if (normalized) next[k] = normalized;
     });
     return next as T;
   }, [defaults, overrides]);
