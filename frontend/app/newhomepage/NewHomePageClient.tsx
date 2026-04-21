@@ -328,7 +328,7 @@ function NewHomePageInner({ reduceMotion }: { reduceMotion: boolean | null }) {
             kicker={(homeServicesBand.label || '').trim() || 'CAPABILITIES'}
             title={(homeServicesBand.title || '').trim() || 'OUR SERVICES'}
             blurb={(homeServicesBand.subtitle || '').trim() || nh.servicesBlurb}
-            blurbAlign="center"
+            blurbAlign="left"
           />
         </div>
         <div className="containerworks">
