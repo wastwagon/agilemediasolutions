@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { useReducedMotion } from 'framer-motion';
 import { useLocale } from '@/components/LocaleProvider';
 import { t } from '@/lib/i18n';
 import {
@@ -24,8 +24,6 @@ import { useNhScrollReveals } from './useNhScrollReveals';
 import { useNhSplitHeadlines } from './useNhSplitHeadlines';
 import { NhAwsaFooter, NhAwsaNavbar } from './NhAwsaBars';
 import NhFaqItem from './NhFaqItem';
-const easeOut = [0.2, 0.8, 0.2, 1] as const;
-
 type NhAwardRow = { org: string; award: string; year: string; key: string };
 
 function brandWebsiteLabel(websiteUrl: string | undefined): string {
@@ -123,7 +121,6 @@ function SectionHead({
 
 function NewHomePageInner({ reduceMotion }: { reduceMotion: boolean | null }) {
   const locale = useLocale();
-  const [splash, setSplash] = useState(true);
   const rootRef = useRef<HTMLDivElement>(null);
   useNhSplitHeadlines(rootRef, reduceMotion);
   useNhScrollReveals(rootRef, reduceMotion);
@@ -145,20 +142,10 @@ function NewHomePageInner({ reduceMotion }: { reduceMotion: boolean | null }) {
   );
 
   useEffect(() => {
-    if (reduceMotion) {
-      setSplash(false);
-      return;
-    }
-    const t = window.setTimeout(() => setSplash(false), 2000);
-    return () => clearTimeout(t);
-  }, [reduceMotion]);
-
-  useEffect(() => {
-    if (splash) return;
     void import('gsap/ScrollTrigger').then((mod) => {
       mod.ScrollTrigger.refresh();
     });
-  }, [splash]);
+  }, []);
 
   // const servicesBand = useMemo(() => getHomePageDefaults(locale).servicesBand, [locale]);
   // const brandsBand = useMemo(() => getHomePageDefaults(locale).brandsBand, [locale]);
@@ -294,8 +281,6 @@ function NewHomePageInner({ reduceMotion }: { reduceMotion: boolean | null }) {
     return nhMarqueeLogos.map((src, i) => ({ key: `tpl-${i}`, src, alt: '' }));
   }, [projectsBrands]);
 
-  const heroChars = nh.heroMark.split('');
-
   return (
     <div className="nh-root">
       <NhAwsaNavbar />
@@ -304,54 +289,8 @@ function NewHomePageInner({ reduceMotion }: { reduceMotion: boolean | null }) {
         className="nh-page awsa-exact page-wrap"
         onClickCapture={onHashNavCapture}
       >
-      <AnimatePresence>
-        {splash ? (
-          <motion.div
-            key="nh-splash"
-            className="nh-route-preloader"
-            initial={{ opacity: 1 }}
-            exit={{ opacity: 0, y: '-12%' }}
-            transition={{ duration: 1.05, ease: easeOut }}
-          >
-            <motion.h2
-              className="heading2"
-              initial={{ scale: 0.92, opacity: 0.6 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.9, ease: easeOut }}
-            >
-              {nh.heroMark}
-            </motion.h2>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
-
-      <section className="hero-section-2" aria-label="Hero">
-        <div className="hero-wrapper-2">
-          <div className="containertexthero">
-            <p className="textsecondaryhero">{nh.heroEyebrow}</p>
-            <h1 className="herotext" aria-label={nh.heroMark}>
-              {reduceMotion ? (
-                nh.heroMark
-              ) : (
-                heroChars.map((ch, i) => (
-                  <motion.span
-                    key={`${ch}-${i}`}
-                    initial={{ opacity: 0, y: 36 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.12 + i * 0.06, duration: 0.55, ease: easeOut }}
-                  >
-                    {ch}
-                  </motion.span>
-                ))
-              )}
-            </h1>
-            <div className="containercalltoaction">
-              <a href="#Contact" className="button whitebutton w-inline-block">
-                {nh.heroCta}
-              </a>
-            </div>
-          </div>
-        </div>
+      <section className="hero-section-2 nh-hero-visual-only" aria-label="Introduction">
+        <div className="hero-wrapper-2" aria-hidden />
       </section>
 
       <section id="About" className="about" aria-labelledby="nh-about-heading">

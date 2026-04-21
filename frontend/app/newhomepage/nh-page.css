@@ -35,6 +35,11 @@
   position: relative;
 }
 
+/* Text-only hero removed — keep full-bleed background image area */
+.nh-page.awsa-exact .hero-section-2.nh-hero-visual-only .hero-wrapper-2 {
+  min-height: 100%;
+}
+
 .nh-page.awsa-exact .containertexthero,
 .nh-page.awsa-exact .containertexthero .textsecondaryhero,
 .nh-page.awsa-exact .containertexthero .herotext,
