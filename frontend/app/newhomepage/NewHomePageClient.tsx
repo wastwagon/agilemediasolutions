@@ -17,16 +17,9 @@ import { parseSiteContentPairs, useSiteSectionContent } from '@/lib/siteSectionC
 // import { cssBackgroundImageUrl } from '@/lib/homePageServicesDisplay';
 import type { HomeApiBrand } from '@/lib/homePageBrandsDisplay';
 import { withLocalePrefix, type AppLocale } from '@/lib/locale';
-import type { HomeFeaturedStudy } from '@/components/HomeFeaturedWork';
 import { nh, nhMarqueeLogos } from './content';
 import NhContactForm from './NhContactForm';
-import { nhServiceIconSvgs } from './nhServiceIcons';
-import {
-  nhTemplateGreenCheck,
-  nhTemplateProjectCovers,
-  nhTemplateTeamPhotos,
-  nhTemplateWhyMark,
-} from './nhTemplateUrls';
+import { nhTemplateProjectCovers, nhTemplateWhyMark } from './nhTemplateUrls';
 import { useNhScrollReveals } from './useNhScrollReveals';
 import { useNhSplitHeadlines } from './useNhSplitHeadlines';
 import { NhAwsaFooter, NhAwsaNavbar } from './NhAwsaBars';
@@ -35,12 +28,52 @@ const easeOut = [0.2, 0.8, 0.2, 1] as const;
 
 type NhAwardRow = { org: string; award: string; year: string; key: string };
 
-function yearFromCaseStudy(s: HomeFeaturedStudy): string {
-  const raw = (s.created_at || s.updated_at || '').trim();
-  if (!raw) return '—';
-  const d = new Date(raw);
-  return Number.isNaN(d.getTime()) ? '—' : String(d.getFullYear());
+function brandWebsiteLabel(websiteUrl: string | undefined): string {
+  const w = (websiteUrl || '').trim();
+  if (!w) return '—';
+  try {
+    if (/^https?:\/\//i.test(w)) {
+      const host = new URL(w).hostname.replace(/^www\./i, '');
+      return host || '—';
+    }
+  } catch {
+    /* invalid URL */
+  }
+  return '—';
 }
+
+const NH_BRANDS_TABLE_FALLBACK: NhAwardRow[] = [
+  {
+    key: 'fb-al',
+    org: 'African Leaders Magazine',
+    award: 'Continental platform spotlighting leadership, policy, and governance across Africa.',
+    year: 'Print + digital',
+  },
+  {
+    key: 'fb-as',
+    org: 'Africa Sports Magazine',
+    award: "Athletes, leagues, and moments driving Africa's sporting evolution.",
+    year: 'Digital',
+  },
+  {
+    key: 'fb-anb',
+    org: 'Africa News Bulletin',
+    award: 'Curated updates on politics, economy, institutions, and regional affairs.',
+    year: 'Daily wire',
+  },
+  {
+    key: 'fb-ah',
+    org: 'Africa Hospitality Magazine',
+    award: 'Hotels, destinations, and travel brands reaching regional and global audiences.',
+    year: 'Print + digital',
+  },
+  {
+    key: 'fb-ap',
+    org: 'Agile Press Group',
+    award: 'Bulletins, syndication, and editorial desks amplifying institutional and civic narratives.',
+    year: 'Syndication',
+  },
+];
 
 type NhProjectGridCard = {
   key: string;
@@ -50,12 +83,6 @@ type NhProjectGridCard = {
   href: string;
   external: boolean;
 };
-
-function resolveBrandProjectHref(websiteUrl: string | undefined, locale: AppLocale): { href: string; external: boolean } {
-  const w = (websiteUrl || '').trim();
-  if (/^https?:\/\//i.test(w)) return { href: w, external: true };
-  return { href: withLocalePrefix('/brands', locale), external: false };
-}
 
 function SectionHead({
   headingId,
@@ -197,21 +224,17 @@ function NewHomePageInner({ reduceMotion }: { reduceMotion: boolean | null }) {
 
   const homeDefaults = useMemo(() => getHomePageDefaults(locale), [locale]);
   const homeWhoWeAre = useSiteSectionContent('home.whoWeAre', homeDefaults.whoWeAre);
-  const homeCaseStudiesBand = useSiteSectionContent('home.caseStudiesBand', homeDefaults.caseStudiesBand);
   const homeBrandsBand = useSiteSectionContent('home.brandsBand', homeDefaults.brandsBand);
+  const homeServicesBand = useSiteSectionContent('home.servicesBand', homeDefaults.servicesBand);
 
-  const [caseStudiesForAwards, setCaseStudiesForAwards] = useState<HomeFeaturedStudy[]>([]);
   const [projectsBrands, setProjectsBrands] = useState<HomeApiBrand[]>([]);
 
   useEffect(() => {
     let cancelled = false;
-    void Promise.all([
-      fetch('/api/case-studies').then((r) => (r.ok ? r.json() : [])),
-      fetch('/api/brands').then((r) => (r.ok ? r.json() : [])),
-    ])
-      .then(([cases, brands]) => {
+    void fetch('/api/brands')
+      .then((r) => (r.ok ? r.json() : []))
+      .then((brands) => {
         if (cancelled) return;
-        if (Array.isArray(cases)) setCaseStudiesForAwards(cases);
         if (Array.isArray(brands)) setProjectsBrands(brands);
       })
       .catch(() => {});
@@ -220,25 +243,21 @@ function NewHomePageInner({ reduceMotion }: { reduceMotion: boolean | null }) {
     };
   }, []);
 
-  const awardsTableRows: NhAwardRow[] = useMemo(() => {
-    if (caseStudiesForAwards.length === 0) {
-      return nh.awards.map((r) => ({
-        org: r.org,
-        award: r.award,
-        year: r.year,
-        key: `${r.org}-${r.award}`,
+  const brandsTableRows: NhAwardRow[] = useMemo(() => {
+    if (projectsBrands.length > 0) {
+      return projectsBrands.slice(0, 12).map((b) => ({
+        org: (b.name || '').trim() || 'Brand',
+        award: (b.description || '').trim() || '—',
+        year: brandWebsiteLabel(b.website_url),
+        key: `brand-${b.id}`,
       }));
     }
-    return caseStudiesForAwards.slice(0, 6).map((s) => ({
-      org: s.client_name?.trim() || 'Featured programme',
-      award: s.title.trim(),
-      year: yearFromCaseStudy(s),
-      key: String(s.id),
-    }));
-  }, [caseStudiesForAwards]);
+    return NH_BRANDS_TABLE_FALLBACK;
+  }, [projectsBrands]);
 
-  const awardsIntro =
-    caseStudiesForAwards.length > 0 ? homeCaseStudiesBand.subtitle : nh.sectionBlurb;
+  const brandsTableIntro =
+    (homeBrandsBand.subtitle || '').trim() ||
+    'Media properties that inform, inspire, and influence—owned and operated by Agile Media Solutions.';
 
   const newhomepageFaqDefaults = useMemo(() => getNewHomepageFaqDefaults(), []);
   const newhomepageFaq = useSiteSectionContent('newhomepage.faq', newhomepageFaqDefaults);
@@ -252,32 +271,28 @@ function NewHomePageInner({ reduceMotion }: { reduceMotion: boolean | null }) {
   }, [newhomepageFaq.qaPairs]);
 
   const projectGridCards: NhProjectGridCard[] = useMemo(() => {
-    if (projectsBrands.length > 0) {
-      const tag = homeBrandsBand.label.trim() || 'Our brands';
-      return projectsBrands.slice(0, 8).map((b, i) => {
-        const { href, external } = resolveBrandProjectHref(b.website_url, locale);
-        const img = (b.image_url || '').trim();
-        return {
-          key: `brand-${b.id}`,
-          title: b.name,
-          tag,
-          imageSrc: img || nhTemplateProjectCovers[i % nhTemplateProjectCovers.length],
-          href,
-          external,
-        };
-      });
-    }
-    return nh.projects.map((p) => ({
-      key: `tpl-${p.title}`,
-      title: p.title,
-      tag: p.tag,
-      imageSrc: nhTemplateProjectCovers[p.coverIndex],
-      href: '#Contact',
+    const tag = (homeServicesBand.label || '').trim() || 'Service';
+    return nh.services.map((s, i) => ({
+      key: `nh-service-${i}`,
+      title: s.title,
+      tag,
+      imageSrc: nhTemplateProjectCovers[s.iconIndex % nhTemplateProjectCovers.length],
+      href: withLocalePrefix('/services', locale),
       external: false,
     }));
-  }, [projectsBrands, homeBrandsBand.label, locale]);
+  }, [homeServicesBand.label, locale]);
 
-  const projectsSectionTitle = projectsBrands.length > 0 ? homeBrandsBand.title : 'Projects';
+  const aboutMarqueeItems = useMemo(() => {
+    const withImages = projectsBrands.filter((b) => (b.image_url || '').trim().length > 0);
+    if (withImages.length > 0) {
+      return withImages.map((b) => ({
+        key: `brand-${b.id}`,
+        src: (b.image_url || '').trim(),
+        alt: (b.name || '').trim(),
+      }));
+    }
+    return nhMarqueeLogos.map((src, i) => ({ key: `tpl-${i}`, src, alt: '' }));
+  }, [projectsBrands]);
 
   const heroChars = nh.heroMark.split('');
 
@@ -340,30 +355,42 @@ function NewHomePageInner({ reduceMotion }: { reduceMotion: boolean | null }) {
       </section>
 
       <section id="About" className="about" aria-labelledby="nh-about-heading">
-        <div className="header-section nh-about-head">
-          <p id="nh-about-heading" className="subhead-main _80">
-            {nh.aboutLine}
-          </p>
-          <p className="text-color-secondary max-description is-40 nh-section-blurb nh-about-body">
-            {nh.aboutBody}
-          </p>
+        <div className="nh-about-stack" data-nh-reveal>
+          {(homeBrandsBand.label || '').trim() ? (
+            <p className="nh-about-kicker">{homeBrandsBand.label.trim()}</p>
+          ) : null}
+          <h2 id="nh-about-heading" className="subhead-main _80 nh-about-title">
+            {(homeBrandsBand.title || '').trim() || 'Our brands'}
+          </h2>
         </div>
-        <div className="line-divider" aria-hidden />
-        <div className="marquee" aria-label="Sectors">
+        <div className="marquee nh-about-marquee" aria-label={(homeBrandsBand.title || '').trim() || 'Brands'}>
           <div className="marqueelogos">
             <div className="nh-marquee-track">
-              {[...nhMarqueeLogos, ...nhMarqueeLogos].map((src, i) => (
-                <img key={`${src}-${i}`} src={src} alt="" width={120} height={42} loading="lazy" />
+              {[...aboutMarqueeItems, ...aboutMarqueeItems].map((item, i) => (
+                <img
+                  key={`${item.key}-${i}`}
+                  src={item.src}
+                  alt={item.alt}
+                  width={140}
+                  height={48}
+                  loading="lazy"
+                />
               ))}
             </div>
           </div>
-          <div className="fade-gradient nh-marquee-fade" aria-hidden />
+          <div className="fade-gradient nh-marquee-fade nh-about-marquee-fade" aria-hidden />
         </div>
       </section>
 
       <section id="Projects" className="paddingtop paddingworkssection" aria-labelledby="nh-projects-heading">
         <div className="max-width-large align-center">
-          <SectionHead headingId="nh-projects-heading" title={projectsSectionTitle} />
+          <SectionHead
+            headingId="nh-projects-heading"
+            kicker={(homeServicesBand.label || '').trim() || 'CAPABILITIES'}
+            title={(homeServicesBand.title || '').trim() || 'OUR SERVICES'}
+            blurb={(homeServicesBand.subtitle || '').trim() || nh.servicesBlurb}
+            blurbAlign="center"
+          />
         </div>
         <div className="containerworks">
           <div className="worksgrid">
@@ -405,41 +432,6 @@ function NewHomePageInner({ reduceMotion }: { reduceMotion: boolean | null }) {
                 </div>
               );
             })}
-          </div>
-        </div>
-      </section>
-
-      <section id="Services" className="section-home-services" aria-labelledby="nh-services-heading">
-        <div className="max-width-large align-center">
-          <SectionHead
-            headingId="nh-services-heading"
-            kicker="CAPABILITIES"
-            title="OUR SERVICES"
-            blurb={nh.servicesBlurb}
-            blurbAlign="left"
-          />
-        </div>
-        <div className="container-41 nh-services-grid-outer">
-          <div className="service-grid" data-nh-reveal>
-            {nh.services.map((s) => (
-              <article key={s.title} className="service-card">
-                <div className="service_content-2">
-                  <div className="service-detail-div">
-                    <div className="service-icon-box">{nhServiceIconSvgs[s.iconIndex]}</div>
-                    <h3 className="titleservices">{s.title}</h3>
-                    <p className="paragraph">{s.line}</p>
-                    <div className="service-list-detail-div">
-                      {s.bullets.map((b) => (
-                        <div key={b} className="service-list-div">
-                          <img className="service-check-icon" src={nhTemplateGreenCheck} alt="" width={24} height={24} />
-                          <div className="paragraph">{b}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </article>
-            ))}
           </div>
         </div>
       </section>
@@ -590,27 +582,31 @@ function NewHomePageInner({ reduceMotion }: { reduceMotion: boolean | null }) {
         </div>
       </section>
 
-      <section id="Awards" className="awards nh-awards-section" aria-labelledby="nh-awards-heading">
+      <section
+        id="Brands"
+        className="awards nh-awards-section nh-brands-table-section"
+        aria-labelledby="nh-brands-table-heading"
+      >
         <div className="nh-awards-header-row" data-nh-reveal>
-          <h2 id="nh-awards-heading" className="heading2 nh-awards-page-title">
-            <span className="bold-text">Awards</span>
+          <h2 id="nh-brands-table-heading" className="heading2 nh-awards-page-title">
+            <span className="bold-text">{(homeBrandsBand.title || '').trim() || 'Our brands'}</span>
           </h2>
-          <p className="text-color-secondary nh-awards-intro">{awardsIntro}</p>
+          <p className="text-color-secondary nh-awards-intro">{brandsTableIntro}</p>
         </div>
         <div className="awardscontainergeneral nh-awards-table-outer">
           <div className="detailsawards nh-awards-stack" data-nh-reveal>
             <div className="awardindividual nh-award-row nh-awards-colhead" role="row">
               <div className="containindividual" role="columnheader">
-                <span className="nh-awards-th">Enterprise</span>
+                <span className="nh-awards-th">Brand</span>
               </div>
               <div className="containindividual" role="columnheader">
-                <span className="nh-awards-th">Award</span>
+                <span className="nh-awards-th">Description</span>
               </div>
               <div className="containindividual" role="columnheader">
-                <span className="nh-awards-th">Year</span>
+                <span className="nh-awards-th">Website</span>
               </div>
             </div>
-            {awardsTableRows.map((row) => (
+            {brandsTableRows.map((row) => (
               <div key={row.key} className="awardindividual nh-award-row" role="row">
                 <div className="containindividual">
                   <span className="bold-text-8">{row.org}</span>
@@ -624,28 +620,6 @@ function NewHomePageInner({ reduceMotion }: { reduceMotion: boolean | null }) {
               </div>
             ))}
           </div>
-        </div>
-      </section>
-
-      <section id="Team" className="teamsection" aria-labelledby="nh-team-heading">
-        <div className="max-width-large align-center">
-          <SectionHead headingId="nh-team-heading" title="The team" />
-        </div>
-        <div className="three-column-grid nh-team-cols">
-          {nh.team.map((m) => (
-            <div key={m.name} className="nh-team-member" data-nh-reveal>
-              <div className="teamimagewrap" tabIndex={0}>
-                <img className="member-image" src={nhTemplateTeamPhotos[m.photoIndex]} alt="" width={480} height={600} loading="lazy" />
-                <div className="member-image-cover" aria-hidden>
-                  <p className="paragraph">{nh.teamBio}</p>
-                </div>
-              </div>
-              <div className="titulartextteam">{m.name}</div>
-              <div className="space-top-small">
-                <span>{m.role}</span>
-              </div>
-            </div>
-          ))}
         </div>
       </section>
 

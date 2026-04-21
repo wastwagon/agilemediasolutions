@@ -27,16 +27,9 @@ type EventDetail = {
 };
 
 const EVENT_DETAIL_FALLBACK: Record<string, EventDetail> = {
-  'Africa Trade Summit': {
-    tagline: 'Accelerating Intra-African Trade, Investment, and Economic Transformation',
-    body: 'An annual flagship gathering of business leaders, policymakers, trade agencies, and investors. The Summit drives practical discussions around cross-border commerce, industrialization, trade finance, AfCFTA implementation, and private sector collaboration.',
-    features: 'Presidential panels, investment pitch rooms, trade showcases, CEO roundtables',
-    audience: 'Governments, DFIs, SMEs, multinationals, logistics and infrastructure players',
-    imageClass: 'event-img-summit',
-  },
   'Africa Trade Awards': {
     tagline: "Celebrating Excellence Across the Continent's Trade Ecosystem",
-    body: "Held as part of the Africa Trade Summit, the Awards recognize leading exporters, reform champions, trade institutions, and high-performing brands contributing to Africa's economic integration.",
+    body: "The Awards recognize leading exporters, reform champions, trade institutions, and high-performing brands contributing to Africa's economic integration.",
     features: 'Exporter of the Year, Trade Enabler, Public Sector Innovator, Emerging Enterprise, Digital Trade Leader',
     audience: 'Corporates, SMEs, government agencies, financial institutions',
     imageClass: 'event-img-trade-awards',
@@ -65,10 +58,6 @@ const EVENT_DETAIL_FALLBACK: Record<string, EventDetail> = {
 };
 
 const SIGNATURE_EVENTS_FALLBACK = [
-  {
-    title: 'Africa Trade Summit',
-    imageClass: 'event-img-summit',
-  },
   {
     title: 'Africa Trade Awards',
     imageClass: 'event-img-trade-awards',
@@ -109,7 +98,10 @@ export default function Page() {
         if (!res.ok) return;
         const data = await res.json();
         if (!Array.isArray(data)) return;
-        setEvents(data as EventItem[]);
+        const filtered = (data as EventItem[]).filter(
+          (ev) => typeof ev?.title === 'string' && !/^africa trade summit$/i.test(ev.title.trim())
+        );
+        setEvents(filtered);
       } catch {
         // Keep static fallback content when API is unavailable.
       }
@@ -158,7 +150,7 @@ export default function Page() {
                 body: e.description?.trim() || 'This event is designed to drive collaboration, visibility, and outcomes across public and private sector stakeholders.',
                 features: 'Panels, keynotes, showcases, and strategic networking sessions',
                 audience: 'Leaders, institutions, partners, media, and investors',
-                imageClass: 'event-img-summit',
+                imageClass: 'event-img-trade-awards',
               };
               const detail = {
                 tagline: e.tagline?.trim() || fallback.tagline,

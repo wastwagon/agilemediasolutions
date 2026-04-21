@@ -4,9 +4,6 @@ export const nh = {
   heroEyebrow: 'CREATIVE COMMUNICATIONS STUDIO',
   heroMark: 'AGILE',
   heroCta: 'Explore our Brands',
-  aboutLine: 'Powering Narratives.\nElevating Voices.\nDriving Impact.',
-  aboutBody:
-    'Agile Media Solutions is an international media, PR, and communications firm helping governments, institutions, brands, and movements shape the messages that move nations, markets, and minds.',
   sectionBlurb:
     'Through years of hands-on experience, we’ve built strong expertise in digital projects, applying clear, efficient methods to deliver high-quality, reliable results at every stage.',
 

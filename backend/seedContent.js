@@ -608,12 +608,6 @@ const SEED_BRANDS = [
 
 const SEED_EVENTS = [
   {
-    title: 'Africa Trade Summit',
-    description:
-      'Accelerating intra-African trade, investment, and transformation—presidential panels, pitch rooms, trade showcases, CEO roundtables.',
-    link_url: '/signature-events',
-  },
-  {
     title: 'Africa Trade Awards',
     description:
       "Excellence across the continent's trade ecosystem—exporters, enablers, innovators, and public-sector reform.",
@@ -1003,6 +997,10 @@ async function seedAgileContent(pool) {
       [e.title, e.description, e.link_url, i + 1]
     );
   }
+
+  await pool.query(`DELETE FROM events WHERE LOWER(TRIM(title)) = LOWER(TRIM($1))`, [
+    'Africa Trade Summit',
+  ]);
 
   for (const c of SEED_CASE_STUDIES) {
     await pool.query(

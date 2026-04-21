@@ -166,7 +166,8 @@ export const SITE_SECTION_DEFINITIONS: SiteSectionDefinition[] = [
   {
     key: 'home.brandsBand',
     title: 'Homepage — Brands band',
-    description: 'Headlines above the brand cards.',
+    description:
+      'Headlines above the brand cards on the main homepage. On `/newhomepage`, the same fields power the centered intro above the logo marquee (label, title, subtitle).',
     fields: [
       { id: 'label', label: 'Section label' },
       { id: 'title', label: 'Section title' },

@@ -15,20 +15,21 @@ export type NhEventDisplay = {
   imageClass?: string;
 };
 
-const PLACEHOLDER_CLASSES = ['event-img-summit', 'event-img-trade-awards', 'event-img-jazz'] as const;
+const PLACEHOLDER_CLASSES = ['event-img-trade-awards', 'event-img-industry-awards', 'event-img-jazz'] as const;
 
 const FALLBACK_EVENTS: NhEventDisplay[] = [
   {
     id: -1,
-    title: 'Africa Trade Summit',
-    description: 'Accelerating Intra-African Trade, Investment, and Economic Transformation.',
-    imageClass: 'event-img-summit',
-  },
-  {
-    id: -2,
     title: 'Africa Trade Awards',
     description: "Celebrating Excellence Across the Continent's Trade Ecosystem.",
     imageClass: 'event-img-trade-awards',
+  },
+  {
+    id: -2,
+    title: 'Africa Industry Awards',
+    description:
+      "Industry and manufacturing—innovation and growth from agribusiness and mining to energy, construction, and light industry.",
+    imageClass: 'event-img-industry-awards',
   },
   {
     id: -3,
@@ -40,8 +41,11 @@ const FALLBACK_EVENTS: NhEventDisplay[] = [
 
 /** Up to three events for the homepage (API slice or static fallbacks). */
 export function selectEventsForHomepage(apiEvents: HomeApiEvent[]): NhEventDisplay[] {
-  if (!apiEvents.length) return FALLBACK_EVENTS;
-  return apiEvents.slice(0, 3).map((e, i) => {
+  const list = apiEvents.filter(
+    (e) => typeof e?.title === 'string' && !/^africa trade summit$/i.test(e.title.trim())
+  );
+  if (!list.length) return FALLBACK_EVENTS;
+  return list.slice(0, 3).map((e, i) => {
     const url = (e.image_url || '').trim();
     return {
       id: e.id,

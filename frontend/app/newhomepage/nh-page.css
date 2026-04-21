@@ -122,7 +122,13 @@
   max-width: min(40rem, 52%);
 }
 
-/* About intro + partner marquee must render above gradient overlay. */
+/* About — tighter vertical rhythm than Webflow default (160px). */
+.nh-page.awsa-exact .about {
+  padding-top: clamp(64px, 10vh, 104px);
+  padding-bottom: clamp(96px, 12vh, 132px);
+}
+
+/* About intro + marquee above gradient overlay. */
 .nh-page.awsa-exact .about .align-center,
 .nh-page.awsa-exact .about .line-divider,
 .nh-page.awsa-exact .about .marquee {
@@ -130,38 +136,101 @@
   z-index: 1;
 }
 
-/* Scope the dark fade to partner logos only (not the intro sentence). */
-.nh-page.awsa-exact .about > .fade-gradient {
-  display: none;
+.nh-page.awsa-exact .nh-about-stack {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: clamp(0.5rem, 1.5vw, 0.75rem);
+  max-width: min(92vw, 56rem);
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: clamp(1.75rem, 4vh, 2.75rem);
+  padding: 0 clamp(0.75rem, 2.4vw, 1.5rem);
 }
 
-.nh-page.awsa-exact .marquee .marqueelogos {
+.nh-page.awsa-exact .nh-about-stack .nh-about-kicker {
+  margin: 0;
+  font-family: var(--_typography---h2--font-family, "Basementgrotesque V 1", Arial, sans-serif);
+  font-weight: var(--_typography---h2--weight, 500);
+  font-size: clamp(0.72rem, 1.7vw, 0.82rem);
+  line-height: 1.2;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.nh-page.awsa-exact .nh-about-stack .nh-about-title {
+  white-space: pre-line;
+  margin: 0;
+  max-width: 100%;
+  text-align: center;
+  text-transform: uppercase;
+  font-size: clamp(2rem, 5.2vw, 3.1rem) !important;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+}
+
+/* About logo strip — infinite scroll (duplicate row in JSX); white marks on black. */
+.nh-page.awsa-exact .about .nh-about-marquee {
+  margin-top: 0;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  min-height: clamp(52px, 7vw, 72px);
+}
+
+.nh-page.awsa-exact .about .nh-about-marquee .marqueelogos {
   position: relative;
   z-index: 1;
 }
 
-.nh-page.awsa-exact .marquee .nh-marquee-fade {
-  z-index: 2;
+.nh-page.awsa-exact .about .nh-marquee-track {
+  position: relative;
+  z-index: 1;
 }
 
-.nh-page.awsa-exact #nh-about-heading {
-  white-space: pre-line;
+.nh-page.awsa-exact .about .nh-marquee-track img {
+  height: clamp(36px, 4.5vw, 48px);
+  width: auto;
+  max-width: 140px;
+  object-fit: contain;
+  object-position: center;
+  opacity: 1;
+  filter: brightness(0) invert(1);
 }
 
-.nh-page.awsa-exact .nh-about-head {
-  align-items: flex-start;
-}
-
-.nh-page.awsa-exact .nh-about-head > #nh-about-heading {
-  max-width: min(56%, 46rem);
+/*
+ * Edge vignette: solid black at both ends → transparent center (reference marquee).
+ * Beats Webflow’s single-sided fade + scoped `display:none` on small screens (higher specificity).
+ */
+.nh-page.awsa-exact .about .nh-about-marquee > .fade-gradient.nh-about-marquee-fade {
+  display: block !important;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 100% !important;
+  max-width: none;
   margin: 0;
-  text-align: left;
-}
-
-.nh-page.awsa-exact .nh-about-head > .nh-about-body {
-  margin: 0;
-  max-width: min(40%, 34rem);
-  text-align: left;
+  z-index: 3;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    var(--black, #000) 0%,
+    var(--black, #000) 3%,
+    rgba(0, 0, 0, 0.88) 12%,
+    rgba(0, 0, 0, 0.35) 20%,
+    rgba(0, 0, 0, 0) 30%,
+    rgba(0, 0, 0, 0) 70%,
+    rgba(0, 0, 0, 0.35) 80%,
+    rgba(0, 0, 0, 0.88) 88%,
+    var(--black, #000) 97%,
+    var(--black, #000) 100%
+  );
 }
 
 /*
@@ -170,25 +239,6 @@
  */
 .nh-page.awsa-exact .service-grid {
   display: grid;
-}
-
-/* Services — six-card grid inside container (avoids double 90vw on `.service-grid`) */
-.nh-page.awsa-exact .nh-services-grid-outer {
-  width: 90vw;
-  max-width: 1400px;
-  margin-left: auto;
-  margin-right: auto;
-  margin-top: clamp(1.25rem, 3vh, 2.5rem);
-  padding-left: clamp(0.75rem, 2.4vw, 1.5rem);
-  padding-right: clamp(0.75rem, 2.4vw, 1.5rem);
-  box-sizing: border-box;
-}
-
-.nh-page.awsa-exact .nh-services-grid-outer .service-grid {
-  width: 100%;
-  max-width: none;
-  margin-left: 0;
-  margin-right: 0;
 }
 
 /* Capabilities — vertical accordion (same Webflow classes as FAQ), Awsa typography */
@@ -1149,6 +1199,50 @@
   pointer-events: auto;
 }
 
+/* Projects — gradient title in card overlay: true horizontal + vertical center */
+.nh-page.awsa-exact .paddingworkssection .project-link .divmid {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: clamp(1rem, 4vw, 2rem);
+  box-sizing: border-box;
+}
+
+.nh-page.awsa-exact .paddingworkssection .project-link .divmid .heading-2 {
+  margin: 0;
+  width: 100%;
+  max-width: min(100%, 22rem);
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  font-size: clamp(3rem, 2.8vw, 1.5rem);
+  line-height: 1.15;
+  display: block;
+}
+
+/* Projects band — center section header + blurb */
+.nh-page.awsa-exact .paddingworkssection .max-width-large.align-center .header-section {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.nh-page.awsa-exact .paddingworkssection .header-section .heading2 {
+  text-align: center;
+}
+
+.nh-page.awsa-exact .paddingworkssection .header-section .nh-section-kicker {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.nh-page.awsa-exact .paddingworkssection .header-section > .nh-section-blurb {
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: min(42rem, 92%);
+}
+
 /* Team bio overlay */
 .nh-page.awsa-exact .teamimagewrap:hover .member-image-cover,
 .nh-page.awsa-exact .teamimagewrap:focus-within .member-image-cover {
@@ -1228,6 +1322,37 @@
 
 .nh-page.awsa-exact .nh-awards-table-outer.awardscontainergeneral {
   margin-top: 0.5rem;
+}
+
+/* Brands table (same chrome as awards row) — centered intro + horizontal scroll if needed */
+.nh-page.awsa-exact .nh-brands-table-section .nh-awards-header-row {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.nh-page.awsa-exact .nh-brands-table-section .nh-awards-page-title {
+  text-align: center;
+}
+
+.nh-page.awsa-exact .nh-brands-table-section .nh-awards-page-title .bold-text {
+  font-size: clamp(1.75rem, 3.8vw, 2.5rem);
+}
+
+.nh-page.awsa-exact .nh-brands-table-section .nh-awards-intro {
+  flex: 1 1 auto;
+  max-width: min(44rem, 92vw);
+  margin-inline: auto;
+  text-align: center;
+}
+
+.nh-page.awsa-exact .nh-brands-table-section .awardscontainergeneral {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.nh-page.awsa-exact .nh-brands-table-section .awardindividual.nh-award-row {
+  grid-template-columns: minmax(9rem, 1.1fr) minmax(12rem, 2fr) minmax(7rem, 0.9fr);
 }
 
 .nh-page.awsa-exact .icon-check img {

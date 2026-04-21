@@ -120,7 +120,17 @@ export default function HomePageClient() {
         ]);
         if (brandsRes.ok) setBrands(await brandsRes.json());
         if (servicesRes.ok) setServices(await servicesRes.json());
-        if (eventsRes.ok) setEvents(await eventsRes.json());
+        if (eventsRes.ok) {
+          const rawEvents = await eventsRes.json();
+          if (Array.isArray(rawEvents)) {
+            setEvents(
+              rawEvents.filter(
+                (ev: EventData) =>
+                  typeof ev?.title === 'string' && !/^africa trade summit$/i.test(ev.title.trim())
+              )
+            );
+          }
+        }
         if (caseRes.ok) {
           const list = await caseRes.json();
           if (Array.isArray(list)) setCaseStudiesHome(list);
@@ -367,14 +377,14 @@ export default function HomePageClient() {
             ) : (
               <>
                 <article className="card card-event animate-on-scroll">
-                  <div className="card-image-placeholder event-img-summit"></div>
-                  <h3>Africa Trade Summit</h3>
-                  <p>Accelerating Intra-African Trade, Investment, and Economic Transformation.<br /><Link href={withLocalePrefix('/signature-events', locale)} className="link-arrow-text">{t(locale, 'learnMore')}</Link></p>
-                </article>
-                <article className="card card-event animate-on-scroll">
                   <div className="card-image-placeholder event-img-trade-awards"></div>
                   <h3>Africa Trade Awards</h3>
                   <p>Celebrating Excellence Across the Continent&apos;s Trade Ecosystem.<br /><Link href={withLocalePrefix('/signature-events', locale)} className="link-arrow-text">{t(locale, 'learnMore')}</Link></p>
+                </article>
+                <article className="card card-event animate-on-scroll">
+                  <div className="card-image-placeholder event-img-industry-awards"></div>
+                  <h3>Africa Industry Awards</h3>
+                  <p>Industry and manufacturing—innovation and growth from agribusiness and mining to energy, construction, and light industry.<br /><Link href={withLocalePrefix('/signature-events', locale)} className="link-arrow-text">{t(locale, 'learnMore')}</Link></p>
                 </article>
                 <article className="card card-event animate-on-scroll">
                   <div className="card-image-placeholder event-img-jazz"></div>
